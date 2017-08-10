@@ -1,2 +1,5 @@
 using Base.Test
-using OpenDiscCore
+
+@testset "Doctrine" begin
+  include("Doctrine.jl")
+end

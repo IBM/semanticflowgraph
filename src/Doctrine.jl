@@ -1,10 +1,14 @@
 module Doctrine
-export Monocl, MonoclCategory
+export Monocl, MonoclCategory, Ob, Hom, dom, codom, compose, id, otimes, munit,
+  opow, braid, mcopy, delete, pair, hom, ev, curry, coerce, construct
 
 using Catlab
 using Catlab.Doctrine: ObExpr, HomExpr, SymmetricMonoidalCategory
-import Catlab.Doctrine: dom, codom, compose, id, otimes, munit, braid,
-  mcopy, delete, pair, hom, ev, curry
+import Catlab.Doctrine: Ob, Hom, dom, codom, compose, id, otimes, munit,
+  braid, mcopy, delete, pair, hom, ev, curry
+
+# Cartesian (closed) category
+#############################
 
 """ Doctrine of *cartesian category*
 
@@ -18,7 +22,6 @@ terms of size greater than 2.
   mcopy(A::Ob) = mcopy(A,2)
   opow(A::Ob, n::Int) = otimes([A for i=1:n])
   opow(f::Hom, n::Int) = otimes([f for i=1:n])
-  pair(fs::Vararg{Hom}) = compose(mcopy(A,length(fs)), otimes(fs...))
 end
 
 """ Doctrine of *cartesian closed category*
@@ -32,19 +35,57 @@ inheriting from a different doctrine.
   curry(A::Ob, B::Ob, f::Hom(otimes(A,B),C))::Hom(A,hom(B,C)) <= (C::Ob)
 end
 
+# Monocl category
+#################
+
 """ Doctrine for Monocl: MONoidal Ontology and Computer Language
 
 A doctrine of monoidal categories derived from the doctrine of cartesian closed
-categories.
+categories with implicit conversion of types.
 """
 @signature CartesianClosedCategory(Ob,Hom) => MonoclCategory(Ob,Hom) begin
-  constructor(A, f::Hom(A,B))::Hom(B,A) <= (A::Ob, B::Ob)
+  """ Coercion, aka implicit conversion, of type A to type B.
+  """
+  coerce(A::Ob, B::Ob)::Hom(A,B)
+
+  """ Constructor for instances of type A with data f: A -> B.
+  
+  The semantics of this term are:
+     compose(construct(f), f) = id(B)
+  """
+  construct(f::Hom(A,B))::Hom(B,A) <= (A::Ob, B::Ob)
+  construct(A::Ob) = construct(delete(A))
 end
 
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
 """
-#@syntax Monocl(ObExpr,HomExpr) MonoclCategory begin
-#
-#end
+@syntax Monocl(ObExpr,HomExpr) MonoclCategory begin
+  # XXX: Implicit conversion is not yet implemented, so we have disabled
+  # domain checks when composing morphisms!
+  compose(f::Hom, g::Hom) = associate_unit(Super.compose(f,g; strict=false), id)
+  
+  otimes(A::Ob, B::Ob) = associate_unit(Super.otimes(A,B), munit)
+  otimes(f::Hom, g::Hom) = associate(Super.otimes(f,g))
+  
+  # TODO: Enforce pre-order, not just transitivity.
+  coerce(A::Ob, B::Ob) = A == B ? id(A) : Super.coerce(A,B)
+end
+
+""" Pairing of two (or more) morphisms.
+
+Pairing is possible in any cartesian category. This method differs from the
+standard Catlab definition by allowing coercion of the common domain object.
+"""
+function pair(A::Monocl.Ob, fs::Vector{Monocl.Hom})
+  fs_coerced = [ compose(coerce(A,dom(f)), f) for f in fs ]
+  compose(mcopy(A,length(fs)), otimes(fs_coerced))
+end
+function pair(fs::Vector{Monocl.Hom})
+  A = dom(first(fs))
+  @assert all(dom(f) == A for f in fs)
+  compose(mcopy(A,length(fs)), otimes(fs))
+end
+pair(A::Monocl.Ob, fs::Vararg{Monocl.Hom}) = pair(A, collect(Monocl.Hom,fs))
+pair(fs::Vararg{Monocl.Hom}) = pair(collect(Monocl.Hom,fs))
 
 end
