@@ -77,13 +77,12 @@ Pairing is possible in any cartesian category. This method differs from the
 standard Catlab definition by allowing coercion of the common domain object.
 """
 function pair(A::Monocl.Ob, fs::Vector{Monocl.Hom})
-  fs_coerced = [ compose(coerce(A,dom(f)), f) for f in fs ]
-  compose(mcopy(A,length(fs)), otimes(fs_coerced))
+  compose(mcopy(A,length(fs)), otimes(fs))
 end
 function pair(fs::Vector{Monocl.Hom})
   A = dom(first(fs))
   @assert all(dom(f) == A for f in fs)
-  compose(mcopy(A,length(fs)), otimes(fs))
+  pair(A, fs)
 end
 pair(A::Monocl.Ob, fs::Vararg{Monocl.Hom}) = pair(A, collect(Monocl.Hom,fs))
 pair(fs::Vararg{Monocl.Hom}) = pair(collect(Monocl.Hom,fs))
