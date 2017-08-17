@@ -1,17 +1,43 @@
 module TestDoctrine
-
 using Base.Test
+
+using Catlab
 using OpenDiscCore.Doctrine
 
-A0, A, B, C = Ob(Monocl, :A0, :A, :B, :C)
+# Monocl category
+#################
+
+A, B, C = Ob(Monocl, :A, :B, :C)
+A0, B0, A1, B1 = Ob(Monocl, :A0, :B0, :A1, :B1)
 I = munit(Monocl.Ob)
 f = Hom(:f, A, B)
 g = Hom(:f, A, C)
 
+# Subobjects
+subA = SubOb(A0, A)
+subB = SubOb(B0, B)
+@test dom(subA) == A0
+@test codom(subA) == A
+@test_throws MonoclError SubOb(otimes(A,B), C)
+@test_throws MonoclError SubOb(A,I)
+
+sub = compose(SubOb(A0, A), SubOb(A, A1))
+@test dom(sub) == A0
+@test codom(sub) == A1
+@test dom(subid(A)) == A
+@test codom(subid(A)) == A
+@test_throws SyntaxDomainError compose(subA, subB)
+
+sub = otimes(subA, subB)
+@test dom(sub) == otimes(A0,B0)
+@test codom(sub) == otimes(A,B)
+
 # Coercion
-@test coerce(A,A) == id(A)
-@test compose(coerce(A,A), f) == f
-@test compose(f, coerce(B,B)) == f
+@test dom(coerce(subA)) == A0
+@test codom(coerce(subA)) == A
+@test coerce(subid(A)) == id(A)
+@test compose(coerce(subid(A)), f) == f
+@test compose(f, coerce(subid(B))) == f
 
 # Constructors
 @test dom(construct(A)) == I

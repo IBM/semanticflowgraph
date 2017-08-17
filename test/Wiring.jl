@@ -17,15 +17,16 @@ diagram = to_wiring_diagram(f)
 @test input_types(diagram) == [ A ]
 @test output_types(diagram) == [ B ]
 
-diagram = to_wiring_diagram(compose(coerce(A0,A), f))
-@test boxes(diagram) == [ Box(coerce(A0,A)), Box(f) ]
+coercion = coerce(SubOb(A0, A))
+diagram = to_wiring_diagram(compose(coercion, f))
+@test boxes(diagram) == [ Box(coercion), Box(f) ]
 @test input_types(diagram) == [ A0 ]
 @test output_types(diagram) == [ B ]
 
 # Graphviz wiring diagrams
 ##########################
 
-diagram = to_wiring_diagram(compose(coerce(A0,A), construct(g)))
+diagram = to_wiring_diagram(compose(coerce(SubOb(A0,A)), construct(g)))
 @test isa(to_graphviz(diagram), Graphviz.Graph)
 
 end

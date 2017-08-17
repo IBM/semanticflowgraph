@@ -1,9 +1,10 @@
 module Doctrine
-export Monocl, MonoclCategory, Ob, Hom, dom, codom, compose, id, otimes, munit,
-  opow, braid, mcopy, delete, pair, hom, ev, curry, coerce, construct
+export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, dom, codom,
+  compose, id, subid, otimes, munit, opow, braid, mcopy, delete, pair,
+  hom, ev, curry, coerce, construct
 
 using Catlab
-using Catlab.Doctrine: ObExpr, HomExpr, SymmetricMonoidalCategory
+using Catlab.Doctrine: CategoryExpr, ObExpr, HomExpr, SymmetricMonoidalCategory
 import Catlab.Doctrine: Ob, Hom, dom, codom, compose, id, otimes, munit,
   braid, mcopy, delete, pair, hom, ev, curry
 
@@ -38,15 +39,32 @@ end
 # Monocl category
 #################
 
+struct MonoclError <: Exception
+  message::String
+end
+
 """ Doctrine for Monocl: MONoidal Ontology and Computer Language
 
 A doctrine of monoidal categories derived from the doctrine of cartesian closed
 categories with implicit conversion of types.
 """
-@signature CartesianClosedCategory(Ob,Hom) => MonoclCategory(Ob,Hom) begin
-  """ Coercion, aka implicit conversion, of type A to type B.
+@signature CartesianClosedCategory(Ob,Hom) => MonoclCategory(Ob,Hom,SubOb) begin
+  """ Subobject relation.
+  
+  The domain type is a subobject (subtype) of the codomain type.
   """
-  coerce(A::Ob, B::Ob)::Hom(A,B)
+  SubOb(dom::Ob, codom::Ob)::TYPE
+  
+  # Subcategory of subobject morphisms.
+  # XXX: Cannot reuse `id` for subobjects because cannot dispatch on return type.
+  subid(A::Ob)::SubOb(A,A)
+  compose(f::SubOb(A,B), g::SubOb(B,C))::SubOb(A,C) <= (A::Ob, B::Ob, C::Ob)
+  otimes(f::SubOb(A,B), g::SubOb(C,D))::SubOb(otimes(A,C),otimes(B,D)) <=
+    (A::Ob, B::Ob, C::Ob, D::Ob)
+
+  """ Coercion morphism of type A to type B.
+  """
+  coerce(sub::SubOb(A,B))::Hom(A,B) <= (A::Ob, B::Ob)
 
   """ Constructor for instances of type A with data f: A -> B.
   
@@ -59,17 +77,35 @@ end
 
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
 """
-@syntax Monocl(ObExpr,HomExpr) MonoclCategory begin
-  # XXX: Implicit conversion is not yet implemented, so we have disabled
+@syntax Monocl(ObExpr,HomExpr,CategoryExpr) MonoclCategory begin
+  
+  """ Establish subobject relation between two object generators.
+  """
+  function SubOb(value::Any, A::Ob, B::Ob)
+    if !(head(A) == :generator && head(B) == :generator)
+      msg = "Cannot construct subobject $A <: $B: subobject generators must contain object generators"
+      throw(MonoclError(msg))
+    end
+    SubOb(value, A, B)
+  end
+
+  # TODO: Implicit conversion is not yet implemented, so we have disabled
   # domain checks when composing morphisms!
   compose(f::Hom, g::Hom) = associate_unit(Super.compose(f,g; strict=false), id)
   
+  compose(f::SubOb, g::SubOb) = associate_unit(Super.compose(f,g; strict=true), subid)
+  
   otimes(A::Ob, B::Ob) = associate_unit(Super.otimes(A,B), munit)
   otimes(f::Hom, g::Hom) = associate(Super.otimes(f,g))
+  otimes(f::SubOb, g::SubOb) = associate(Super.otimes(f,g))
   
-  # TODO: Enforce pre-order, not just transitivity.
-  coerce(A::Ob, B::Ob) = A == B ? id(A) : Super.coerce(A,B)
+  # TODO: Enforce pre-order, not just reflexivity.
+  coerce(sub::SubOb) = dom(sub) == codom(sub) ? id(dom(sub)) : Super.coerce(sub)
 end
+
+""" Unnamed subobject generator.
+"""
+SubOb(dom::Monocl.Ob, codom::Monocl.Ob) = SubOb(nothing, dom, codom)
 
 """ Pairing of two (or more) morphisms.
 
