@@ -13,6 +13,7 @@ add_generators!(pres, [A, B, C, D, f, g])
 
 note = annotation_from_json(Dict(
   "schema" => "annotation",
+  "kind" => "object",
   "language" => "python",
   "package" => "mypkg",
   "id" => "a",
@@ -25,6 +26,7 @@ note = annotation_from_json(Dict(
 
 note = annotation_from_json(Dict(
   "schema" => "annotation",
+  "kind" => "morphism",
   "language" => "python",
   "package" => "mypkg",
   "id" => "a-do-composition",
