@@ -74,15 +74,8 @@ class AnnotationDB(HasTraits):
     
     def _load_json(self, path):
         with Path(path).open('r') as f:
-            data = json.load(f)
-        language, package = data['language'], data['package']
-        for note in data.get('functions', []):
-            note.update({'language': language, 'package': package,
-                         'kind': 'function'})
-            self._db.save(Annotation(note))
-        for note in data.get('objects', []):
-            note.update({'language': language, 'package': package,
-                         'kind': 'object'})
+            notes = json.load(f)
+        for note in notes:
             self._db.save(Annotation(note))
     
     def _query_json(self, query, obj):
@@ -128,9 +121,12 @@ class AnnotationDB(HasTraits):
 class Annotation(blitzdb.Document):
     """ Partial schema for annotation.
     
-    Should be regarded as an implementation detail of AnnotationDB.
+    Treat as an implementation detail of AnnotationDB.
     """    
-    language = fields.CharField(indexed=True)
-    package = fields.CharField(indexed=True)
-    kind = fields.EnumField(['function', 'object'], indexed=True)
-    id = fields.CharField(indexed=True)
+    language = fields.CharField(nullable=False, indexed=True)
+    package = fields.CharField(nullable=False, indexed=True)
+    id = fields.CharField(nullable=False, indexed=True)
+    kind = fields.EnumField(['object', 'morphism'], nullable=False, indexed=True)
+    
+    function = fields.CharField(nullable=True, indexed=True)
+    method = fields.CharField(nullable=True, indexed=True)
