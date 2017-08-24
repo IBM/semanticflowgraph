@@ -6,40 +6,34 @@ from pathlib2 import Path
 import blitzdb
 from blitzdb import fields
 import sqlalchemy
-from traitlets import HasTraits, Dict, Instance, List, Unicode, default
+from traitlets import HasTraits, Instance, default
 
 
 class AnnotationDB(HasTraits):
     """ An in-memory JSON database of object and function annotations.
     
-    This class contains no Python-specific annotation logic. For that,
+    The class contains no Python-specific annotation logic. For that,
     see `opendisc.kernel.trace.annotator`.
     """
-    
-    # Search path for package annotations.
-    search_path = List(Unicode())
     
     # Private traits.
     _db = Instance(blitzdb.backends.base.Backend)
     
-    def load_package(self, language, package):
-        """ Load annotations for the given language and package.
+    def load_documents(self, notes):
+        """ Load annotations from an iterable of JSON documents
+        (JSON-able dictionaries).
         """
-        paths = []
-        for lang_dir in self._language_dirs(language):
-            paths.extend(lang_dir.glob(package + '.json'))
-            paths.extend(lang_dir.glob(package + '/**/*.json'))
-        for path in paths:
-            self._load_json(path)             
+        for note in notes:
+            self._db.save(Annotation(note))
     
-    def load_all_packages(self, language):
-        """ Load annotations for all packages for the given language.
+    def load_file(self, filename):
+        """ Load annotations from a JSON file.
+        
+        Typically annotations will be loaded from a remote database but this
+        method is useful for local testing.
         """
-        paths = []
-        for lang_dir in self._language_dirs(language):
-            paths.extend(lang_dir.glob('**/*.json'))
-        for path in paths:
-            self._load_json(path)
+        with Path(filename).open('r') as f:
+            self.load_documents(json.load(f))
 
     def get(self, query):
         """ Get a single document matching the query.
@@ -65,18 +59,6 @@ class AnnotationDB(HasTraits):
                 if self._query_json(query, doc.attributes))
     
     # Private interface
-    
-    def _language_dirs(self, language):
-        for search_dir in map(Path, self.search_path):
-            lang_dir = search_dir.joinpath(language)
-            if lang_dir.is_dir():
-                yield lang_dir
-    
-    def _load_json(self, path):
-        with Path(path).open('r') as f:
-            notes = json.load(f)
-        for note in notes:
-            self._db.save(Annotation(note))
     
     def _query_json(self, query, obj):
         """ Recursively match a JSON query against a JSON object.
@@ -108,20 +90,12 @@ class AnnotationDB(HasTraits):
         backend.init_schema()
         backend.create_schema()
         return backend
-    
-    @default('search_path')
-    def _search_path_default(self):
-        # FIXME: Search path only works on developer installs.
-        import opendisc
-        pkg_dir = Path(opendisc.__file__).parent
-        note_dir = pkg_dir.joinpath('..', 'annotations').resolve()
-        return [ str(note_dir) ]
 
 
 class Annotation(blitzdb.Document):
     """ Partial schema for annotation.
     
-    Treat as an implementation detail of AnnotationDB.
+    Treat this class as an implementation detail of AnnotationDB.
     """    
     language = fields.CharField(nullable=False, indexed=True)
     package = fields.CharField(nullable=False, indexed=True)
