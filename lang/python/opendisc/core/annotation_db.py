@@ -16,15 +16,15 @@ class AnnotationDB(HasTraits):
     see `opendisc.kernel.trace.annotator`.
     """
     
-    # Private traits.
-    _db = Instance(blitzdb.backends.base.Backend)
+    # Underlying in-memory database backend.
+    _database = Instance(blitzdb.backends.base.Backend)
     
     def load_documents(self, notes):
         """ Load annotations from an iterable of JSON documents
         (JSON-able dictionaries).
         """
         for note in notes:
-            self._db.save(Annotation(note))
+            self._database.save(Annotation(note))
     
     def load_file(self, filename):
         """ Load annotations from a JSON file.
@@ -54,7 +54,7 @@ class AnnotationDB(HasTraits):
         blitz_query = { key: query.pop(key) for key in list(query.keys())
                         if key in Annotation.fields.keys() or 
                            key.startswith('$') }
-        blitz_result = self._db.filter(Annotation, blitz_query)
+        blitz_result = self._database.filter(Annotation, blitz_query)
         return (doc.attributes for doc in blitz_result
                 if self._query_json(query, doc.attributes))
     
@@ -80,8 +80,8 @@ class AnnotationDB(HasTraits):
     
     # Trait initializers
     
-    @default('_db')
-    def _db_default(self):
+    @default('_database')
+    def _database_default(self):
         """ Create SQL backend with in-memory SQLite database.
         """
         engine = sqlalchemy.create_engine('sqlite://') 
@@ -96,7 +96,7 @@ class Annotation(blitzdb.Document):
     """ Partial schema for annotation.
     
     Treat this class as an implementation detail of AnnotationDB.
-    """    
+    """
     language = fields.CharField(nullable=False, indexed=True)
     package = fields.CharField(nullable=False, indexed=True)
     id = fields.CharField(nullable=False, indexed=True)
