@@ -80,7 +80,7 @@ class FlowGraphBuilder(HasTraits):
         we regard the function as pure unless explicitly annotated otherwise.
         
         Of course, this convention is not really "correct", but the alternative
-        is flow graphs with tons of false positive mutations. In addition,
+        is flow graphs with too many false positive mutations. In addition,
         even if we assumed mutating semantics by default, we don't have the
         complicated machinery to track downstream objects that may modify the
         original object, as in the following example:
@@ -326,6 +326,8 @@ class FlowGraphBuilder(HasTraits):
         
         This method uses the Python garbage collector to find tracked objects
         referred to by untrackable containers.
+        
+        See also `Tracker.is_trackable()`.
         """
         # FIXME: Should we find referents recursively?
         if isinstance(obj, (tuple, list, dict, set, frozenset)):

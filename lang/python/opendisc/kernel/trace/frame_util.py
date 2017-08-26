@@ -90,7 +90,6 @@ def get_frame_arguments(frame):
     argument values.
     """
     try:
-        # FIXME: `getargvalues` is deprecated since Python 3.5.
         info = inspect.getargvalues(frame)
     except TypeError:
         # Inspection will fail for C extension functions. In that case,

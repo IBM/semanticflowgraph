@@ -52,7 +52,9 @@ class ObjectTracker(HasTraits):
     def is_trackable(cls, obj):
         """ Is it possible to track the given object?
         
-        Most importantly, primitive scalar types are not trackable.
+        Most importantly, primitive scalar types are not trackable, nor are
+        `tuple`, `list`, and `dict` types. The latter fact is especially
+        inconvenient.
         """
         # We never track function objects, even though they are weakref-able.
         if isinstance(obj, (types.FunctionType, types.MethodType)):
