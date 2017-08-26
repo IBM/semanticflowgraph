@@ -7,9 +7,10 @@ import types
 
 from cachetools import cachedmethod
 from cachetools.keys import hashkey
-from traitlets import HasTraits, Dict, Instance, Set, Unicode
+from traitlets import HasTraits, Dict, Instance, default
 
 from opendisc.core.annotation_db import AnnotationDB
+from opendisc.core.remote_annotation_db import RemoteAnnotationDB
 from .frame_util import get_func_full_name
 
 
@@ -25,10 +26,9 @@ class Annotator(HasTraits):
     # Database of annotations.
     # Do not manually load package annotations, as the annotator will load them
     # on-the-fly as needed.
-    db = Instance(AnnotationDB, args=())
+    db = Instance(AnnotationDB)
     
     # Private traits.
-    _loaded = Set(Unicode()) # Set of loaded packages
     _func_cache = Dict()
     _type_cache = Dict()
     
@@ -68,19 +68,19 @@ class Annotator(HasTraits):
         if isinstance(func, types.MethodType):
             cls = self._get_method_self(func)
             query_extra = { 
-                'kind': 'function',
+                'kind': 'morphism',
                 'method': func.__name__,
             }
             note = self._resolve_type(cls, query_extra)
         
-        # If that fails, look for a function annotation.
+        # Failing that, look for a function annotation.
         if note is None:
             name = get_func_full_name(func)
             package = name.split('.')[0]
             query = { 
                 'language': 'python',
                 'package': package,
-                'kind': 'function',
+                'kind': 'morphism',
                 'function': name,
             }
             note = next(self._query(query), None)
@@ -100,10 +100,9 @@ class Annotator(HasTraits):
         """ Query the annotation DB.
         """
         # Ensure package annotations have been loaded.
-        package = query['package']
-        if package not in self._loaded:
+        if isinstance(self.db, RemoteAnnotationDB):
+            package = query['package']
             self.db.load_package('python', package)
-            self._loaded.add(package)
         
         return self.db.filter(query)
     
@@ -121,7 +120,10 @@ class Annotator(HasTraits):
         best = None
         for name, subclass in subclasses.items():
             package = subclass.__module__.split('.')[0]
-            query = { 'language': 'python', 'package': package }
+            query = {
+                'language': 'python',
+                'package': package,
+            }
             query.update(query_extra)
             for note in self._query(query):
                 note_classes = self._get_annotation_classes(note)
@@ -185,3 +187,9 @@ class Annotator(HasTraits):
             # Instance method
             cls = func.__self__.__class__
         return cls
+    
+    # Trait initializers
+    
+    @default("db")
+    def _db_default(self):
+        return RemoteAnnotationDB()

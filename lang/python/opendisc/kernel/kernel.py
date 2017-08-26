@@ -45,7 +45,7 @@ class OpenDiscIPythonKernel(IPythonKernel):
     def do_execute(self, code, silent, *args, **kwargs):
         """ Reimplemented to perform tracing.
         """
-        # Do execution, possibily with tracing.
+        # Do execution, with tracing unless the execution request is `silent`.
         self._builder.reset()
         self._trace_flag = not silent
         reply_content = super(OpenDiscIPythonKernel, self).do_execute(
