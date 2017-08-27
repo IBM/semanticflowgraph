@@ -30,6 +30,22 @@ class TestSlotFunctions(unittest.TestCase):
         obj.getter = types.MethodType(lambda self: 0, obj)
         self.assertEqual(get_slot(obj, 'getter'), 0)
     
+    def test_method_not_bound(self):
+        """ Check that methods that not bound to the object are not called.
+        """
+        other = Struct()
+        other.getter = types.MethodType(lambda self: 0, other)
+        obj = Struct()
+        obj.meth = other.getter
+        self.assertRaises(AttributeError, lambda: get_slot(obj, 'meth'))
+    
+    def test_method_slot_args(self):
+        """ Check that methods with required arguments are not called.
+        """
+        obj = Struct()
+        obj.meth = types.MethodType(lambda self, x: x, obj)
+        self.assertRaises(AttributeError, lambda: get_slot(obj, 'meth'))
+    
     def test_nested_slot(self):
         """ Can we retrieve nested attributes?
         """

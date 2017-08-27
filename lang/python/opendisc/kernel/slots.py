@@ -25,10 +25,12 @@ def get_slot(obj, slot):
     
     A slot is generalized attribute ala Django's variable lookup in HTML
     templates. We support:
-        - Standard attributes
-        - Method calls (with no arguments)
+        - Attributes
+        - Bound methods (with no arguments)
         - Dictionary lookup
         - List indexing
+    
+    Raises an AttributeError if the slot cannot be retrieved.
     """
     if isinstance(slot, six.string_types):
         keys = slot.split('.')
@@ -41,10 +43,6 @@ def get_slot(obj, slot):
 def _get_single_slot(obj, key):
     try:
         value = getattr(obj, key)
-        if isinstance(value, types.MethodType):
-            return value()
-        else:
-            return value
     except AttributeError:
         try:
             key = int(key)
@@ -54,3 +52,14 @@ def _get_single_slot(obj, key):
             return obj[key]
         except:
             raise AttributeError("Cannot retrieve slot %r" % key)
+    else:
+        if isinstance(value, types.MethodType):
+            if not value.__self__ is obj:
+                raise AttributeError(
+                    "Cannot retrieve method slot %r: method not bound to object" % key)
+            if six.get_function_code(value).co_argcount > 1:
+                raise AttributeError(
+                    "Cannot retrieve method slot %r: too many arguments" % key)
+            return value()
+        else:
+            return value
