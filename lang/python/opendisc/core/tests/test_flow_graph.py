@@ -21,14 +21,16 @@ class TestFlowGraph(unittest.TestCase):
     def assert_isomorphic(self, g1, g2, check_id=True):
         """ Assert that two flow graphs are isomorphic.
         """
-        node_match = iso.categorical_node_match('qual_name', None)
         if check_id:
-            edge_match = iso.categorical_multiedge_match('id', None)
+            edge_attrs = [ 'id', 'sourceport', 'targetport' ]
         else:
-            edge_match = None
-        is_iso = nx.is_isomorphic(
-            g1, g2, node_match=node_match, edge_match=edge_match)
-        self.assertTrue(is_iso)
+            edge_attrs = [ 'sourceport', 'targetport' ]
+        edge_defaults = [ None ] * len(edge_attrs)
+        
+        node_match = iso.categorical_node_match('qual_name', None)
+        edge_match = iso.categorical_multiedge_match(edge_attrs, edge_defaults)
+        self.assertTrue(nx.is_isomorphic(
+            g1, g2, node_match=node_match, edge_match=edge_match))
 
     def setUp(self):
         """ Create the tracer and flow graph builder.
@@ -60,7 +62,8 @@ class TestFlowGraph(unittest.TestCase):
         target = nx.MultiDiGraph()
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='bar_from_foo')
-        target.add_edge(1, 2, id=self.id(foo))
+        target.add_edge(1, 2, id=self.id(foo),
+                        sourceport='self', targetport='foo')
         self.assert_isomorphic(actual, target)
     
     def test_three_object_flow(self):
@@ -76,8 +79,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='bar_from_foo')
         target.add_node(3, qual_name='baz_from_bar')
-        target.add_edge(1, 2, id=self.id(foo))
-        target.add_edge(2, 3, id=self.id(bar))
+        target.add_edge(1, 2, id=self.id(foo),
+                        sourceport='self', targetport='foo')
+        target.add_edge(2, 3, id=self.id(bar),
+                        sourceport='__return__', targetport='bar')
         self.assert_isomorphic(actual, target)
     
     def test_nonpure_flow(self):
@@ -93,8 +98,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='bar_from_foo_mutating')
         target.add_node(3, qual_name='baz_from_foo')
-        target.add_edge(1, 2, id=self.id(foo))
-        target.add_edge(2, 3, id=self.id(foo))
+        target.add_edge(1, 2, id=self.id(foo),
+                        sourceport='self', targetport='foo')
+        target.add_edge(2, 3, id=self.id(foo),
+                        sourceport='foo', targetport='foo')
         self.assert_isomorphic(actual, target)
     
     def test_pure_flow(self):
@@ -110,8 +117,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='bar_from_foo')
         target.add_node(3, qual_name='baz_from_foo')
-        target.add_edge(1, 2, id=self.id(foo))
-        target.add_edge(1, 3, id=self.id(foo))
+        target.add_edge(1, 2, id=self.id(foo),
+                        sourceport='self', targetport='foo')
+        target.add_edge(1, 3, id=self.id(foo),
+                        sourceport='self', targetport='foo')
         self.assert_isomorphic(actual, target)
     
     def test_singly_nested(self):
@@ -130,7 +139,7 @@ class TestFlowGraph(unittest.TestCase):
         target_sub = nx.MultiDiGraph()
         target_sub.add_node(1, qual_name='Foo.__init__')
         target_sub.add_node(2, qual_name='bar_from_foo')
-        target_sub.add_edge(1, 2)
+        target_sub.add_edge(1, 2, sourceport='self', targetport='foo')
         self.assert_isomorphic(actual_sub, target_sub, check_id=False)
     
     def test_flatten_singly_nested(self):
@@ -143,7 +152,7 @@ class TestFlowGraph(unittest.TestCase):
         target = nx.MultiDiGraph()
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='bar_from_foo')
-        target.add_edge(1, 2)
+        target.add_edge(1, 2, sourceport='self', targetport='foo')
         self.assert_isomorphic(actual, target, check_id=False)
     
     def test_doubly_nested(self):
@@ -157,7 +166,8 @@ class TestFlowGraph(unittest.TestCase):
         target = nx.MultiDiGraph()
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='outer_bar_from_foo')
-        target.add_edge(1, 2, id=self.id(foo))
+        target.add_edge(1, 2, id=self.id(foo),
+                        sourceport='self', targetport='foo')
         self.assert_isomorphic(actual, target)
         
         node = find_node(actual, lambda n: n['qual_name'] == 'outer_bar_from_foo')
@@ -183,7 +193,8 @@ class TestFlowGraph(unittest.TestCase):
         target = nx.MultiDiGraph()
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='bar_from_foo')
-        target.add_edge(1, 2, id=self.id(foo))
+        target.add_edge(1, 2, id=self.id(foo),
+                        sourceport='self', targetport='foo')
         self.assert_isomorphic(actual, target)
         
         source, sink = actual.graph['source'], actual.graph['sink']
@@ -205,8 +216,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='Foo.__getattribute__')
         target.add_node(3, qual_name='Foo.apply')
-        target.add_edge(1, 2, id=self.id(foo))
-        target.add_edge(1, 3, id=self.id(foo))
+        target.add_edge(1, 2, id=self.id(foo),
+                        sourceport='self', targetport='self')
+        target.add_edge(1, 3, id=self.id(foo),
+                        sourceport='self', targetport='self')
         self.assert_isomorphic(actual, target)
     
     def test_tracked_inside_list(self):
@@ -223,8 +236,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node(1, qual_name='Foo.__init__')
         target.add_node(2, qual_name='Foo.__init__')
         target.add_node(3, qual_name='foo_x_sum')
-        target.add_edge(1, 3, id=self.id(foo1))
-        target.add_edge(2, 3, id=self.id(foo2))
+        target.add_edge(1, 3, id=self.id(foo1),
+                        sourceport='self', targetport='foos')
+        target.add_edge(2, 3, id=self.id(foo2),
+                        sourceport='self', targetport='foos')
         self.assert_isomorphic(actual, target)
     
     def test_function_annotations(self):
