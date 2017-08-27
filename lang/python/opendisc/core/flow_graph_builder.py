@@ -102,8 +102,8 @@ class FlowGraphBuilder(HasTraits):
             return False
         
         # Default: pure unless explicitly annotated otherwise!
-        outputs = annotation.get('outputs', {}).values()
-        return arg_name not in outputs
+        codomain = annotation.get('codomain', [])
+        return not any(arg_name == obj['slot'] for obj in codomain)
     
     # Protected interface
     
@@ -238,9 +238,9 @@ class FlowGraphBuilder(HasTraits):
         The `slots` argument is mapping from names to slots.
         """
         result = {}
-        for name, spec in slots.items():
+        for name, slot in slots.items():
             try:
-                slot_value = get_slot(slot_obj, spec)
+                slot_value = get_slot(slot_obj, slot)
             except AttributeError:
                 continue
             result[name] = self._create_slot_data(event, slot_value, slot_value)
