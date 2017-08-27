@@ -113,7 +113,6 @@ class FlowGraphBuilder(HasTraits):
         """
         graph = nx.MultiDiGraph()
         graph.graph.update({
-            'object_annotations': {},
             'source': {},
             'sink': {},
         })
@@ -182,11 +181,6 @@ class FlowGraphBuilder(HasTraits):
         if return_id:
             sink = graph.graph['sink']
             sink[return_id] = (node, '__return__')
-            
-            object_notes = graph.graph['object_annotations']
-            if return_id not in object_notes:
-                note = self.annotator.notate_object(event.return_value)
-                object_notes[return_id] = self._annotation_key(note)
     
     def _add_call_node(self, event, graph):
         """ Add a new node for a call event.
@@ -210,18 +204,13 @@ class FlowGraphBuilder(HasTraits):
     def _add_call_in_edge(self, event, graph, node, arg_name, arg, is_pure=True):
         """ Add an incoming edge to a call node.
         """
-        object_notes = graph.graph['object_annotations']
-        source, sink = graph.graph['source'], graph.graph['sink']
-        
         # Only proceed if the argument is tracked.
         arg_id = event.tracer.object_tracker.get_id(arg)
         if not arg_id:
             return
-        if arg_id not in object_notes:
-            note = self.annotator.notate_object(arg)
-            object_notes[arg_id] = self._annotation_key(note)
         
         # Add edge if the argument has a known sink.
+        source, sink = graph.graph['source'], graph.graph['sink']
         if arg_id in sink:
             pred, pred_port = sink[arg_id]
             graph.add_edge(pred, node, id=arg_id,

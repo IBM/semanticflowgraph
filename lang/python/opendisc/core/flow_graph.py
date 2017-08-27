@@ -19,7 +19,6 @@ def flatten(graph, copy=True):
     """
     if copy:
         graph = graph.copy()
-    object_notes = graph.graph['object_annotations']
     source, sink = graph.graph['source'], graph.graph['sink']
     
     for node in graph.nodes():
@@ -27,9 +26,7 @@ def flatten(graph, copy=True):
         if not subgraph:
             continue
         subgraph = flatten(subgraph, copy=False)
-        sub_object_notes = subgraph.graph['object_annotations']
         sub_source, sub_sink = subgraph.graph['source'], subgraph.graph['sink']
-        object_notes.update(sub_object_notes)
         
         # First, add all nodes and edges from the subgraph.
         graph.add_nodes_from(subgraph.nodes_iter(data=True))
@@ -84,8 +81,7 @@ def join(first, second, copy=True):
             sources = graph.graph['source'].setdefault(obj_id, [])
             sources.extend(pairs)
     
-    # Merge object annotations and sinks from second graph.
-    graph.graph['object_annotations'].update(second.graph['object_annotations'])
+    # Merge sinks from second graph.
     graph.graph['sink'].update(second.graph['sink'])
     
     return graph

@@ -258,18 +258,6 @@ class TestFlowGraph(unittest.TestCase):
         note = graph.node[node]['annotation']
         self.assertEqual(note, 'python/opendisc/bar-from-foo')
     
-    def test_object_annotations(self):
-        """ Test that object annotations are stored.
-        """
-        with self.tracer:
-            foo = objects.Foo()
-            bar = objects.bar_from_foo(foo)
-        
-        graph = self.builder.graph
-        object_notes = graph.graph['object_annotations']
-        self.assertEqual(object_notes[self.id(foo)], 'python/opendisc/foo')
-        self.assertEqual(object_notes[self.id(bar)], 'python/opendisc/bar')
-    
     def test_input_ports(self):
         """ Test that data for input ports is stored.
         """
