@@ -165,10 +165,17 @@ class FlowGraphBuilder(HasTraits):
                 
         # Add explicitly annotated function outputs.
         annotation = self.annotator.notate_function(event.function) or {}
-        data['outputs'] = self._create_slots_data(
-            event,
+        if 'codomain' in annotation:
+            output_slots = [ obj['slot'] for obj in annotation['codomain'] ]
+        else:
+            output_slots = [ '__return__' ]
+        ports = data.setdefault('ports', [])
+        ports.extend(self._create_slots_data(
+            event.tracer,
             _IOSlots(event),
-            annotation.get('outputs', {}))
+            output_slots,
+            { 'portkind': 'output' },
+        ))
         
         # Set annotation and sink for return value.
         return_id = event.tracer.object_tracker.get_id(event.return_value)
@@ -190,10 +197,11 @@ class FlowGraphBuilder(HasTraits):
             'annotation': self._annotation_key(annotation),
             'module': event.module,
             'qual_name': event.qual_name,
-            'inputs': self._create_slots_data(
-                event,
+            'ports': self._create_slots_data(
+                event.tracer,
                 _IOSlots(event),
-                annotation.get('inputs', {})
+                event.arguments.keys(),
+                { 'portkind': 'input' },
             ),
         }
         graph.add_node(node, **data)
@@ -232,51 +240,47 @@ class FlowGraphBuilder(HasTraits):
         if event.atomic and not is_pure:
             sink[arg_id] = (node, arg_name)
     
-    def _create_slots_data(self, event, slot_obj, slots):
+    def _create_slots_data(self, tracer, slot_obj, slots, extra_data={}):
         """ Create data for slots on an object.
-        
-        The `slots` argument is mapping from names to slots.
         """
-        result = {}
-        for name, slot in slots.items():
+        result = []
+        for slot in slots:
             try:
                 slot_value = get_slot(slot_obj, slot)
             except AttributeError:
                 continue
-            result[name] = self._create_slot_data(event, slot_value, slot_value)
+            data = self._create_slot_data(tracer, slot, slot_value)
+            data.update(extra_data)
+            result.append(data)
         return result
     
-    def _create_slot_data(self, event, slot_obj, slot_value, note=None):
-        """ Create data for a single slot on an object.
+    def _create_slot_data(self, tracer, slot, obj):
+        """ Create data for a single slot value.
         """
-        data = {}
+        data = { 'name': slot }
+        if obj is None:
+            return data
         
-        # Add data for Python object.
-        obj = slot_value
-        if obj is not None:
-            # Add ID if the object is trackable.
-            if ObjectTracker.is_trackable(obj):
-                obj_id = event.tracer.object_tracker.get_id(obj)
-                if not obj_id:
-                    obj_id = event.tracer.track_object(obj)
-                data['id'] = obj_id
-            
-            # Add value if the object is primitive.
-            if self.is_primitive(obj):
-                data['value'] = deepcopy(obj)
+        # Add ID if the object is trackable.
+        if ObjectTracker.is_trackable(obj):
+            obj_id = tracer.object_tracker.get_id(obj)
+            if not obj_id:
+                obj_id = tracer.track_object(obj)
+            data['id'] = obj_id
         
-            # Get annotation if we don't already have one.
-            if not note:
-                note = self.annotator.notate_object(obj)
+        # Add value if the object is primitive.
+        if self.is_primitive(obj):
+            data['value'] = deepcopy(obj)
                 
         # Add annotation, if it exists.
+        note = self.annotator.notate_object(obj)
         if note:
             data['annotation'] = self._annotation_key(note)
-            
+        
         # Add slots if the object has any, recursively invoking this function.
-        if note and 'slots' in note:
-            data['slots'] = self._create_slots_data(
-                event, slot_obj, note['slots'])
+        #if note and 'slots' in note:
+        #    data['slots'] = self._create_slots_data(
+        #        event, slot_obj, note['slots'])
         
         return data
     
@@ -325,7 +329,9 @@ class _CallItem(HasTraits):
 
 
 class _IOSlots(object):
-    """ Implementation detail of FlowGraphBuilder. 
+    """ Get slots of a function call or return event.
+    
+    Implementation detail of FlowGraphBuilder.
     """
 
     def __init__(self, event):
@@ -338,7 +344,7 @@ class _IOSlots(object):
         try:
             return event.arguments[name]
         except KeyError:
-            raise AttributeError("No slot %r" % name)
+            raise AttributeError("No function slot %r" % name)
     
     def __getitem__(self, index):
         event = self.__event

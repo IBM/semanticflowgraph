@@ -270,8 +270,8 @@ class TestFlowGraph(unittest.TestCase):
         self.assertEqual(object_notes[self.id(foo)], 'python/opendisc/foo')
         self.assertEqual(object_notes[self.id(bar)], 'python/opendisc/bar')
     
-    def test_input_data(self):
-        """ Test that data for input objects is stored.
+    def test_input_ports(self):
+        """ Test that data for input ports is stored.
         """
         with self.tracer:
             foo = objects.create_foo()
@@ -279,41 +279,68 @@ class TestFlowGraph(unittest.TestCase):
         
         graph = self.builder.graph
         node = find_node(graph, lambda n: n['qual_name'] == 'bar_from_foo')
-        actual = graph.node[node]['inputs']
-        desired = {
-            'input': {
+        actual = [ port for port in graph.node[node]['ports']
+                   if port['portkind'] == 'input' ]
+        desired = [
+            {
+                'name': 'foo',
+                'portkind': 'input',
                 'id': self.id(foo),
                 'annotation': 'python/opendisc/foo',
-                'slots': {
-                    'x': {'value': 1},
-                    'y': {'value': 1},
-                    'sum': {'value': 2},
-                },
+                # 'slots': {
+                #     'x': {'value': 1},
+                #     'y': {'value': 1},
+                #     'sum': {'value': 2},
+                # },
             },
-            'x': {'value': 10},
-            'y': {},
-        }
+            {
+                'name': 'x',
+                'portkind': 'input',
+                'value': 10,
+            },
+            {
+                'name': 'y',
+                'portkind': 'input',
+            }
+        ]
         self.assertEqual(actual, desired)
     
-    def test_input_data_varargs(self):
-        """ Test that *args and **kwds inputs are stored.
+    def test_input_ports_varargs(self):
+        """ Test that varargs and keyword arguments are stored.
         """
         with self.tracer:
             objects.sum_varargs(1,2,3,w=4)
         
         graph = self.builder.graph
         node = find_node(graph, lambda n: n['qual_name'] == 'sum_varargs')
-        actual = graph.node[node]['inputs']
-        desired = {
-            'x': {'value': 1},
-            'y': {'value': 2},
-            'z': {'value': 3},
-            'w': {'value': 4},
-        }
+        actual = [ port for port in graph.node[node]['ports']
+                   if port['portkind'] == 'input' ]
+        desired = [
+            {
+                'name': 'x',
+                'portkind': 'input',
+                'value': 1,
+            },
+            {
+                'name': 'y',
+                'portkind': 'input',
+                'value': 2,
+            },
+            {
+                'name': '__vararg0__',
+                'portkind': 'input',
+                'value': 3,
+            },
+            {
+                'name': 'w',
+                'portkind': 'input',
+                'value': 4,
+            }
+        ]
         self.assertEqual(actual, desired)
     
     def test_output_data(self):
-        """ Test that data for output objects is stored.
+        """ Test that data for output ports is stored.
         """
         with self.tracer:
             foo = objects.create_foo()
@@ -321,25 +348,34 @@ class TestFlowGraph(unittest.TestCase):
         
         graph = self.builder.graph
         node = find_node(graph, lambda n: n['qual_name'] == 'Foo.do_sum')
-        actual = graph.node[node]['outputs']
-        desired = {
-            'sum': {'value': x},
-        }
+        actual = [ port for port in graph.node[node]['ports']
+                   if port['portkind'] == 'output' ]
+        print(actual)
+        desired = [
+            {
+                'name': '__return__',
+                'portkind': 'output',
+                'value': x,
+            }
+        ]
         self.assertEqual(actual, desired)
         
         node = find_node(graph, lambda n: n['qual_name'] == 'create_foo')
-        actual = graph.node[node]['outputs']
-        desired = {
-            'created-foo': {
+        actual = [ port for port in graph.node[node]['ports']
+                   if port['portkind'] == 'output' ]
+        desired = [
+            {
+                'name': '__return__',
+                'portkind': 'output',
                 'id': self.id(foo),
                 'annotation': 'python/opendisc/foo',
-                'slots': {
-                    'x': {'value': 1},
-                    'y': {'value': 1},
-                    'sum': {'value': 2},
-                },
-            },
-        }
+                # 'slots': {
+                #     'x': {'value': 1},
+                #     'y': {'value': 1},
+                #     'sum': {'value': 2},
+                # },
+            }
+        ]
         self.assertEqual(actual, desired)
     
     def test_two_join_three_object_flow(self):
