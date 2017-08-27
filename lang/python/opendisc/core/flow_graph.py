@@ -36,18 +36,21 @@ def flatten(graph, copy=True):
         graph.add_edges_from(subgraph.edges_iter(data=True))
         
         # Re-wire the incoming edges.
-        for pred, _, data in graph.in_edges_iter(node, data=True):
-            obj_id = data['id']
-            for succ in sub_source[obj_id]:
-                graph.add_edge(pred, succ, id=obj_id)
+        for src, _, data in graph.in_edges_iter(node, data=True):
+            obj_id, src_port = data['id'], data['sourceport']
+            for tgt, tgt_port in sub_source[obj_id]:
+                graph.add_edge(src, tgt, id=obj_id,
+                               sourceport=src_port, targetport=tgt_port)
             del sub_source[obj_id]
         # Any remaining sources are attached to the super graph.
         source.update(sub_source)
         
         # Re-wire the outgoing edges.
-        for _, succ, data in graph.out_edges_iter(node, data=True):
-            obj_id = data['id']
-            graph.add_edge(sub_sink[obj_id], succ, id=obj_id)
+        for _, tgt, data in graph.out_edges_iter(node, data=True):
+            obj_id, tgt_port = data['id'], data['targetport']
+            src, src_port = sub_sink[obj_id]
+            graph.add_edge(src, tgt, id=obj_id, 
+                           sourceport=src_port, targetport=data['port'])
             del sub_sink[obj_id]
         # Any remaining sinks are attached to the super graph. 
         sink.update(sub_sink)
@@ -71,14 +74,15 @@ def join(first, second, copy=True):
     graph.add_edges_from(second.edges_iter(data=True))
 
     # Merge sources from second graph.
-    for obj_id, nodes in second.graph['source'].items():
-        sink = first.graph['sink'].get(obj_id)
-        if sink:
-            for node in nodes:
-                graph.add_edge(sink, node, id=obj_id)
+    for obj_id, pairs in second.graph['source'].items():
+        if obj_id in first.graph['sink']:
+            src, src_port = first.graph['sink'][obj_id]
+            for tgt, tgt_port in pairs:
+                graph.add_edge(src, tgt, id=obj_id,
+                               sourceport=src_port, targetport=tgt_port)
         else:
             sources = graph.graph['source'].setdefault(obj_id, [])
-            sources.extend(nodes)
+            sources.extend(pairs)
     
     # Merge object annotations and sinks from second graph.
     graph.graph['object_annotations'].update(second.graph['object_annotations'])

@@ -6,6 +6,7 @@ import unittest
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
 
+from ..annotation_db import AnnotationDB
 from ..flow_graph import flatten, join
 from ..flow_graph_builder import FlowGraphBuilder
 from ..graph.util import find_node
@@ -32,9 +33,12 @@ class TestFlowGraph(unittest.TestCase):
     def setUp(self):
         """ Create the tracer and flow graph builder.
         """
-        search_path = Path(objects.__file__).parent.joinpath('annotations')
+        json_path = Path(objects.__file__).parent.joinpath('data', 'opendisc.json')
+        db = AnnotationDB()
+        db.load_file(str(json_path))
+        
         self.builder = FlowGraphBuilder()
-        self.builder.annotator.db.search_path = [str(search_path)]
+        self.builder.annotator.db = db
         self.tracer = Tracer()
         self.tracer.modules = [ 'opendisc.core.tests.test_flow_graph' ]
         self.id = self.tracer.object_tracker.get_id # For convenience
@@ -185,9 +189,9 @@ class TestFlowGraph(unittest.TestCase):
         source, sink = actual.graph['source'], actual.graph['sink']
         self.assertEqual(source, {})
         node = find_node(actual, lambda n: n['qual_name'] == 'Foo.__init__')
-        self.assertEqual(sink[self.id(foo)], node)
+        self.assertEqual(sink[self.id(foo)], (node, 'self'))
         node = find_node(actual, lambda n: n['qual_name'] == 'bar_from_foo')
-        self.assertEqual(sink[self.id(bar)], node)
+        self.assertEqual(sink[self.id(bar)], (node, '__return__'))
     
     def test_higher_order_function(self):
         """ Test that higher-order functions using user-defined functions work.
@@ -233,19 +237,11 @@ class TestFlowGraph(unittest.TestCase):
         graph = self.builder.graph
         node = find_node(graph, lambda n: n['qual_name'] == 'create_foo')
         note = graph.node[node]['annotation']
-        self.assertEqual(note, {
-            'language': 'python',
-            'package': 'opendisc',
-            'id': 'create-foo',
-        })
+        self.assertEqual(note, 'python/opendisc/create-foo')
         
         node = find_node(graph, lambda n: n['qual_name'] == 'bar_from_foo')
         note = graph.node[node]['annotation']
-        self.assertEqual(note, {
-            'language': 'python',
-            'package': 'opendisc',
-            'id': 'bar-from-foo',
-        })
+        self.assertEqual(note, 'python/opendisc/bar-from-foo')
     
     def test_object_annotations(self):
         """ Test that object annotations are stored.
@@ -256,16 +252,8 @@ class TestFlowGraph(unittest.TestCase):
         
         graph = self.builder.graph
         object_notes = graph.graph['object_annotations']
-        self.assertEqual(object_notes[self.id(foo)], {
-            'language': 'python',
-            'package': 'opendisc',
-            'id': 'foo',
-        })
-        self.assertEqual(object_notes[self.id(bar)], {
-            'language': 'python',
-            'package': 'opendisc',
-            'id': 'bar',
-        })
+        self.assertEqual(object_notes[self.id(foo)], 'python/opendisc/foo')
+        self.assertEqual(object_notes[self.id(bar)], 'python/opendisc/bar')
     
     def test_input_data(self):
         """ Test that data for input objects is stored.
@@ -280,11 +268,7 @@ class TestFlowGraph(unittest.TestCase):
         desired = {
             'input': {
                 'id': self.id(foo),
-                'annotation': {
-                    'language': 'python',
-                    'package': 'opendisc',
-                    'id': 'foo'
-                },
+                'annotation': 'python/opendisc/foo',
                 'slots': {
                     'x': {'value': 1},
                     'y': {'value': 1},
@@ -333,11 +317,7 @@ class TestFlowGraph(unittest.TestCase):
         desired = {
             'created-foo': {
                 'id': self.id(foo),
-                'annotation': {
-                    'language': 'python',
-                    'package': 'opendisc',
-                    'id': 'foo'
-                },
+                'annotation': 'python/opendisc/foo',
                 'slots': {
                     'x': {'value': 1},
                     'y': {'value': 1},

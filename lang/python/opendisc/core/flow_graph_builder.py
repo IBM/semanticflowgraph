@@ -135,10 +135,11 @@ class FlowGraphBuilder(HasTraits):
         object_tracker = event.tracer.object_tracker
         for arg_name, arg in event.arguments.items():
             is_pure = self.is_pure(event, annotation, arg_name)
-            self._add_call_in_edge(event, graph, node, arg,
-                                   arg_name=arg_name, is_pure=is_pure)
+            self._add_call_in_edge(event, graph, node, arg_name, arg,
+                                   is_pure=is_pure)
             for value in self._hidden_referents(object_tracker, arg):
-                self._add_call_in_edge(event, graph, node, value, is_pure=is_pure)
+                self._add_call_in_edge(event, graph, node, arg_name, value,
+                                       is_pure=is_pure)
         
         # If the call is not atomic, we have entered a new scope.
         # Push a new graph and attach it to this node.
@@ -173,7 +174,7 @@ class FlowGraphBuilder(HasTraits):
         return_id = event.tracer.object_tracker.get_id(event.return_value)
         if return_id:
             sink = graph.graph['sink']
-            sink[return_id] = node
+            sink[return_id] = (node, '__return__')
             
             object_notes = graph.graph['object_annotations']
             if return_id not in object_notes:
@@ -198,8 +199,7 @@ class FlowGraphBuilder(HasTraits):
         graph.add_node(node, **data)
         return node
     
-    def _add_call_in_edge(self, event, graph, node, arg,
-                          arg_name=None, is_pure=True):
+    def _add_call_in_edge(self, event, graph, node, arg_name, arg, is_pure=True):
         """ Add an incoming edge to a call node.
         """
         object_notes = graph.graph['object_annotations']
@@ -214,9 +214,10 @@ class FlowGraphBuilder(HasTraits):
             object_notes[arg_id] = self._annotation_key(note)
         
         # Add edge if the argument has a known sink.
-        pred = sink.get(arg_id)
-        if pred is not None:
-            graph.add_edge(pred, node, id=arg_id)
+        if arg_id in sink:
+            pred, pred_port = sink[arg_id]
+            graph.add_edge(pred, node, id=arg_id,
+                           sourceport=pred_port, targetport=arg_name)
         
         # Otherwise, mark the argument as a source.
         # Special case: Treat `self` in object initializer as return value.
@@ -225,45 +226,24 @@ class FlowGraphBuilder(HasTraits):
         elif not (event.atomic and event.qual_name.endswith('__init__') and
                   arg_name == 'self'):
             source_nodes = source.setdefault(arg_id, [])
-            source_nodes.append(node)
+            source_nodes.append((node, arg_name))
     
         # Update sink if this call is atomic and mutating.
         if event.atomic and not is_pure:
-            sink[arg_id] = node
+            sink[arg_id] = (node, arg_name)
     
     def _create_slots_data(self, event, slot_obj, slots):
         """ Create data for slots on an object.
         
-        The `slots` argument is mapping from names to slot specifications.
-        Two formats for the slot specification are supported:
-        
-            1. Single slot name (string or integer)
-               Under this format, the requested slot on the object is retrieved.
-               The slot value is assigned an annotation through the usual type
-               resolution mechanism.
-            
-            2. Custom object (dict)
-               The specificiation is interpeted as a custom annotation.
+        The `slots` argument is mapping from names to slots.
         """
         result = {}
         for name, spec in slots.items():
-            # Case 2: Custom object (dict)
-            if isinstance(spec, dict):
-                slot_value = None
-                if 'object' in spec:
-                    try:
-                        slot_value = get_slot(slot_obj, spec['object'])
-                    except AttributeError:
-                        pass
-                data = self._create_slot_data(event, slot_obj, slot_value, spec)
-            # Case 1: Single slot name (string or integer)
-            else:
-                try:
-                    slot_value = get_slot(slot_obj, spec)
-                except AttributeError:
-                    continue
-                data = self._create_slot_data(event, slot_value, slot_value)
-            result[name] = data
+            try:
+                slot_value = get_slot(slot_obj, spec)
+            except AttributeError:
+                continue
+            result[name] = self._create_slot_data(event, slot_value, slot_value)
         return result
     
     def _create_slot_data(self, event, slot_obj, slot_value, note=None):
@@ -303,15 +283,10 @@ class FlowGraphBuilder(HasTraits):
     def _annotation_key(self, note):
         """ Get a key identifying an annotation.
         """
-        if not note:
-            return None
-        keys = { 'language', 'package', 'id' }
-        try:
-            return { key: note[key] for key in keys }
-        except KeyError:
-            # If a uniquely identifying key is not available, we must store
-            # the whole annotation.
-            return note
+        if note:
+            keys = ('language', 'package', 'id')
+            return '/'.join(note[key] for key in keys)
+        return None
     
     def _hidden_referents(self, tracker, obj):
         """ Get "hidden" referents of an object.
