@@ -7,8 +7,9 @@ import networkx as nx
 import networkx.algorithms.isomorphism as iso
 
 from ..annotation_db import AnnotationDB
-from ..flow_graph import flatten, join
+from ..flow_graph import new_flow_graph, flatten, join
 from ..flow_graph_builder import FlowGraphBuilder
+from ..graph.graphml import read_graphml_str, write_graphml_str
 from ..graph.util import find_node
 from ...kernel.trace.tracer import Tracer
 from . import objects
@@ -59,11 +60,29 @@ class TestFlowGraph(unittest.TestCase):
             bar = objects.bar_from_foo(foo)
         
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='bar_from_foo')
-        target.add_edge(1, 2, id=self.id(foo),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='bar_from_foo')
+        target.add_edge('1', '2', id=self.id(foo),
                         sourceport='self', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+        target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
+        self.assert_isomorphic(actual, target)
+    
+    def test_two_object_flow_external(self):
+        """ Check a simple, two-object flow with input from external object.
+        """
+        foo = objects.Foo()
+        with self.tracer:
+            bar = objects.bar_from_foo(foo)
+        
+        actual = self.builder.graph
+        target = new_flow_graph()
+        inputs, outputs = target.graph['input_node'], target.graph['output_node']
+        target.add_node('1', qual_name='bar_from_foo')
+        target.add_edge(inputs, '1', id=self.id(foo), targetport='foo')
+        target.add_edge('1', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
     def test_three_object_flow(self):
@@ -75,14 +94,18 @@ class TestFlowGraph(unittest.TestCase):
             baz = objects.baz_from_bar(bar)
         
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='bar_from_foo')
-        target.add_node(3, qual_name='baz_from_bar')
-        target.add_edge(1, 2, id=self.id(foo),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='bar_from_foo')
+        target.add_node('3', qual_name='baz_from_bar')
+        target.add_edge('1', '2', id=self.id(foo),
                         sourceport='self', targetport='foo')
-        target.add_edge(2, 3, id=self.id(bar),
+        target.add_edge('2', '3', id=self.id(bar),
                         sourceport='__return__', targetport='bar')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+        target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
+        target.add_edge('3', outputs, id=self.id(baz), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
     def test_nonpure_flow(self):
@@ -94,14 +117,18 @@ class TestFlowGraph(unittest.TestCase):
             baz = objects.baz_from_foo(foo)
         
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='bar_from_foo_mutating')
-        target.add_node(3, qual_name='baz_from_foo')
-        target.add_edge(1, 2, id=self.id(foo),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='bar_from_foo_mutating')
+        target.add_node('3', qual_name='baz_from_foo')
+        target.add_edge('1', '2', id=self.id(foo),
                         sourceport='self', targetport='foo')
-        target.add_edge(2, 3, id=self.id(foo),
+        target.add_edge('2', '3', id=self.id(foo),
                         sourceport='foo', targetport='foo')
+        target.add_edge('2', outputs, id=self.id(foo), sourceport='foo')
+        target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
+        target.add_edge('3', outputs, id=self.id(baz), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
     def test_pure_flow(self):
@@ -113,14 +140,18 @@ class TestFlowGraph(unittest.TestCase):
             baz = objects.baz_from_foo(foo)
         
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='bar_from_foo')
-        target.add_node(3, qual_name='baz_from_foo')
-        target.add_edge(1, 2, id=self.id(foo),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='bar_from_foo')
+        target.add_node('3', qual_name='baz_from_foo')
+        target.add_edge('1', '2', id=self.id(foo),
                         sourceport='self', targetport='foo')
-        target.add_edge(1, 3, id=self.id(foo),
+        target.add_edge('1', '3', id=self.id(foo),
                         sourceport='self', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+        target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
+        target.add_edge('3', outputs, id=self.id(baz), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
     def test_singly_nested(self):
@@ -130,16 +161,21 @@ class TestFlowGraph(unittest.TestCase):
             bar = outer_bar()
         
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='outer_bar')
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='outer_bar')
+        target.add_edge('1', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
         
-        node = find_node(actual, lambda n: n['qual_name'] == 'outer_bar')
+        node = find_node(actual, lambda n: n.get('qual_name') == 'outer_bar')
         actual_sub = actual.node[node]['graph']
-        target_sub = nx.MultiDiGraph()
-        target_sub.add_node(1, qual_name='Foo.__init__')
-        target_sub.add_node(2, qual_name='bar_from_foo')
-        target_sub.add_edge(1, 2, sourceport='self', targetport='foo')
+        target_sub = new_flow_graph()
+        outputs = target_sub.graph['output_node']
+        target_sub.add_node('1', qual_name='Foo.__init__')
+        target_sub.add_node('2', qual_name='bar_from_foo')
+        target_sub.add_edge('1', '2', sourceport='self', targetport='foo')
+        target_sub.add_edge('1', outputs, sourceport='self')
+        target_sub.add_edge('2', outputs, sourceport='__return__')
         self.assert_isomorphic(actual_sub, target_sub, check_id=False)
     
     def test_flatten_singly_nested(self):
@@ -149,10 +185,12 @@ class TestFlowGraph(unittest.TestCase):
             bar = outer_bar()
         
         actual = flatten(self.builder.graph)
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='bar_from_foo')
-        target.add_edge(1, 2, sourceport='self', targetport='foo')
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='bar_from_foo')
+        target.add_edge('1', '2', sourceport='self', targetport='foo')
+        target.add_edge('2', outputs, sourceport='__return__')
         self.assert_isomorphic(actual, target, check_id=False)
     
     def test_doubly_nested(self):
@@ -163,23 +201,34 @@ class TestFlowGraph(unittest.TestCase):
             bar = outer_bar_from_foo(foo)
             
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='outer_bar_from_foo')
-        target.add_edge(1, 2, id=self.id(foo),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='outer_bar_from_foo')
+        target.add_edge('1', '2', id=self.id(foo),
                         sourceport='self', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+        target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
         
-        node = find_node(actual, lambda n: n['qual_name'] == 'outer_bar_from_foo')
+        node = find_node(actual, lambda n: n.get('qual_name') == 'outer_bar_from_foo')
         actual_sub1 = actual.node[node]['graph']
-        target_sub1 = nx.MultiDiGraph()
-        target_sub1.add_node(1, qual_name='inner_bar_from_foo')
+        target_sub1 = new_flow_graph()
+        inputs = target_sub1.graph['input_node']
+        outputs = target_sub1.graph['output_node']
+        target_sub1.add_node('1', qual_name='inner_bar_from_foo')
+        target_sub1.add_edge(inputs, '1', id=self.id(foo), targetport='foo')
+        target_sub1.add_edge('1', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual_sub1, target_sub1)
         
-        node = find_node(actual_sub1, lambda n: n['qual_name'] == 'inner_bar_from_foo')
+        node = find_node(actual_sub1, lambda n: n.get('qual_name') == 'inner_bar_from_foo')
         actual_sub2 = actual_sub1.node[node]['graph']
-        target_sub2 = nx.MultiDiGraph()
-        target_sub2.add_node(1, qual_name='bar_from_foo')
+        target_sub2 = new_flow_graph()
+        inputs = target_sub2.graph['input_node']
+        outputs = target_sub2.graph['output_node']
+        target_sub2.add_node('1', qual_name='bar_from_foo')
+        target_sub2.add_edge(inputs, '1', id=self.id(foo), targetport='foo')
+        target_sub2.add_edge('1', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual_sub2, target_sub2)
     
     def test_flatten_doubly_nested(self):
@@ -190,19 +239,15 @@ class TestFlowGraph(unittest.TestCase):
             bar = outer_bar_from_foo(foo)
             
         actual = flatten(self.builder.graph)
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='bar_from_foo')
-        target.add_edge(1, 2, id=self.id(foo),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='bar_from_foo')
+        target.add_edge('1', '2', id=self.id(foo),
                         sourceport='self', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+        target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
-        
-        source, sink = actual.graph['source'], actual.graph['sink']
-        self.assertEqual(source, {})
-        node = find_node(actual, lambda n: n['qual_name'] == 'Foo.__init__')
-        self.assertEqual(sink[self.id(foo)], (node, 'self'))
-        node = find_node(actual, lambda n: n['qual_name'] == 'bar_from_foo')
-        self.assertEqual(sink[self.id(bar)], (node, '__return__'))
     
     def test_higher_order_function(self):
         """ Test that higher-order functions using user-defined functions work.
@@ -212,14 +257,16 @@ class TestFlowGraph(unittest.TestCase):
             foo.apply(lambda x: objects.Bar(x))
         
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='Foo.__getattribute__')
-        target.add_node(3, qual_name='Foo.apply')
-        target.add_edge(1, 2, id=self.id(foo),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='Foo.__getattribute__')
+        target.add_node('3', qual_name='Foo.apply')
+        target.add_edge('1', '2', id=self.id(foo),
                         sourceport='self', targetport='self')
-        target.add_edge(1, 3, id=self.id(foo),
+        target.add_edge('1', '3', id=self.id(foo),
                         sourceport='self', targetport='self')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
         self.assert_isomorphic(actual, target)
     
     def test_tracked_inside_list(self):
@@ -232,14 +279,17 @@ class TestFlowGraph(unittest.TestCase):
             objects.foo_x_sum(foos)
         
         actual = self.builder.graph
-        target = nx.MultiDiGraph()
-        target.add_node(1, qual_name='Foo.__init__')
-        target.add_node(2, qual_name='Foo.__init__')
-        target.add_node(3, qual_name='foo_x_sum')
-        target.add_edge(1, 3, id=self.id(foo1),
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('2', qual_name='Foo.__init__')
+        target.add_node('3', qual_name='foo_x_sum')
+        target.add_edge('1', '3', id=self.id(foo1),
                         sourceport='self', targetport='foos')
-        target.add_edge(2, 3, id=self.id(foo2),
+        target.add_edge('2', '3', id=self.id(foo2),
                         sourceport='self', targetport='foos')
+        target.add_edge('1', outputs, id=self.id(foo1), sourceport='self')
+        target.add_edge('2', outputs, id=self.id(foo2), sourceport='self')
         self.assert_isomorphic(actual, target)
     
     def test_function_annotations(self):
@@ -250,11 +300,11 @@ class TestFlowGraph(unittest.TestCase):
             bar = objects.bar_from_foo(foo)
         
         graph = self.builder.graph
-        node = find_node(graph, lambda n: n['qual_name'] == 'create_foo')
+        node = find_node(graph, lambda n: n.get('qual_name') == 'create_foo')
         note = graph.node[node]['annotation']
         self.assertEqual(note, 'python/opendisc/create-foo')
         
-        node = find_node(graph, lambda n: n['qual_name'] == 'bar_from_foo')
+        node = find_node(graph, lambda n: n.get('qual_name') == 'bar_from_foo')
         note = graph.node[node]['annotation']
         self.assertEqual(note, 'python/opendisc/bar-from-foo')
     
@@ -266,13 +316,11 @@ class TestFlowGraph(unittest.TestCase):
             bar = objects.bar_from_foo(foo, 10)
         
         graph = self.builder.graph
-        node = find_node(graph, lambda n: n['qual_name'] == 'bar_from_foo')
-        actual = [ port for port in graph.node[node]['ports']
-                   if port['portkind'] == 'input' ]
-        desired = [
-            {
-                'name': 'foo',
-                'portkind': 'input',
+        node = find_node(graph, lambda n: n.get('qual_name') == 'bar_from_foo')
+        actual = { p: data for p, data in graph.node[node]['ports'].items()
+                   if data.pop('portkind') == 'input' }
+        desired = {
+            'foo': {
                 'id': self.id(foo),
                 'annotation': 'python/opendisc/foo',
                 # 'slots': {
@@ -281,16 +329,11 @@ class TestFlowGraph(unittest.TestCase):
                 #     'sum': {'value': 2},
                 # },
             },
-            {
-                'name': 'x',
-                'portkind': 'input',
+            'x': {
                 'value': 10,
             },
-            {
-                'name': 'y',
-                'portkind': 'input',
-            }
-        ]
+            'y': {}
+        }
         self.assertEqual(actual, desired)
     
     def test_input_ports_varargs(self):
@@ -300,31 +343,23 @@ class TestFlowGraph(unittest.TestCase):
             objects.sum_varargs(1,2,3,w=4)
         
         graph = self.builder.graph
-        node = find_node(graph, lambda n: n['qual_name'] == 'sum_varargs')
-        actual = [ port for port in graph.node[node]['ports']
-                   if port['portkind'] == 'input' ]
-        desired = [
-            {
-                'name': 'x',
-                'portkind': 'input',
+        node = find_node(graph, lambda n: n.get('qual_name') == 'sum_varargs')
+        actual = { p: data for p, data in graph.node[node]['ports'].items()
+                   if data.pop('portkind') == 'input' }
+        desired = {
+            'x': {
                 'value': 1,
             },
-            {
-                'name': 'y',
-                'portkind': 'input',
+            'y': {
                 'value': 2,
             },
-            {
-                'name': '__vararg0__',
-                'portkind': 'input',
+            '__vararg0__': {
                 'value': 3,
             },
-            {
-                'name': 'w',
-                'portkind': 'input',
+            'w': {
                 'value': 4,
             }
-        ]
+        }
         self.assertEqual(actual, desired)
     
     def test_output_data(self):
@@ -335,26 +370,21 @@ class TestFlowGraph(unittest.TestCase):
             x = foo.do_sum()
         
         graph = self.builder.graph
-        node = find_node(graph, lambda n: n['qual_name'] == 'Foo.do_sum')
-        actual = [ port for port in graph.node[node]['ports']
-                   if port['portkind'] == 'output' ]
-        print(actual)
-        desired = [
-            {
-                'name': '__return__',
-                'portkind': 'output',
+        node = find_node(graph, lambda n: n.get('qual_name') == 'Foo.do_sum')
+        actual = { p: data for p, data in graph.node[node]['ports'].items()
+                   if data.pop('portkind') == 'output' }
+        desired = {
+            '__return__': {
                 'value': x,
             }
-        ]
+        }
         self.assertEqual(actual, desired)
         
-        node = find_node(graph, lambda n: n['qual_name'] == 'create_foo')
-        actual = [ port for port in graph.node[node]['ports']
-                   if port['portkind'] == 'output' ]
-        desired = [
-            {
-                'name': '__return__',
-                'portkind': 'output',
+        node = find_node(graph, lambda n: n.get('qual_name') == 'create_foo')
+        actual = { p: data for p, data in graph.node[node]['ports'].items()
+                   if data.pop('portkind') == 'output' }
+        desired = {
+            '__return__': {
                 'id': self.id(foo),
                 'annotation': 'python/opendisc/foo',
                 # 'slots': {
@@ -363,11 +393,11 @@ class TestFlowGraph(unittest.TestCase):
                 #     'sum': {'value': 2},
                 # },
             }
-        ]
+        }
         self.assertEqual(actual, desired)
     
     def test_two_join_three_object_flow(self):
-        """ Test join of simple, three-object captured in two stages.
+        """ Test join of simple, three-object flow captured in two stages.
         """
         with self.tracer:
             foo = objects.Foo()
@@ -390,7 +420,7 @@ class TestFlowGraph(unittest.TestCase):
         self.assert_isomorphic(joined, full, check_id=False)
     
     def test_three_join_three_object_flow(self):
-        """ Test join of simple, three-object captured in three stages.
+        """ Test join of simple, three-object flow captured in three stages.
         """
         with self.tracer:
             foo = objects.Foo()
@@ -418,6 +448,40 @@ class TestFlowGraph(unittest.TestCase):
         
         joined = join(first, join(second, third))
         self.assert_isomorphic(joined, full, check_id=False)
+    
+    def test_two_join_mutation(self):
+        """ Test join of two-object flow with mutation of the first object.
+        """
+        with self.tracer:
+            foo = objects.Foo()
+            bar = objects.bar_from_foo_mutating(foo)
+        full = self.builder.graph
+        
+        self.builder.reset()
+        with self.tracer:
+            foo = objects.Foo()
+        first = self.builder.graph
+        
+        self.builder.reset()
+        with self.tracer:
+            bar = objects.bar_from_foo_mutating(foo)
+        second = self.builder.graph
+    
+        joined = join(first, second)
+        self.assert_isomorphic(joined, full, check_id=False)
+    
+    def test_graphml_serialization(self):
+        """ Can a flow graph be roundtripped through GraphML?
+        """
+        with self.tracer:
+            foo = objects.Foo()
+            bar = objects.bar_from_foo(foo)
+        graph = self.builder.graph
+        
+        xml = write_graphml_str(graph)
+        roundtripped = read_graphml_str(xml, multigraph=True)
+        self.assertEqual(graph.node, roundtripped.node)
+        self.assertEqual(graph.edge, roundtripped.edge)
 
 
 # Test data
