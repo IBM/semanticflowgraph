@@ -9,7 +9,7 @@ distinguish them from other dataflow graphs in the Open Discovery system.
 from __future__ import absolute_import
 
 import networkx as nx
-from .graph.util import node_name
+from .graph_util import node_name
 
 
 def new_flow_graph():

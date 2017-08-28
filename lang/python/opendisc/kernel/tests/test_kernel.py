@@ -8,7 +8,7 @@ from ipykernel.tests import utils as tu
 from ipykernel.tests.utils import execute, kernel, wait_for_idle
 import networkx as nx
 
-from ...core.graph.graphml import read_graphml_str
+from ...core.graphml import read_graphml_str
 from ...core.tests import objects as test_objects
 from ..kernelspec import get_kernel_name
 

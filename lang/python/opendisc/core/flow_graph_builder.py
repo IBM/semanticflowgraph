@@ -10,7 +10,7 @@ from opendisc.kernel.slots import get_slot
 from opendisc.kernel.trace.annotator import Annotator
 from opendisc.kernel.trace.object_tracker import ObjectTracker
 from opendisc.kernel.trace.trace_event import TraceEvent, TraceCall, TraceReturn
-from .graph.util import node_name
+from .graph_util import node_name
 from .json.util import json_clean
 from .flow_graph import new_flow_graph
 

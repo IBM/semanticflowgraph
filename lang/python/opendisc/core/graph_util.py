@@ -1,4 +1,4 @@
-""" Miscellaneous utility functions for networkx graphs.
+""" Miscellaneous utility functions for NetworkX graphs.
 """
 from __future__ import absolute_import
 
@@ -25,10 +25,6 @@ def node_name(graph, base=None, sep=None):
     
     With overwhelming probability, the (partially random) node name will be
     unique not just in the given graph, but in all graphs created by networkx.
-    
-    This function is useful due to the insistence of networkx that a single
-    concept--a node in a graph--be represented as two separate objects:
-    a hashable, unique node ID and a collection of node data.
     """
     name = uuid.uuid4().hex
     if base:

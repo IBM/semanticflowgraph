@@ -37,7 +37,6 @@ from __future__ import absolute_import
 
 from io import BytesIO
 import json
-import six
 try:
     from xml.etree.cElementTree import Element
 except ImportError:
@@ -48,8 +47,7 @@ from networkx.readwrite.graphml import GraphMLReader as BaseGraphMLReader, \
     GraphMLWriter as BaseGraphMLWriter
 from networkx.utils import open_file, make_str
 
-from ..json.util import json_clean
-from .ordered import ordered_graphs
+from .json.util import json_clean
 
 
 @open_file(1, mode='wb')
@@ -214,13 +212,6 @@ class GraphMLReader(BaseGraphMLReader):
         super(GraphMLReader, self).__init__(**kwargs)
         self.multigraph = multigraph
         self.python_type['json'] = 'json'
-    
-    def make_graph(self, graph_xml, graphml_keys, defaults):
-        """ Reimplemented to ensure deterministic node/edge order.
-        """
-        with ordered_graphs():
-            return super(GraphMLReader, self).make_graph(
-                graph_xml, graphml_keys, defaults)
     
     def make_nested_graph(self, nested_xml, graphml_keys):
         """ Create a nested subgraph.

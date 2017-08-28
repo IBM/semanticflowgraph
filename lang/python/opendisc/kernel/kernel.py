@@ -5,7 +5,7 @@ from networkx.readwrite import json_graph
 from traitlets import Bool, Instance, Type, default
 
 from ..core.flow_graph_builder import FlowGraphBuilder
-from ..core.graph.graphml import write_graphml_str
+from ..core.graphml import write_graphml_str
 from ..core.json.pickle import object_to_json
 from .shell import OpenDiscIPythonShell
 from .slots import get_slots
