@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from copy import deepcopy
 import gc
 
+from ipykernel.jsonutil import json_clean
 import networkx as nx
 from traitlets import HasTraits, Dict, Instance, List, Unicode, default
 
@@ -11,7 +12,6 @@ from opendisc.kernel.trace.annotator import Annotator
 from opendisc.kernel.trace.object_tracker import ObjectTracker
 from opendisc.kernel.trace.trace_event import TraceEvent, TraceCall, TraceReturn
 from .graph_util import node_name
-from .json.util import json_clean
 from .flow_graph import new_flow_graph
 
 
@@ -242,7 +242,7 @@ class FlowGraphBuilder(HasTraits):
         An object is an "output" of a call node if it is the last node to have
         created/mutated the object.
         """
-        graph, output_table = context.graph, context.output_table
+        output_table = context.output_table
         return output_table.get(obj_id, (None, None))
     
     def _set_object_output_node(self, context, obj_id, node, port):
