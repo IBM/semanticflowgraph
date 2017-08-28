@@ -9,7 +9,7 @@ import networkx.algorithms.isomorphism as iso
 from ..annotation_db import AnnotationDB
 from ..flow_graph import new_flow_graph, flatten, join
 from ..flow_graph_builder import FlowGraphBuilder
-from ..graph_util import find_node
+from ..graphutil import find_node
 from ..graphml import read_graphml_str, write_graphml_str
 from ...kernel.trace.tracer import Tracer
 from . import objects

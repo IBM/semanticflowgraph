@@ -11,7 +11,7 @@ from opendisc.kernel.slots import get_slot
 from opendisc.kernel.trace.annotator import Annotator
 from opendisc.kernel.trace.object_tracker import ObjectTracker
 from opendisc.kernel.trace.trace_event import TraceEvent, TraceCall, TraceReturn
-from .graph_util import node_name
+from .graphutil import node_name
 from .flow_graph import new_flow_graph
 
 
@@ -65,12 +65,12 @@ class FlowGraphBuilder(HasTraits):
     def is_primitive(self, obj):
         """ Is the object considered primitive?
         
-        Only primitive objects will be captured as "value" data for explicitly
-        annotated inputs, outputs, and slots. (This does not preclude getting
-        "id" data if object is also weak-referenceable.)
+        Only primitive objects will be captured as "value" data for object slots
+        and function inputs and outputs. (This does not preclude getting "id"
+        data if object is also weak-referenceable.)
         
         Almost always, scalar types (bool, int, float, string, etc.) should be
-        regarded primitive. The default implementation allows any object which
+        considered primitive. The default implementation allows any object which
         is JSON-able (essentially, the scalar types plus the built-in container
         types if their contents are JSON-able).
         
