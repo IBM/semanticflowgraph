@@ -6,12 +6,12 @@ import unittest
 import networkx as nx
 import networkx.algorithms.isomorphism as iso
 
+from opendisc.trace.tracer import Tracer
 from ..annotation_db import AnnotationDB
 from ..flow_graph import new_flow_graph, flatten, join
 from ..flow_graph_builder import FlowGraphBuilder
 from ..graphutil import find_node
 from ..graphml import read_graphml_str, write_graphml_str
-from ...kernel.trace.tracer import Tracer
 from . import objects
 
 

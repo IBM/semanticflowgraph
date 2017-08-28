@@ -45,7 +45,7 @@ class TestFrameUtil(unittest.TestCase):
         """ Can we get the name of this module from a frame?
         """
         self.assertEqual(get_frame_module(inspect.currentframe()),
-                         'opendisc.kernel.trace.tests.test_frame_util')
+                         'opendisc.trace.tests.test_frame_util')
     
     def test_get_frame_func(self):
         """ Can we get the function object from a frame?

@@ -6,11 +6,11 @@ from traitlets import Bool, Instance, Type, default
 
 from ..core.flow_graph_builder import FlowGraphBuilder
 from ..core.graphml import write_graphml_str
+from ..trace.annotator import Annotator
+from ..trace.tracer import Tracer
 from .serialize import object_to_json
 from .shell import OpenDiscIPythonShell
 from .slots import get_slots
-from .trace.annotator import Annotator
-from .trace.tracer import Tracer
 
 
 class OpenDiscIPythonKernel(IPythonKernel):

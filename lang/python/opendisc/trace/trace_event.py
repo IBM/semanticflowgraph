@@ -10,7 +10,7 @@ class TraceEvent(HasTraits):
     """
     
     # Tracer that created this event.
-    tracer = Instance('opendisc.kernel.trace.tracer.Tracer')
+    tracer = Instance('opendisc.trace.tracer.Tracer')
     
     # The function object that was called.
     function = Any()

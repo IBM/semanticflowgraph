@@ -15,7 +15,7 @@ class TestTracer(unittest.TestCase):
         """ Create the Tracer and a handler for TraceEvents.
         """
         self.tracer = Tracer()
-        self.tracer.modules = [ 'opendisc.kernel.trace.tests.test_tracer' ]
+        self.tracer.modules = [ 'opendisc.trace.tests.test_tracer' ]
         
         self.events = []
         def handler(changed):
