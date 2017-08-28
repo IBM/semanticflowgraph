@@ -9,9 +9,9 @@ from cachetools import cachedmethod
 from cachetools.keys import hashkey
 from traitlets import HasTraits, Dict, Instance, default
 
-from opendisc.core.annotation_db import AnnotationDB
-from opendisc.core.remote_annotation_db import RemoteAnnotationDB
-from .frame_util import get_func_full_name
+from opendisc.trace.frame_util import get_func_full_name
+from .annotation_db import AnnotationDB
+from .remote_annotation_db import RemoteAnnotationDB
 
 
 class Annotator(HasTraits):

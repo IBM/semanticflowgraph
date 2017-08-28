@@ -8,9 +8,9 @@ import networkx as nx
 from traitlets import HasTraits, Dict, Instance, List, Unicode, default
 
 from opendisc.kernel.slots import get_slot
-from opendisc.trace.annotator import Annotator
 from opendisc.trace.object_tracker import ObjectTracker
 from opendisc.trace.trace_event import TraceEvent, TraceCall, TraceReturn
+from .annotator import Annotator
 from .graphutil import node_name
 from .flow_graph import new_flow_graph
 

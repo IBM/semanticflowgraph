@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from pathlib2 import Path
 import unittest
 
-from opendisc.core.tests import objects
+from . import objects
 from ..annotator import Annotator
 
 
