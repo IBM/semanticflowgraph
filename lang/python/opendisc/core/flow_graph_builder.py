@@ -4,7 +4,7 @@ from copy import deepcopy
 import gc
 
 import networkx as nx
-from traitlets import HasTraits, Instance, List, Unicode, default
+from traitlets import HasTraits, Dict, Instance, List, Unicode, default
 
 from opendisc.kernel.slots import get_slot
 from opendisc.kernel.trace.annotator import Annotator
@@ -25,20 +25,24 @@ class FlowGraphBuilder(HasTraits):
     (If the function is pure, the outgoing edges are only return values.)
     """
     
-    # Top-level flow graph. Read-only.
-    graph = Instance(nx.MultiDiGraph)
-    
-    # Finds annotations for Python object and functions.
+    # Annotator for Python objects and functions.
     annotator = Instance(Annotator, args=())
     
     # Private traits.
-    _stack = List() # List(Instance(_CallItem))
+    _stack = List() # List(Instance(_CallContext))
     
     # Public interface
     
     def __init__(self, **traits):
         super(FlowGraphBuilder, self).__init__(**traits)
         self.reset()
+    
+    @property
+    def graph(self):
+        """ Top-level flow graph.
+        """
+        # Make a shallow copy.
+        return nx.MultiDiGraph(self._stack[0].graph)
     
     def push_event(self, event):
         """ Push a new TraceEvent to the builder.
@@ -53,8 +57,10 @@ class FlowGraphBuilder(HasTraits):
     def reset(self):
         """ Reset the flow graph builder.
         """
-        self.graph = new_flow_graph()
-        self._stack = []
+        # The bottom of the call stack does not correspond to a call event.
+        # It simply contains the root flow graph and associated state.
+        graph = new_flow_graph()
+        self._stack = [ _CallContext(graph=graph) ]
     
     def is_primitive(self, obj):
         """ Is the object considered primitive?
@@ -115,12 +121,11 @@ class FlowGraphBuilder(HasTraits):
     def _push_call_event(self, event):
         """ Push a call event onto the stack.
         """
-        # Create node for call.
-        if self._stack:
-            item = self._stack[-1]
-            graph = item.graph.node[item.node]['graph']
-        else:
-            graph = self.graph
+        # Get graph from context of previous call.
+        context = self._stack[-1]
+        graph = context.graph
+        
+        # Create a new node for this call.
         node = self._add_call_node(event, graph)
         
         # Add edges for function arguments.
@@ -128,32 +133,35 @@ class FlowGraphBuilder(HasTraits):
         object_tracker = event.tracer.object_tracker
         for arg_name, arg in event.arguments.items():
             is_pure = self.is_pure(event, annotation, arg_name)
-            self._add_call_in_edge(event, graph, node, arg_name, arg,
+            self._add_call_in_edge(event, context, node, arg_name, arg,
                                    is_pure=is_pure)
             for value in self._hidden_referents(object_tracker, arg):
-                self._add_call_in_edge(event, graph, node, arg_name, value,
+                self._add_call_in_edge(event, context, node, arg_name, value,
                                        is_pure=is_pure)
         
-        # If the call is not atomic, we have entered a new scope.
-        # Push a new graph and attach it to this node.
+        # If the call is not atomic, we will enter a new scope.
+        # Create a nested flow graph for the node.
+        nested = None
         if not event.atomic:
-            graph.node[node]['graph'] = new_flow_graph()
-        
-        # Push call onto stack.
-        self._stack.append(_CallItem(event=event, node=node, graph=graph))
+            nested = new_flow_graph()
+            graph.node[node]['graph'] = nested
+    
+        # Push call context onto stack.
+        self._stack.append(_CallContext(event=event, node=node, graph=nested))
         
     def _push_return_event(self, event):
         """ Push a return event and pop the corresponding call from the stack.
         """
-        # Pop matching call event from stack.
-        try:
-            item = self._stack.pop()
-        except IndexError:
-            item = None
-        if not (item and item.event.full_name == event.full_name):
+        # Pop matching call event from stack to retrieve node.
+        context = self._stack.pop()
+        if not context.event.full_name == event.full_name:
             # Sanity check
             raise RuntimeError("Mismatched trace events")
-        graph, node = item.graph, item.node
+        node = context.node
+        
+        # Get graph from context of previous call.
+        context = self._stack[-1]
+        graph = context.graph
         data = graph.node[node]
                 
         # Add explicitly annotated function outputs.
@@ -173,7 +181,7 @@ class FlowGraphBuilder(HasTraits):
         # Set output for return value.
         return_id = event.tracer.object_tracker.get_id(event.return_value)
         if return_id:
-            self._set_object_output_node(graph, return_id, node, '__return__')
+            self._set_object_output_node(context, return_id, node, '__return__')
     
     def _add_call_node(self, event, graph):
         """ Add a new node for a call event.
@@ -194,7 +202,7 @@ class FlowGraphBuilder(HasTraits):
         graph.add_node(node, **data)
         return node
     
-    def _add_call_in_edge(self, event, graph, node, arg_name, arg, is_pure=True):
+    def _add_call_in_edge(self, event, context, node, arg_name, arg, is_pure=True):
         """ Add an incoming edge to a call node.
         """
         # Only proceed if the argument is tracked.
@@ -203,7 +211,8 @@ class FlowGraphBuilder(HasTraits):
             return
         
         # Add edge if the argument has a known output node.
-        src, src_port = self._get_object_output_node(graph, arg_id)
+        graph = context.graph
+        src, src_port = self._get_object_output_node(context, arg_id)
         if src is not None:
             graph.add_edge(src, node, id=arg_id,
                            sourceport=src_port, targetport=arg_name)
@@ -214,40 +223,33 @@ class FlowGraphBuilder(HasTraits):
         # Python implementation.
         elif not (event.atomic and event.qual_name.endswith('__init__') and
                   arg_name == 'self'):
-            self._add_object_input_node(graph, arg_id, node, arg_name)
+            self._add_object_input_node(context, arg_id, node, arg_name)
     
         # Update output node if this call is atomic and mutating.
         if event.atomic and not is_pure:
-            self._set_object_output_node(graph, arg_id, node, arg_name)
+            self._set_object_output_node(context, arg_id, node, arg_name)
     
-    def _add_object_input_node(self, graph, obj_id, node, port):
+    def _add_object_input_node(self, context, obj_id, node, port):
         """ Add an object as an unknown input to a node.
         """
+        graph = context.graph
         input_node = graph.graph['input_node']
         graph.add_edge(input_node, node, id=obj_id, targetport=port)
     
-    def _get_object_output_node(self, graph, obj_id):
+    def _get_object_output_node(self, context, obj_id):
         """ Get the node/port of which the object is an output, if any. 
         
         An object is an "output" of a call node if it is the last node to have
         created/mutated the object.
         """
-        output_table = graph.graph.get('_output_table', {})
+        graph, output_table = context.graph, context.output_table
         return output_table.get(obj_id, (None, None))
     
-    def _set_object_output_node(self, graph, obj_id, node, port):
+    def _set_object_output_node(self, context, obj_id, node, port):
         """ Set an object as an output of a node.
         """
-        # At any given time during execution, an object is the output of at
-        # most one node, i.e., there is at most one incoming edge to the output
-        # node that carries a particular object. We maintain this mapping as an
-        # auxiliary data structure called the "output table". It is logically
-        # superfluous--the same information is captured by the graph structure--
-        # but improves efficiency by allowing constant-time lookup of the
-        # output edge that carries an object. Note: This table is an
-        # implementation detail of `FlowGraphBuilder`, not a public interface.
+        graph, output_table = context.graph, context.output_table
         output_node = graph.graph['output_node']
-        output_table = graph.graph.setdefault('_output_table', {})
         
         # Remove old output, if any.
         if obj_id in output_table:
@@ -336,8 +338,8 @@ class FlowGraphBuilder(HasTraits):
                     yield referent
 
 
-class _CallItem(HasTraits):
-    """ Item on the stack of trace call events.
+class _CallContext(HasTraits):
+    """ Context for a trace call event.
     
     Internal state for FlowGraphBuilder.
     """
@@ -347,8 +349,18 @@ class _CallItem(HasTraits):
     # Name of graph node created for call.
     node = Unicode()
     
-    # Graph containing the node.
-    graph = Instance(nx.MultiDiGraph)
+    # Graph nested in node, if any.
+    graph = Instance(nx.MultiDiGraph, allow_none=True)
+    
+    # Output table for the graph.
+    #
+    # At any given time during execution, an object is the output of at most one
+    # node, i.e., there is at most one incoming edge to the special output node
+    # that carries a particular object. We maintain this mapping as an auxiliary
+    # data structure called the "output table". It is logically superfluous--the
+    # same information is captured by the graph topology--but improves
+    # efficiency by allowing constant-time lookup.
+    output_table = Dict()
 
 
 class _IOSlots(object):

@@ -480,6 +480,9 @@ class TestFlowGraph(unittest.TestCase):
         
         xml = write_graphml_str(graph)
         roundtripped = read_graphml_str(xml, multigraph=True)
+        roundtripped.graph.pop('node_default', None)
+        roundtripped.graph.pop('edge_default', None)
+        self.assertEqual(graph.graph, roundtripped.graph)
         self.assertEqual(graph.node, roundtripped.node)
         self.assertEqual(graph.edge, roundtripped.edge)
 
