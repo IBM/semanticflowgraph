@@ -38,7 +38,6 @@ def copy_flow_graph(source_graph, dest_graph):
     dest_graph.add_edges_from(
         edge for edge in source_graph.edges_iter(data=True)
         if edge[0] not in skip and edge[1] not in skip)
-    return dest_graph
 
 
 def flatten(graph, copy=True):
@@ -72,14 +71,13 @@ def flatten(graph, copy=True):
             # (if the same object is passed to multiple arguments) but we need
             # only consider one because they should all have the same source.
             for src, _, data in graph.in_edges_iter(node, data=True):
-                other_id, src_port = data['id'], data.get('sourceport')
-                if obj_id == other_id:
-                    graph.add_edge(src, tgt, id=obj_id,
-                                   sourceport=src_port, targetport=tgt_port)
+                if data['id'] == obj_id:
+                    data.pop('targetport', None)
+                    graph.add_edge(src, tgt, targetport=tgt_port, **data)
                     break
             # If that fails, add a new input object to the parent graph.
             else:
-                graph.add_edge(input_node, tgt, id=obj_id, targetport=tgt_port)
+                graph.add_edge(input_node, tgt, **data)
         
         # Re-wire the output objects of the subgraph.
         for src, _, data in subgraph.in_edges_iter(sub_output_node, data=True):
@@ -89,10 +87,9 @@ def flatten(graph, copy=True):
             # If there are none, forget about the output: it cannot be a return
             # value or a mutated argument, hence is lost to the outer scope.
             for _, tgt, data in graph.out_edges_iter(node, data=True):
-                other_id, tgt_port = data['id'], data.get('targetport')
-                if obj_id == other_id:
-                    graph.add_edge(src, tgt, id=obj_id,
-                                   sourceport=src_port, targetport=tgt_port)
+                if data['id'] == obj_id:
+                    data.pop('sourceport', None)
+                    graph.add_edge(src, tgt, sourceport=src_port, **data)
         
         # Finally, remove the original node (and its edges).
         graph.remove_node(node)
@@ -117,24 +114,21 @@ def join(first, second, copy=True):
 
     # Add inputs from the second graph.
     for _, tgt, data in second.out_edges_iter(second.graph['input_node'], data=True):
-        obj_id, tgt_port = data['id'], data['targetport']
         # If there is a corresponding output of the first graph, use it.
-        if obj_id in output_table:
-            src, key = output_table[obj_id]
+        if data['id'] in output_table:
+            src, key = output_table[data['id']]
             src_port = graph.edge[src][output_node][key]['sourceport']
-            graph.add_edge(src, tgt, id=obj_id,
-                           sourceport=src_port, targetport=tgt_port)
+            graph.add_edge(src, tgt, sourceport=src_port, **data)
         # Otherwise, add the input to the first graph.
         else:
-            graph.add_edge(input_node, tgt, id=obj_id, targetport=tgt_port)
+            graph.add_edge(input_node, tgt, **data)
     
     # Add outputs from the second graph, overwriting outputs of the first graph
     # if there is a conflict.
     for src, _, data in second.in_edges_iter(second.graph['output_node'], data=True):
-        obj_id, src_port = data['id'], data['sourceport']
-        if obj_id in output_table:
-            old, key = output_table[obj_id]
+        if data['id'] in output_table:
+            old, key = output_table[data['id']]
             graph.remove_edge(old, output_node, key=key)
-        graph.add_edge(src, output_node, id=obj_id, sourceport=src_port)
+        graph.add_edge(src, output_node, **data)
         
     return graph
