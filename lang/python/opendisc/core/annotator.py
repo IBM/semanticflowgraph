@@ -9,7 +9,8 @@ from cachetools import cachedmethod
 from cachetools.keys import hashkey
 from traitlets import HasTraits, Dict, Instance, default
 
-from opendisc.trace.frame_util import get_func_full_name
+from opendisc.trace.frame_util import get_class_module, get_class_full_name, \
+    get_func_full_name
 from .annotation_db import AnnotationDB
 from .remote_annotation_db import RemoteAnnotationDB
 
@@ -114,12 +115,12 @@ class Annotator(HasTraits):
         """
         # Get all subclasses using the MRO (we ignore the order here).
         mro = inspect.getmro(type)
-        subclasses = { c.__module__ + '.' + c.__name__ : c for c in mro }
+        subclasses = { get_class_full_name(c) : c for c in mro }
         
         # Find the best (highest precedence) annotation.
         best = None
         for name, subclass in subclasses.items():
-            package = subclass.__module__.split('.')[0]
+            package = get_class_module(subclass).split('.')[0]
             query = {
                 'language': 'python',
                 'package': package,
@@ -174,7 +175,7 @@ class Annotator(HasTraits):
     def _get_type_key(self, type):
         """ Key for type cache.
         """
-        return type.__module__ + '.' + type.__name__
+        return get_class_full_name(type)
     
     def _get_method_self(self, func):
         """ Get the object to which the method is bound.

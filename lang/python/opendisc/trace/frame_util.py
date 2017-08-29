@@ -7,6 +7,28 @@ import sys
 import types
 
 
+def get_class_module(typ):
+    """ Get name of module in which type was defined.
+    """
+    return _apply_spec(typ.__module__)
+
+def get_class_qual_name(typ):
+    """ Get qualified name of class.
+    
+    See PEP 3155: "Qualified name for classes and functions"
+    """
+    if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+        return typ.__qualname__
+    else:
+        # Not possible on older versions of Python. Just give up.
+        return typ.__name__
+
+def get_class_full_name(typ):
+    """ Get the full name of a class.
+    """
+    return get_class_module(typ) + '.' + get_class_qual_name(typ)
+
+
 def get_func_module(func):
     """ Get name of module in which the function object was defined.
     """
@@ -58,8 +80,6 @@ def get_frame_module(frame):
 
 def get_frame_func(frame, raise_on_ambiguous=True):
     """ Get the function/method object of the called function in a frame.
-    
-    # XXX: This is a terrible hack, but I don't know a better way.
     """
     code = frame.f_code
     meth = None
@@ -75,6 +95,7 @@ def get_frame_func(frame, raise_on_ambiguous=True):
     # function of the bound method, i.e., `meth.__func__`.
     
     # General case: fish the function out of the garbage collector.
+    # XXX: This is a terrible hack, but I don't know a better way.
     funcs = [ ref for ref in gc.get_referrers(code)
               if isinstance(ref, (types.FunctionType, types.LambdaType)) ]
     if len(funcs) == 0:
