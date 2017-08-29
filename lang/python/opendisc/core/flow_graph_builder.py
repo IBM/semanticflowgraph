@@ -291,9 +291,11 @@ class FlowGraphBuilder(HasTraits):
             
             data = self._get_object_data(event, obj)
             data.update(extra_data)
+            data['name'] = name
             if name in domain_map:
                 # Index starting at 1: this attribute is language-agnostic.
                 data['annotation_domain'] = domain_map[name] + 1
+            
             ports[portname] = data
         return ports
     
