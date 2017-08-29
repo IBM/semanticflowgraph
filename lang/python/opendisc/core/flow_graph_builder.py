@@ -115,7 +115,8 @@ class FlowGraphBuilder(HasTraits):
         
         # Default: pure unless explicitly annotated otherwise!
         codomain = annotation.get('codomain', [])
-        return not any(arg_name == obj['slot'] for obj in codomain)
+        slots = _IOSlots(event)
+        return not any(arg_name == slots.name(obj['slot']) for obj in codomain)
     
     # Protected interface
             
@@ -165,16 +166,16 @@ class FlowGraphBuilder(HasTraits):
         graph = context.graph
         data = graph.node[node]
                 
-        # Add explicitly annotated function outputs.
+        # Add output ports.
         annotation = self.annotator.notate_function(event.function) or {}
-        if 'codomain' in annotation:
-            output_slots = [ obj['slot'] for obj in annotation['codomain'] ]
-        else:
-            output_slots = [ '__return__' ]
+        port_names = [] if event.return_value is None else [ '__return__' ]
+        port_names.extend(arg_name for arg_name in event.arguments.keys()
+                          if not self.is_pure(event, annotation, arg_name))
         ports = data['ports']
         ports.update(self._get_ports_data(
             event,
-            output_slots,
+            port_names,
+            annotation.get('codomain', []),
             { 'portkind': 'output' },
         ))
         
@@ -195,6 +196,7 @@ class FlowGraphBuilder(HasTraits):
             'ports': self._get_ports_data(
                 event,
                 event.arguments.keys(),
+                annotation.get('domain', []),
                 { 'portkind': 'input' },
             ),
         }
@@ -262,19 +264,24 @@ class FlowGraphBuilder(HasTraits):
         output_table[obj_id] = (node, port)
         graph.add_edge(node, output_node, id=obj_id, sourceport=port)
     
-    def _get_ports_data(self, event, slots, extra_data={}):
+    def _get_ports_data(self, event, names, domain, extra_data={}):
         """ Get data for the ports (input or output) of a node.
         """
         ports = OrderedDict()
-        slot_obj = _IOSlots(event)
-        for slot in slots:
+        slots = _IOSlots(event)
+        domain_map = { slots.name(obj['slot']): i for i, obj in enumerate(domain) }
+        for name in names:
             try:
-                slot_value = get_slot(slot_obj, slot)
+                obj = get_slot(slots, name)
             except AttributeError:
-                slot_value = None
-            data = self._get_object_data(event, slot_value)
+                obj = None
+            
+            data = self._get_object_data(event, obj)
             data.update(extra_data)
-            ports[slot] = data
+            if name in domain_map:
+                # Index starting at 1: this attribute is language-agnostic.
+                data['annotation_domain'] = domain_map[name] + 1
+            ports[name] = data
         return ports
     
     def _get_object_data(self, event, obj):
@@ -369,6 +376,18 @@ class _IOSlots(object):
 
     def __init__(self, event):
         self.__event = event
+    
+    def name(self, slot):
+        """ Map the function slot (integer or string) to a string name, if any.
+        """
+        event = self.__event
+        if isinstance(slot, int):
+            argument_names = list(event.arguments.keys())
+            try:
+                return argument_names[slot]
+            except IndexError:
+                return None
+        return slot
     
     def __getattr__(self, name):
         event = self.__event

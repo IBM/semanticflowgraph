@@ -331,19 +331,17 @@ class TestFlowGraph(unittest.TestCase):
         desired = OrderedDict([
             ('foo', {
                 'portkind': 'input',
+                'annotation_domain': 1,
                 'annotation': 'python/opendisc/foo',
                 'id': self.id(foo),
-                # 'slots': {
-                #     'x': {'value': 1},
-                #     'y': {'value': 1},
-                #     'sum': {'value': 2},
-                # },
             }),
             ('x', {
                 'portkind': 'input',
+                'annotation_domain': 2,
                 'value': 10,
             }),
             ('y', {
+                'annotation_domain': 3,
                 'portkind': 'input',
             })
         ])
@@ -391,6 +389,7 @@ class TestFlowGraph(unittest.TestCase):
         desired = OrderedDict([
             ('__return__', {
                 'portkind': 'output',
+                'annotation_domain': 1,
                 'value': x,
             })
         ])
@@ -401,14 +400,36 @@ class TestFlowGraph(unittest.TestCase):
         desired = OrderedDict([
             ('__return__', {
                 'portkind': 'output',
+                'annotation_domain': 1,
                 'annotation': 'python/opendisc/foo',
                 'id': self.id(foo),
-                # 'slots': {
-                #     'x': {'value': 1},
-                #     'y': {'value': 1},
-                #     'sum': {'value': 2},
-                # },
             })
+        ])
+        self.assertEqual(actual, desired)
+    
+    def test_output_data_mutating(self):
+        """ Test that output ports are created for mutated arguments.
+        """
+        with self.tracer:
+            foo = objects.Foo()
+            bar = objects.bar_from_foo_mutating(foo)
+            
+        graph = self.builder.graph
+        node = find_node(graph, lambda n: n.get('qual_name') == 'bar_from_foo_mutating')
+        actual = self.get_ports(graph, node, 'output')
+        desired = OrderedDict([
+            ('__return__', {
+                'portkind': 'output',
+                'annotation_domain': 2,
+                'annotation': 'python/opendisc/bar',
+                'id': self.id(bar),
+            }),
+            ('foo', {
+                'portkind': 'output',
+                'annotation_domain': 1,
+                'annotation': 'python/opendisc/foo',
+                'id': self.id(foo),
+            }),
         ])
         self.assertEqual(actual, desired)
     

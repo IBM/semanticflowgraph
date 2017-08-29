@@ -52,7 +52,7 @@
     "codomain": [
       {
         "slot": "__return__",
-        "name": "created-foo"
+        "name": "foo"
       }
     ]
   },
@@ -89,13 +89,13 @@
     "function": "opendisc.core.tests.objects.bar_from_foo_mutating",
     "domain": [
       {
-        "slot": "foo",
+        "slot": 0,
         "name": "foo"
       }
     ],
     "codomain": [
       {
-        "slot": "foo",
+        "slot": 0,
         "name": "foo"
       },
       {
@@ -161,37 +161,6 @@
       {
         "slot": "__return__",
         "name": "prod"
-      }
-    ]
-  },
-  {
-    "language": "python",
-    "package": "opendisc",
-    "id": "sum-varargs",
-    "kind": "morphism",
-    "function": "opendisc.core.tests.objects.sum_varargs",
-    "domain": [
-      {
-        "slot": 0,
-        "name": "x"
-      },
-      {
-        "slot": 1,
-        "name": "y"
-      },
-      {
-        "slot": 2,
-        "name": "z"
-      },
-      {
-        "slot": "w",
-        "name": "w"
-      }
-    ],
-    "codomain": [
-      {
-        "slot": "__return__",
-        "name": "sum"
       }
     ]
   }
