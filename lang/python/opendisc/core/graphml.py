@@ -35,6 +35,7 @@ GraphML Spec: http://graphml.graphdrawing.org/specification/dtd.html
 """
 from __future__ import absolute_import
 
+from collections import OrderedDict
 from io import BytesIO
 import json
 try:
@@ -230,7 +231,7 @@ class GraphMLReader(BaseGraphMLReader):
         data = self.decode_data_elements(graphml_keys, node_xml)
         
         # Add ports.
-        ports = {}
+        ports = OrderedDict()
         ports_xml = node_xml.findall('{%s}port' % self.NS_GRAPHML)
         for port_xml in ports_xml:
             name = port_xml.get("name")

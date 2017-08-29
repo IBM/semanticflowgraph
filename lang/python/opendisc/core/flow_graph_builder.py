@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from collections import OrderedDict
 from copy import deepcopy
 import gc
 
@@ -170,10 +171,9 @@ class FlowGraphBuilder(HasTraits):
             output_slots = [ obj['slot'] for obj in annotation['codomain'] ]
         else:
             output_slots = [ '__return__' ]
-        ports = data.setdefault('ports', {})
-        ports.update(self._create_slots_data(
-            event.tracer,
-            _IOSlots(event),
+        ports = data['ports']
+        ports.update(self._get_ports_data(
+            event,
             output_slots,
             { 'portkind': 'output' },
         ))
@@ -192,9 +192,8 @@ class FlowGraphBuilder(HasTraits):
             'annotation': self._annotation_key(annotation),
             'module': event.module,
             'qual_name': event.qual_name,
-            'ports': self._create_slots_data(
-                event.tracer,
-                _IOSlots(event),
+            'ports': self._get_ports_data(
+                event,
                 event.arguments.keys(),
                 { 'portkind': 'input' },
             ),
@@ -263,28 +262,32 @@ class FlowGraphBuilder(HasTraits):
         output_table[obj_id] = (node, port)
         graph.add_edge(node, output_node, id=obj_id, sourceport=port)
     
-    def _create_slots_data(self, tracer, slot_obj, slots, extra_data={}):
-        """ Create data for slots on an object.
+    def _get_ports_data(self, event, slots, extra_data={}):
+        """ Get data for the ports (input or output) of a node.
         """
-        result = {}
+        ports = OrderedDict()
+        slot_obj = _IOSlots(event)
         for slot in slots:
             try:
                 slot_value = get_slot(slot_obj, slot)
             except AttributeError:
-                continue
-            data = self._create_slot_data(tracer, slot, slot_value)
+                slot_value = None
+            data = self._get_object_data(event, slot_value)
             data.update(extra_data)
-            result[slot] = data
-        return result
+            ports[slot] = data
+        return ports
     
-    def _create_slot_data(self, tracer, slot, obj):
-        """ Create data for a single slot value.
+    def _get_object_data(self, event, obj):
+        """ Get data to store for an object.
+        
+        May include the object ID, value, and/or annotation.
         """
         data = {}
         if obj is None:
             return data
         
         # Add ID if the object is trackable.
+        tracer = event.tracer
         if ObjectTracker.is_trackable(obj):
             obj_id = tracer.object_tracker.get_id(obj)
             if not obj_id:
@@ -299,11 +302,6 @@ class FlowGraphBuilder(HasTraits):
         note = self.annotator.notate_object(obj)
         if note:
             data['annotation'] = self._annotation_key(note)
-        
-        # Add slots if the object has any, recursively invoking this function.
-        #if note and 'slots' in note:
-        #    data['slots'] = self._create_slots_data(
-        #        event, slot_obj, note['slots'])
         
         return data
     

@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from collections import OrderedDict
 from pathlib2 import Path
 import unittest
 
@@ -32,6 +33,15 @@ class TestFlowGraph(unittest.TestCase):
         edge_match = iso.categorical_multiedge_match(edge_attrs, edge_defaults)
         self.assertTrue(nx.is_isomorphic(
             g1, g2, node_match=node_match, edge_match=edge_match))
+    
+    def get_ports(self, graph, node, portkind=None):
+        """ Convenience method to get ports from node in flow graph.
+        """
+        ports = graph.node[node]['ports']
+        if portkind is not None:
+            ports = OrderedDict((p, data) for p, data in ports.items()
+                                if data['portkind'] == portkind)
+        return ports
 
     def setUp(self):
         """ Create the tracer and flow graph builder.
@@ -317,23 +327,26 @@ class TestFlowGraph(unittest.TestCase):
         
         graph = self.builder.graph
         node = find_node(graph, lambda n: n.get('qual_name') == 'bar_from_foo')
-        actual = { p: data for p, data in graph.node[node]['ports'].items()
-                   if data.pop('portkind') == 'input' }
-        desired = {
-            'foo': {
-                'id': self.id(foo),
+        actual = self.get_ports(graph, node, 'input')
+        desired = OrderedDict([
+            ('foo', {
+                'portkind': 'input',
                 'annotation': 'python/opendisc/foo',
+                'id': self.id(foo),
                 # 'slots': {
                 #     'x': {'value': 1},
                 #     'y': {'value': 1},
                 #     'sum': {'value': 2},
                 # },
-            },
-            'x': {
+            }),
+            ('x', {
+                'portkind': 'input',
                 'value': 10,
-            },
-            'y': {}
-        }
+            }),
+            ('y', {
+                'portkind': 'input',
+            })
+        ])
         self.assertEqual(actual, desired)
     
     def test_input_ports_varargs(self):
@@ -344,22 +357,25 @@ class TestFlowGraph(unittest.TestCase):
         
         graph = self.builder.graph
         node = find_node(graph, lambda n: n.get('qual_name') == 'sum_varargs')
-        actual = { p: data for p, data in graph.node[node]['ports'].items()
-                   if data.pop('portkind') == 'input' }
-        desired = {
-            'x': {
+        actual = self.get_ports(graph, node, 'input')
+        desired = OrderedDict([
+            ('x', {
+                'portkind': 'input',
                 'value': 1,
-            },
-            'y': {
+            }),
+            ('y', {
+                'portkind': 'input',
                 'value': 2,
-            },
-            '__vararg0__': {
+            }),
+            ('__vararg0__', {
+                'portkind': 'input',
                 'value': 3,
-            },
-            'w': {
+            }),
+            ('w', {
+                'portkind': 'input',
                 'value': 4,
-            }
-        }
+            })
+        ])
         self.assertEqual(actual, desired)
     
     def test_output_data(self):
@@ -371,29 +387,29 @@ class TestFlowGraph(unittest.TestCase):
         
         graph = self.builder.graph
         node = find_node(graph, lambda n: n.get('qual_name') == 'Foo.do_sum')
-        actual = { p: data for p, data in graph.node[node]['ports'].items()
-                   if data.pop('portkind') == 'output' }
-        desired = {
-            '__return__': {
+        actual = self.get_ports(graph, node, 'output')
+        desired = OrderedDict([
+            ('__return__', {
+                'portkind': 'output',
                 'value': x,
-            }
-        }
+            })
+        ])
         self.assertEqual(actual, desired)
         
         node = find_node(graph, lambda n: n.get('qual_name') == 'create_foo')
-        actual = { p: data for p, data in graph.node[node]['ports'].items()
-                   if data.pop('portkind') == 'output' }
-        desired = {
-            '__return__': {
-                'id': self.id(foo),
+        actual = self.get_ports(graph, node, 'output')
+        desired = OrderedDict([
+            ('__return__', {
+                'portkind': 'output',
                 'annotation': 'python/opendisc/foo',
+                'id': self.id(foo),
                 # 'slots': {
                 #     'x': {'value': 1},
                 #     'y': {'value': 1},
                 #     'sum': {'value': 2},
                 # },
-            }
-        }
+            })
+        ])
         self.assertEqual(actual, desired)
     
     def test_two_join_three_object_flow(self):

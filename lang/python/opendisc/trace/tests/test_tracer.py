@@ -25,7 +25,7 @@ class TestTracer(unittest.TestCase):
         self.tracer.observe(handler, 'event')
     
     def test_basic_call(self):
-        """ Can we trace a function call with an annotated argument?
+        """ Are function calls traced?
         """
         with self.tracer:
             foo = objects.Foo()
@@ -51,7 +51,7 @@ class TestTracer(unittest.TestCase):
         self.assertEqual(event.qual_name, 'bar_from_foo')
     
     def test_basic_return(self):
-        """ Can we trace the return of an annotated object?
+        """ Are function returns traced?
         """
         with self.tracer:
             foo = objects.create_foo()
