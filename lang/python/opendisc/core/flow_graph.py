@@ -73,11 +73,11 @@ def flatten(graph, copy=True):
             for src, _, data in graph.in_edges_iter(node, data=True):
                 if data['id'] == obj_id:
                     data.pop('targetport', None)
-                    graph.add_edge(src, tgt, targetport=tgt_port, **data)
+                    graph.add_edge(src, tgt, targetport=tgt_port, attr_dict=data)
                     break
             # If that fails, add a new input object to the parent graph.
             else:
-                graph.add_edge(input_node, tgt, **data)
+                graph.add_edge(input_node, tgt, attr_dict=data)
         
         # Re-wire the output objects of the subgraph.
         for src, _, data in subgraph.in_edges_iter(sub_output_node, data=True):
@@ -89,7 +89,7 @@ def flatten(graph, copy=True):
             for _, tgt, data in graph.out_edges_iter(node, data=True):
                 if data['id'] == obj_id:
                     data.pop('sourceport', None)
-                    graph.add_edge(src, tgt, sourceport=src_port, **data)
+                    graph.add_edge(src, tgt, sourceport=src_port, attr_dict=data)
         
         # Finally, remove the original node (and its edges).
         graph.remove_node(node)
@@ -118,10 +118,10 @@ def join(first, second, copy=True):
         if data['id'] in output_table:
             src, key = output_table[data['id']]
             src_port = graph.edge[src][output_node][key]['sourceport']
-            graph.add_edge(src, tgt, sourceport=src_port, **data)
+            graph.add_edge(src, tgt, sourceport=src_port, attr_dict=data)
         # Otherwise, add the input to the first graph.
         else:
-            graph.add_edge(input_node, tgt, **data)
+            graph.add_edge(input_node, tgt, attr_dict=data)
     
     # Add outputs from the second graph, overwriting outputs of the first graph
     # if there is a conflict.
@@ -129,6 +129,6 @@ def join(first, second, copy=True):
         if data['id'] in output_table:
             old, key = output_table[data['id']]
             graph.remove_edge(old, output_node, key=key)
-        graph.add_edge(src, output_node, **data)
+        graph.add_edge(src, output_node, attr_dict=data)
         
     return graph

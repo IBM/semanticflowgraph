@@ -303,7 +303,7 @@ class TestFlowGraph(unittest.TestCase):
         self.assert_isomorphic(actual, target)
     
     def test_function_annotations(self):
-        """ Test that function annotations are stored.
+        """ Test that function annotations are stored on nodes.
         """
         with self.tracer:
             foo = objects.create_foo()
@@ -311,12 +311,58 @@ class TestFlowGraph(unittest.TestCase):
         
         graph = self.builder.graph
         node = find_node(graph, lambda n: n.get('qual_name') == 'create_foo')
-        note = graph.node[node]['annotation']
-        self.assertEqual(note, 'python/opendisc/create-foo')
+        actual = graph.node[node]
+        actual.pop('ports', None)
+        desired = {
+            'module': 'opendisc.core.tests.objects',
+            'qual_name': 'create_foo',
+            'annotation': 'python/opendisc/create-foo',
+        }
+        self.assertEqual(actual, desired)
         
         node = find_node(graph, lambda n: n.get('qual_name') == 'bar_from_foo')
         note = graph.node[node]['annotation']
-        self.assertEqual(note, 'python/opendisc/bar-from-foo')
+        actual = graph.node[node]
+        actual.pop('ports', None)
+        desired = {
+            'module': 'opendisc.core.tests.objects',
+            'qual_name': 'bar_from_foo',
+            'annotation': 'python/opendisc/bar-from-foo',
+        }
+        self.assertEqual(actual, desired)
+    
+    def test_object_annotations(self):
+        """ Test that object annotations are stored on edges.
+        """
+        with self.tracer:
+            foo = objects.create_foo()
+            bar = objects.bar_from_foo(foo)
+            
+        graph = self.builder.graph
+        output_node = graph.graph['output_node']
+        foo_node = find_node(graph, lambda n: n.get('qual_name') == 'create_foo')
+        bar_node = find_node(graph, lambda n: n.get('qual_name') == 'bar_from_foo')
+        
+        actual = graph.edge[foo_node][bar_node][0]
+        desired = {
+            'sourceport': '__return__',
+            'targetport': 'foo',
+            'id': self.id(foo),
+            'module': 'opendisc.core.tests.objects',
+            'qual_name': 'Foo',
+            'annotation': 'python/opendisc/foo',
+        }
+        self.assertEqual(actual, desired)
+        
+        actual = graph.edge[bar_node][output_node][0]
+        desired = {
+            'sourceport': '__return__',
+            'id': self.id(bar),
+            'module': 'opendisc.core.tests.objects',
+            'qual_name': 'Bar',
+            'annotation': 'python/opendisc/bar',
+        }
+        self.assertEqual(actual, desired)
     
     def test_input_ports(self):
         """ Test that data for input ports is stored.
@@ -332,22 +378,18 @@ class TestFlowGraph(unittest.TestCase):
             ('foo', {
                 'argname': 'foo',
                 'portkind': 'input',
-                'annotation_domain': 1,
-                'annotation': 'python/opendisc/foo',
-                'module': 'opendisc.core.tests.objects',
-                'qual_name': 'Foo',
-                'id': self.id(foo),
+                'annotation': 1,
             }),
             ('x', {
                 'argname': 'x',
                 'portkind': 'input',
-                'annotation_domain': 2,
+                'annotation': 2,
                 'value': 10,
             }),
             ('y', {
                 'argname': 'y',
                 'portkind': 'input',
-                'annotation_domain': 3,
+                'annotation': 3,
             })
         ])
         self.assertEqual(actual, desired)
@@ -399,7 +441,7 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__', {
                 'argname': '__return__',
                 'portkind': 'output',
-                'annotation_domain': 1,
+                'annotation': 1,
                 'value': x,
             })
         ])
@@ -411,11 +453,7 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__', {
                 'argname': '__return__',
                 'portkind': 'output',
-                'annotation_domain': 1,
-                'annotation': 'python/opendisc/foo',
-                'module': 'opendisc.core.tests.objects',
-                'qual_name': 'Foo',
-                'id': self.id(foo),
+                'annotation': 1,
             })
         ])
         self.assertEqual(actual, desired)
@@ -434,20 +472,12 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__', {
                 'argname': '__return__',
                 'portkind': 'output',
-                'annotation_domain': 2,
-                'annotation': 'python/opendisc/bar',
-                'module': 'opendisc.core.tests.objects',
-                'qual_name': 'Bar',
-                'id': self.id(bar),
+                'annotation': 2,
             }),
             ('foo!', {
                 'argname': 'foo',
                 'portkind': 'output',
-                'annotation_domain': 1,
-                'annotation': 'python/opendisc/foo',
-                'module': 'opendisc.core.tests.objects',
-                'qual_name': 'Foo',
-                'id': self.id(foo),
+                'annotation': 1,
             }),
         ])
         self.assertEqual(actual, desired)

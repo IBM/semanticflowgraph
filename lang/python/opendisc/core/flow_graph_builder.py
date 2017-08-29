@@ -170,9 +170,11 @@ class FlowGraphBuilder(HasTraits):
         self._update_call_node_for_return(event, graph, node)
         
         # Set output for return value.
-        return_id = event.tracer.object_tracker.get_id(event.return_value)
+        return_value = event.return_value
+        return_id = event.tracer.object_tracker.get_id(return_value)
         if return_id:
-            self._set_object_output_node(context, return_id, node, '__return__')
+            self._set_object_output_node(
+                context, return_value, return_id, node, '__return__')
     
     def _add_call_node(self, event, graph):
         """ Add a new call node for a call event.
@@ -227,8 +229,8 @@ class FlowGraphBuilder(HasTraits):
         graph = context.graph
         src, src_port = self._get_object_output_node(context, arg_id)
         if src is not None:
-            graph.add_edge(src, node, id=arg_id,
-                           sourceport=src_port, targetport=arg_name)
+            self._add_object_edge(graph, arg, arg_id, src, node,
+                                  sourceport=src_port, targetport=arg_name)
         
         # Otherwise, mark the argument as an unknown input.
         # Special case: Treat `self` in object initializer as return value.
@@ -236,19 +238,31 @@ class FlowGraphBuilder(HasTraits):
         # Python implementation.
         elif not (event.atomic and event.qual_name.endswith('__init__') and
                   arg_name == 'self'):
-            self._add_object_input_node(context, arg_id, node, arg_name)
+            self._add_object_input_node(context, arg, arg_id, node, arg_name)
     
         # Update output node if this call is atomic and mutating.
         if event.atomic and not is_pure:
             port = self._mutated_port_name(arg_name)
-            self._set_object_output_node(context, arg_id, node, port)
+            self._set_object_output_node(context, arg, arg_id, node, port)
     
-    def _add_object_input_node(self, context, obj_id, node, port):
+    def _add_object_edge(self, graph, obj, obj_id, source, target, 
+                         sourceport=None, targetport=None):
+        """ Add edge corresponding to an object.
+        """
+        data = self._get_object_data(obj, obj_id)
+        if sourceport is not None:
+            data['sourceport'] = sourceport
+        if targetport is not None:
+            data['targetport'] = targetport
+        graph.add_edge(source, target, attr_dict=data)
+    
+    def _add_object_input_node(self, context, obj, obj_id, node, port):
         """ Add an object as an unknown input to a node.
         """
         graph = context.graph
         input_node = graph.graph['input_node']
-        graph.add_edge(input_node, node, id=obj_id, targetport=port)
+        self._add_object_edge(graph, obj, obj_id, input_node, node,
+                              targetport=port)
     
     def _get_object_output_node(self, context, obj_id):
         """ Get the node/port of which the object is an output, if any. 
@@ -259,7 +273,7 @@ class FlowGraphBuilder(HasTraits):
         output_table = context.output_table
         return output_table.get(obj_id, (None, None))
     
-    def _set_object_output_node(self, context, obj_id, node, port):
+    def _set_object_output_node(self, context, obj, obj_id, node, port):
         """ Set an object as an output of a node.
         """
         graph, output_table = context.graph, context.output_table
@@ -275,53 +289,27 @@ class FlowGraphBuilder(HasTraits):
         
         # Set new output.
         output_table[obj_id] = (node, port)
-        graph.add_edge(node, output_node, id=obj_id, sourceport=port)
+        self._add_object_edge(graph, obj, obj_id, node, output_node,
+                              sourceport=port)
     
-    def _get_ports_data(self, event, names, domain, extra_data={}):
-        """ Get data for the ports (input or output) of a node.
-        """
-        ports = OrderedDict()
-        slots = _IOSlots(event)
-        domain_map = { slots.name(obj['slot']): i for i, obj in enumerate(domain) }
-        for name in names:
-            name, portname = name if isinstance(name, tuple) else (name, name)
-            try:
-                obj = get_slot(slots, name)
-            except AttributeError:
-                obj = None
-            
-            data = self._get_object_data(event, obj)
-            data.update(extra_data)
-            data['argname'] = name
-            if name in domain_map:
-                # Index starting at 1: this attribute is language-agnostic.
-                data['annotation_domain'] = domain_map[name] + 1
-            
-            ports[portname] = data
-        return ports
-    
-    def _get_object_data(self, event, obj):
+    def _get_object_data(self, obj, obj_id=None):
         """ Get data to store for an object.
         
-        May include the object ID, value, and/or annotation.
+        The data includes the object's class, ID, value, and/or annotation.
         """
         data = {}
         if obj is None:
             return data
         
-        # Add ID if the object is trackable.
-        tracer = event.tracer
-        if ObjectTracker.is_trackable(obj):
-            obj_id = tracer.object_tracker.get_id(obj)
-            if not obj_id:
-                obj_id = tracer.track_object(obj)
+        # Add object ID if available.
+        if obj_id is not None:
             data['id'] = obj_id
         
         # Add value if the object is primitive.
         if self.is_primitive(obj):
             data['value'] = deepcopy(obj)
         
-        # Add type information if not built-in.
+        # Add type information if type is not built-in.
         obj_type = obj.__class__
         module = get_class_module(obj_type)
         if not module == 'builtins':
@@ -332,6 +320,43 @@ class FlowGraphBuilder(HasTraits):
         note = self.annotator.notate_object(obj)
         if note:
             data['annotation'] = self._annotation_key(note)
+        
+        return data
+    
+    def _get_ports_data(self, event, names, annotation=[], extra_data={}):
+        """ Get data for the ports (input or output) of a node.
+        """
+        ports = OrderedDict()
+        slots = _IOSlots(event)
+        annotation_table = { 
+            # Index annotation domain starting at 1: it is language-agnostic.
+            slots.name(dom['slot']): i+1 for i, dom in enumerate(annotation)
+        }
+        for name in names:
+            name, portname = name if isinstance(name, tuple) else (name, name)
+            try:
+                obj = get_slot(slots, name)
+            except AttributeError:
+                obj = None
+                
+            data = self._get_port_data(name, obj, extra_data)
+            if name in annotation_table:
+                data['annotation'] = annotation_table[name]
+            ports[portname] = data
+        return ports
+    
+    def _get_port_data(self, name, obj, extra_data={}):
+        """ Get data for a single port on a node.
+        """
+        data = { 'argname': name }
+        data.update(extra_data)
+        
+        # Store primitive, non-trackable values on the port. Logically, the
+        # values should be stored on the edges, but for now edges only carry
+        # trackable objects (via their IDs).
+        if obj is not None and not ObjectTracker.is_trackable(obj) and \
+                self.is_primitive(obj):
+            data['value'] = deepcopy(obj)
         
         return data
     
@@ -371,7 +396,7 @@ class FlowGraphBuilder(HasTraits):
         Because the GraphML protocol does not support input and output ports as
         first-class entities, the names of ports must be unique across inputs
         and outputs. Therefore, when an argument is mutated and hence appears as
-        both an input and output, we must give the output port a modified name.
+        both an input and output, we must give the output port a different name.
         """
         return arg_name + '!'
 
@@ -396,7 +421,7 @@ class _CallContext(HasTraits):
     # node, i.e., there is at most one incoming edge to the special output node
     # that carries a particular object. We maintain this mapping as an auxiliary
     # data structure called the "output table". It is logically superfluous--the
-    # same information is captured by the graph topology--but improves
+    # same information is captured by the graph topology--but it improves
     # efficiency by allowing constant-time lookup.
     output_table = Dict()
 
