@@ -75,8 +75,8 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('1', qual_name='Foo.__init__')
         target.add_node('2', qual_name='bar_from_foo')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self', targetport='foo')
-        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+                        sourceport='self!', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
@@ -110,10 +110,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('2', qual_name='bar_from_foo')
         target.add_node('3', qual_name='baz_from_bar')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self', targetport='foo')
+                        sourceport='self!', targetport='foo')
         target.add_edge('2', '3', id=self.id(bar),
                         sourceport='__return__', targetport='bar')
-        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         target.add_edge('3', outputs, id=self.id(baz), sourceport='__return__')
         self.assert_isomorphic(actual, target)
@@ -133,10 +133,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('2', qual_name='bar_from_foo_mutating')
         target.add_node('3', qual_name='baz_from_foo')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self', targetport='foo')
+                        sourceport='self!', targetport='foo')
         target.add_edge('2', '3', id=self.id(foo),
-                        sourceport='foo', targetport='foo')
-        target.add_edge('2', outputs, id=self.id(foo), sourceport='foo')
+                        sourceport='foo!', targetport='foo')
+        target.add_edge('2', outputs, id=self.id(foo), sourceport='foo!')
         target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         target.add_edge('3', outputs, id=self.id(baz), sourceport='__return__')
         self.assert_isomorphic(actual, target)
@@ -156,10 +156,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('2', qual_name='bar_from_foo')
         target.add_node('3', qual_name='baz_from_foo')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self', targetport='foo')
+                        sourceport='self!', targetport='foo')
         target.add_edge('1', '3', id=self.id(foo),
-                        sourceport='self', targetport='foo')
-        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+                        sourceport='self!', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         target.add_edge('3', outputs, id=self.id(baz), sourceport='__return__')
         self.assert_isomorphic(actual, target)
@@ -183,8 +183,8 @@ class TestFlowGraph(unittest.TestCase):
         outputs = target_sub.graph['output_node']
         target_sub.add_node('1', qual_name='Foo.__init__')
         target_sub.add_node('2', qual_name='bar_from_foo')
-        target_sub.add_edge('1', '2', sourceport='self', targetport='foo')
-        target_sub.add_edge('1', outputs, sourceport='self')
+        target_sub.add_edge('1', '2', sourceport='self!', targetport='foo')
+        target_sub.add_edge('1', outputs, sourceport='self!')
         target_sub.add_edge('2', outputs, sourceport='__return__')
         self.assert_isomorphic(actual_sub, target_sub, check_id=False)
     
@@ -199,7 +199,7 @@ class TestFlowGraph(unittest.TestCase):
         outputs = target.graph['output_node']
         target.add_node('1', qual_name='Foo.__init__')
         target.add_node('2', qual_name='bar_from_foo')
-        target.add_edge('1', '2', sourceport='self', targetport='foo')
+        target.add_edge('1', '2', sourceport='self!', targetport='foo')
         target.add_edge('2', outputs, sourceport='__return__')
         self.assert_isomorphic(actual, target, check_id=False)
     
@@ -216,8 +216,8 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('1', qual_name='Foo.__init__')
         target.add_node('2', qual_name='outer_bar_from_foo')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self', targetport='foo')
-        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+                        sourceport='self!', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
         
@@ -254,8 +254,8 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('1', qual_name='Foo.__init__')
         target.add_node('2', qual_name='bar_from_foo')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self', targetport='foo')
-        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+                        sourceport='self!', targetport='foo')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
@@ -273,10 +273,10 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('2', qual_name='Foo.__getattribute__')
         target.add_node('3', qual_name='Foo.apply')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self', targetport='self')
+                        sourceport='self!', targetport='self')
         target.add_edge('1', '3', id=self.id(foo),
-                        sourceport='self', targetport='self')
-        target.add_edge('1', outputs, id=self.id(foo), sourceport='self')
+                        sourceport='self!', targetport='self')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         self.assert_isomorphic(actual, target)
     
     def test_tracked_inside_list(self):
@@ -295,11 +295,11 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('2', qual_name='Foo.__init__')
         target.add_node('3', qual_name='foo_x_sum')
         target.add_edge('1', '3', id=self.id(foo1),
-                        sourceport='self', targetport='foos')
+                        sourceport='self!', targetport='foos')
         target.add_edge('2', '3', id=self.id(foo2),
-                        sourceport='self', targetport='foos')
-        target.add_edge('1', outputs, id=self.id(foo1), sourceport='self')
-        target.add_edge('2', outputs, id=self.id(foo2), sourceport='self')
+                        sourceport='self!', targetport='foos')
+        target.add_edge('1', outputs, id=self.id(foo1), sourceport='self!')
+        target.add_edge('2', outputs, id=self.id(foo2), sourceport='self!')
         self.assert_isomorphic(actual, target)
     
     def test_function_annotations(self):
@@ -424,7 +424,7 @@ class TestFlowGraph(unittest.TestCase):
                 'annotation': 'python/opendisc/bar',
                 'id': self.id(bar),
             }),
-            ('foo', {
+            ('foo!', {
                 'portkind': 'output',
                 'annotation_domain': 1,
                 'annotation': 'python/opendisc/foo',

@@ -164,20 +164,9 @@ class FlowGraphBuilder(HasTraits):
         # Get graph from context of previous call.
         context = self._stack[-1]
         graph = context.graph
-        data = graph.node[node]
                 
-        # Add output ports.
-        annotation = self.annotator.notate_function(event.function) or {}
-        port_names = [] if event.return_value is None else [ '__return__' ]
-        port_names.extend(arg_name for arg_name in event.arguments.keys()
-                          if not self.is_pure(event, annotation, arg_name))
-        ports = data['ports']
-        ports.update(self._get_ports_data(
-            event,
-            port_names,
-            annotation.get('codomain', []),
-            { 'portkind': 'output' },
-        ))
+        # Update node data for this call.
+        self._update_call_node_for_return(event, graph, node)
         
         # Set output for return value.
         return_id = event.tracer.object_tracker.get_id(event.return_value)
@@ -185,7 +174,7 @@ class FlowGraphBuilder(HasTraits):
             self._set_object_output_node(context, return_id, node, '__return__')
     
     def _add_call_node(self, event, graph):
-        """ Add a new node for a call event.
+        """ Add a new call node for a call event.
         """
         annotation = self.annotator.notate_function(event.function) or {}
         node = node_name(graph, event.qual_name)
@@ -202,6 +191,28 @@ class FlowGraphBuilder(HasTraits):
         }
         graph.add_node(node, **data)
         return node
+    
+    def _update_call_node_for_return(self, event, graph, node):
+        """ Update a call node for a return event.
+        """
+        annotation = self.annotator.notate_function(event.function) or {}
+        data = graph.node[node]
+        
+        # Add output ports.
+        port_names = []
+        if event.return_value is not None:
+            port_names.append('__return__')
+        for arg_name in event.arguments.keys():
+            if not self.is_pure(event, annotation, arg_name):
+                port_names.append((arg_name, self._mutated_port_name(arg_name)))
+        
+        ports = data['ports']
+        ports.update(self._get_ports_data(
+            event,
+            port_names,
+            annotation.get('codomain', []),
+            { 'portkind': 'output' },
+        ))
     
     def _add_call_in_edge(self, event, context, node, arg_name, arg, is_pure=True):
         """ Add an incoming edge to a call node.
@@ -228,7 +239,8 @@ class FlowGraphBuilder(HasTraits):
     
         # Update output node if this call is atomic and mutating.
         if event.atomic and not is_pure:
-            self._set_object_output_node(context, arg_id, node, arg_name)
+            port = self._mutated_port_name(arg_name)
+            self._set_object_output_node(context, arg_id, node, port)
     
     def _add_object_input_node(self, context, obj_id, node, port):
         """ Add an object as an unknown input to a node.
@@ -271,6 +283,7 @@ class FlowGraphBuilder(HasTraits):
         slots = _IOSlots(event)
         domain_map = { slots.name(obj['slot']): i for i, obj in enumerate(domain) }
         for name in names:
+            name, portname = name if isinstance(name, tuple) else (name, name)
             try:
                 obj = get_slot(slots, name)
             except AttributeError:
@@ -281,7 +294,7 @@ class FlowGraphBuilder(HasTraits):
             if name in domain_map:
                 # Index starting at 1: this attribute is language-agnostic.
                 data['annotation_domain'] = domain_map[name] + 1
-            ports[name] = data
+            ports[portname] = data
         return ports
     
     def _get_object_data(self, event, obj):
@@ -341,6 +354,16 @@ class FlowGraphBuilder(HasTraits):
             for referent in gc.get_referents(obj):
                 if tracker.is_tracked(referent):
                     yield referent
+    
+    def _mutated_port_name(self, arg_name):
+        """ Get name of output port for a mutated argument.
+        
+        Because the GraphML protocol does not support input and output ports as
+        first-class entities, the names of ports must be unique across inputs
+        and outputs. Therefore, when an argument is mutated and hence appears as
+        both an input and output, we must give the output port a modified name.
+        """
+        return arg_name + '!'
 
 
 class _CallContext(HasTraits):
