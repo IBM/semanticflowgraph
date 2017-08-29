@@ -9,6 +9,7 @@ import networkx as nx
 from traitlets import HasTraits, Dict, Instance, List, Unicode, default
 
 from opendisc.kernel.slots import get_slot
+from opendisc.trace.frame_util import get_class_module, get_class_qual_name
 from opendisc.trace.object_tracker import ObjectTracker
 from opendisc.trace.trace_event import TraceEvent, TraceCall, TraceReturn
 from .annotator import Annotator
@@ -291,7 +292,7 @@ class FlowGraphBuilder(HasTraits):
             
             data = self._get_object_data(event, obj)
             data.update(extra_data)
-            data['name'] = name
+            data['argname'] = name
             if name in domain_map:
                 # Index starting at 1: this attribute is language-agnostic.
                 data['annotation_domain'] = domain_map[name] + 1
@@ -319,6 +320,13 @@ class FlowGraphBuilder(HasTraits):
         # Add value if the object is primitive.
         if self.is_primitive(obj):
             data['value'] = deepcopy(obj)
+        
+        # Add type information if not built-in.
+        obj_type = obj.__class__
+        module = get_class_module(obj_type)
+        if not module == 'builtins':
+            data['module'] = module
+            data['qual_name'] = get_class_qual_name(obj_type)
                 
         # Add annotation, if it exists.
         note = self.annotator.notate_object(obj)

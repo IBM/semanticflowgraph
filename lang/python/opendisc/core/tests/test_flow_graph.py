@@ -330,20 +330,22 @@ class TestFlowGraph(unittest.TestCase):
         actual = self.get_ports(graph, node, 'input')
         desired = OrderedDict([
             ('foo', {
-                'name': 'foo',
+                'argname': 'foo',
                 'portkind': 'input',
                 'annotation_domain': 1,
                 'annotation': 'python/opendisc/foo',
+                'module': 'opendisc.core.tests.objects',
+                'qual_name': 'Foo',
                 'id': self.id(foo),
             }),
             ('x', {
-                'name': 'x',
+                'argname': 'x',
                 'portkind': 'input',
                 'annotation_domain': 2,
                 'value': 10,
             }),
             ('y', {
-                'name': 'y',
+                'argname': 'y',
                 'portkind': 'input',
                 'annotation_domain': 3,
             })
@@ -361,22 +363,22 @@ class TestFlowGraph(unittest.TestCase):
         actual = self.get_ports(graph, node, 'input')
         desired = OrderedDict([
             ('x', {
-                'name': 'x',
+                'argname': 'x',
                 'portkind': 'input',
                 'value': 1,
             }),
             ('y', {
-                'name': 'y',
+                'argname': 'y',
                 'portkind': 'input',
                 'value': 2,
             }),
             ('__vararg0__', {
-                'name': '__vararg0__',
+                'argname': '__vararg0__',
                 'portkind': 'input',
                 'value': 3,
             }),
             ('w', {
-                'name': 'w',
+                'argname': 'w',
                 'portkind': 'input',
                 'value': 4,
             })
@@ -395,7 +397,7 @@ class TestFlowGraph(unittest.TestCase):
         actual = self.get_ports(graph, node, 'output')
         desired = OrderedDict([
             ('__return__', {
-                'name': '__return__',
+                'argname': '__return__',
                 'portkind': 'output',
                 'annotation_domain': 1,
                 'value': x,
@@ -407,10 +409,12 @@ class TestFlowGraph(unittest.TestCase):
         actual = self.get_ports(graph, node, 'output')
         desired = OrderedDict([
             ('__return__', {
-                'name': '__return__',
+                'argname': '__return__',
                 'portkind': 'output',
                 'annotation_domain': 1,
                 'annotation': 'python/opendisc/foo',
+                'module': 'opendisc.core.tests.objects',
+                'qual_name': 'Foo',
                 'id': self.id(foo),
             })
         ])
@@ -428,17 +432,21 @@ class TestFlowGraph(unittest.TestCase):
         actual = self.get_ports(graph, node, 'output')
         desired = OrderedDict([
             ('__return__', {
-                'name': '__return__',
+                'argname': '__return__',
                 'portkind': 'output',
                 'annotation_domain': 2,
                 'annotation': 'python/opendisc/bar',
+                'module': 'opendisc.core.tests.objects',
+                'qual_name': 'Bar',
                 'id': self.id(bar),
             }),
             ('foo!', {
-                'name': 'foo',
+                'argname': 'foo',
                 'portkind': 'output',
                 'annotation_domain': 1,
                 'annotation': 'python/opendisc/foo',
+                'module': 'opendisc.core.tests.objects',
+                'qual_name': 'Foo',
                 'id': self.id(foo),
             }),
         ])
