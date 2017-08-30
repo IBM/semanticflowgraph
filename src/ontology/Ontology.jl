@@ -40,7 +40,9 @@ end
 #########
 
 include("OntologyJSON.jl")
+include("OntologyDBs.jl")
 
 @reexport using .OntologyJSON
+@reexport using .OntologyDBs
 
 end
