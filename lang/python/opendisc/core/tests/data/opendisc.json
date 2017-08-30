@@ -53,7 +53,10 @@
     "package": "opendisc",
     "id": "foo-container",
     "kind": "object",
-    "class": "opendisc.core.tests.objects.FooContainer"
+    "class": "opendisc.core.tests.objects.FooContainer",
+    "slots": {
+      "foo": "foo"
+    }
   },
   {
     "_id": "annotation/python/opendisc/create-foo",

@@ -484,8 +484,8 @@ class TestFlowGraph(unittest.TestCase):
         ])
         self.assertEqual(actual, desired)
     
-    def test_object_slots(self):
-        """ Test that object slots with primitive values are captured.
+    def test_object_slots_primitive(self):
+        """ Test that annotated object slots with primitive values are captured.
         """
         with self.tracer:
             foo = objects.FooSlots()
@@ -497,25 +497,46 @@ class TestFlowGraph(unittest.TestCase):
         target.add_node('x', slot='x')
         target.add_node('y', slot='y')
         target.add_node('sum', slot='do_sum')
-        target.add_edge('1', 'x', id=self.id(foo), sourceport='self!')
-        target.add_edge('1', 'y', id=self.id(foo), sourceport='self!')
-        target.add_edge('1', 'sum', id=self.id(foo), sourceport='self!')
+        target.add_edge('1', 'x', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('1', 'y', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('1', 'sum', id=self.id(foo),
+                        sourceport='self!', targetport='self')
         target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         self.assert_isomorphic(actual, target)
         
         node = find_node(graph, lambda n: n.get('slot') == 'do_sum')
         ports = graph.node[node]['ports']
         self.assertEqual(ports, OrderedDict([
-            ('in', {
+            ('self', {
                 'portkind': 'input',
                 'annotation': 1,
             }),
-            ('out', {
+            ('__return__', {
                 'portkind': 'output',
                 'annotation': 1,
                 'value': foo.do_sum(),
             })
         ]))
+    
+    def test_object_slots_trackable(self):
+        """ Test that annotated object slots with trackable values are captured.
+        """
+        with self.tracer:
+            container = objects.FooContainer()
+        foo = container.foo
+        
+        actual = self.builder.graph
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='FooContainer.__init__')
+        target.add_node('foo', slot='foo')
+        target.add_edge('1', 'foo', id=self.id(container),
+                        sourceport='self!', targetport='self')
+        target.add_edge('foo', outputs, id=self.id(foo), sourceport='__return__')
+        target.add_edge('1', outputs, id=self.id(container), sourceport='self!')
+        self.assert_isomorphic(actual, target)
     
     def test_two_join_three_object_flow(self):
         """ Test join of simple, three-object flow captured in two stages.

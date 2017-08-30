@@ -169,10 +169,15 @@ class GraphMLWriter(BaseGraphMLWriter):
         default = graph.graph.get('edge_default', {})
         for u,v,data in graph.edges_iter(data=True):
             edge_element = Element('edge', source=make_str(u), target=make_str(v))
-            if 'sourceport' in data:
-                edge_element.set('sourceport', data['sourceport'])
-            if 'targetport' in data:
-                edge_element.set('targetport', data['targetport'])
+            
+            sourceport = data.get('sourceport')
+            if sourceport is not None:
+                edge_element.set('sourceport', sourceport)
+            
+            targetport = data.get('targetport')
+            if targetport is not None:
+                edge_element.set('targetport', targetport)
+            
             self.add_attributes('edge', edge_element, data, default)
             graph_element.append(edge_element)
     
@@ -271,7 +276,7 @@ class GraphMLReader(BaseGraphMLReader):
         if targetport is not None:
             data['targetport'] = targetport
         
-        graph.add_edge(source, target, **data)
+        graph.add_edge(source, target, attr_dict=data)
     
     def decode_data_elements(self, graphml_keys, obj_xml):
         """ Reimplemented to handle JSON data.

@@ -169,14 +169,14 @@ class FlowGraphBuilder(HasTraits):
         return_id = object_tracker.get_id(return_value)
         if return_id:
             self._set_object_output_node(
-                return_value, return_id, node, '__return__')
+                event, return_value, return_id, node, '__return__')
         
         # Set outputs for mutated arguments.
         for arg_name, arg in event.arguments.items():
             arg_id = object_tracker.get_id(arg)
             if arg_id and not self.is_pure(event, annotation, arg_name):
                 port = self._mutated_port_name(arg_name)
-                self._set_object_output_node(arg, arg_id, node, port)
+                self._set_object_output_node(event, arg, arg_id, node, port)
     
     def _add_call_node(self, event, annotation):
         """ Add a new call node for a call event.
@@ -276,7 +276,7 @@ class FlowGraphBuilder(HasTraits):
         output_table = context.output_table
         return output_table.get(obj_id, (None, None))
     
-    def _set_object_output_node(self, obj, obj_id, node, port):
+    def _set_object_output_node(self, event, obj, obj_id, node, port):
         """ Set an object as an output of a node.
         """
         context = self._stack[-1]
@@ -296,9 +296,9 @@ class FlowGraphBuilder(HasTraits):
         self._add_object_edge(obj, obj_id, node, output_node, sourceport=port)
         
         # The object has been created or mutated, so fetch its slots.
-        self._add_object_slots(obj, obj_id, node, port)
+        self._add_object_slots(event, obj, obj_id, node, port)
     
-    def _add_object_slots(self, obj, obj_id, node, port):
+    def _add_object_slots(self, event, obj, obj_id, node, port):
         """ Add nodes and edges for annotated slots of an object.
         """
         context = self._stack[-1]
@@ -315,18 +315,25 @@ class FlowGraphBuilder(HasTraits):
                 'slot': slot,
                 'slot_annotation': name,
                 'ports': OrderedDict([
-                    ('in', self._get_port_data(obj,
+                    ('self', self._get_port_data(obj,
                         portkind='input',
                         annotation=1,
                     )),
-                    ('out', self._get_port_data(slot_value,
+                    ('__return__', self._get_port_data(slot_value,
                         portkind='output',
                         annotation=1,
                     )),
                 ])
             }
             graph.add_node(slot_node, attr_dict=slot_node_data)
-            self._add_object_edge(obj, obj_id, node, slot_node, sourceport=port)
+            self._add_object_edge(obj, obj_id, node, slot_node,
+                                  sourceport=port, targetport='self')
+            
+            # If object is trackable, recursively set it as output.
+            if ObjectTracker.is_trackable(slot_value):
+                slot_id = event.tracer.object_tracker.track(slot_value)
+                self._set_object_output_node(
+                    event, slot_value, slot_id, slot_node, '__return__')
     
     def _get_object_data(self, obj, obj_id=None):
         """ Get data to store for an object.
