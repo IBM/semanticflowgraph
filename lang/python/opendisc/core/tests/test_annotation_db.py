@@ -7,15 +7,14 @@ from ..annotation_db import AnnotationDB
 
 
 class TestAnnotationDB(unittest.TestCase):
-    """ Test the in-memory annotation database.
+    """ Test the in-memory annotation database on local annotations.
     """
 
     @classmethod
     def setUpClass(cls):
-        search_path = Path(__file__).parent.joinpath('annotations')
+        json_path = Path(__file__).parent.joinpath('data', 'opendisc.json')
         cls.db = AnnotationDB()
-        cls.db.search_path = [ str(search_path) ]
-        cls.db.load_all_packages('python')
+        cls.db.load_file(json_path)
     
     def test_basic_get(self):
         """ Test a simple, single-document query.
@@ -64,7 +63,7 @@ class TestAnnotationDB(unittest.TestCase):
         }
         notes = list(self.db.filter(query))
         self.assertEqual(len(notes), 1)
-        self.assertEqual(notes[0]['id'], 'foo')
+        self.assertEqual(notes[0]['id'], 'foo-slots')
 
 
 if __name__ == '__main__':

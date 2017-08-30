@@ -6,40 +6,36 @@ from pathlib2 import Path
 import blitzdb
 from blitzdb import fields
 import sqlalchemy
-from traitlets import HasTraits, Dict, Instance, List, Unicode, default
+from traitlets import HasTraits, Instance, default
 
 
 class AnnotationDB(HasTraits):
     """ An in-memory JSON database of object and function annotations.
     
-    This class contains no Python-specific annotation logic. For that,
+    The class contains no Python-specific annotation logic. For that,
     see `opendisc.kernel.trace.annotator`.
     """
     
-    # Search path for package annotations.
-    search_path = List(Unicode())
+    # Underlying in-memory database backend.
+    _database = Instance(blitzdb.backends.base.Backend)
     
-    # Private traits.
-    _db = Instance(blitzdb.backends.base.Backend)
-    
-    def load_package(self, language, package):
-        """ Load annotations for the given language and package.
+    def load_documents(self, notes):
+        """ Load annotations from an iterable of JSON documents
+        (JSON-able dictionaries).
         """
-        paths = []
-        for lang_dir in self._language_dirs(language):
-            paths.extend(lang_dir.glob(package + '.json'))
-            paths.extend(lang_dir.glob(package + '/**/*.json'))
-        for path in paths:
-            self._load_json(path)             
+        for note in notes:
+            doc = Annotation(note)
+            doc.pk = note['_id']
+            self._database.save(doc)
     
-    def load_all_packages(self, language):
-        """ Load annotations for all packages for the given language.
+    def load_file(self, filename):
+        """ Load annotations from a JSON file.
+        
+        Typically annotations will be loaded from a remote database but this
+        method is useful for local testing.
         """
-        paths = []
-        for lang_dir in self._language_dirs(language):
-            paths.extend(lang_dir.glob('**/*.json'))
-        for path in paths:
-            self._load_json(path)
+        with Path(filename).open('r') as f:
+            self.load_documents(json.load(f))
 
     def get(self, query):
         """ Get a single document matching the query.
@@ -60,30 +56,11 @@ class AnnotationDB(HasTraits):
         blitz_query = { key: query.pop(key) for key in list(query.keys())
                         if key in Annotation.fields.keys() or 
                            key.startswith('$') }
-        blitz_result = self._db.filter(Annotation, blitz_query)
+        blitz_result = self._database.filter(Annotation, blitz_query)
         return (doc.attributes for doc in blitz_result
                 if self._query_json(query, doc.attributes))
     
     # Private interface
-    
-    def _language_dirs(self, language):
-        for search_dir in map(Path, self.search_path):
-            lang_dir = search_dir.joinpath(language)
-            if lang_dir.is_dir():
-                yield lang_dir
-    
-    def _load_json(self, path):
-        with Path(path).open('r') as f:
-            data = json.load(f)
-        language, package = data['language'], data['package']
-        for note in data.get('functions', []):
-            note.update({'language': language, 'package': package,
-                         'kind': 'function'})
-            self._db.save(Annotation(note))
-        for note in data.get('objects', []):
-            note.update({'language': language, 'package': package,
-                         'kind': 'object'})
-            self._db.save(Annotation(note))
     
     def _query_json(self, query, obj):
         """ Recursively match a JSON query against a JSON object.
@@ -105,8 +82,8 @@ class AnnotationDB(HasTraits):
     
     # Trait initializers
     
-    @default('_db')
-    def _db_default(self):
+    @default('_database')
+    def _database_default(self):
         """ Create SQL backend with in-memory SQLite database.
         """
         engine = sqlalchemy.create_engine('sqlite://') 
@@ -115,22 +92,23 @@ class AnnotationDB(HasTraits):
         backend.init_schema()
         backend.create_schema()
         return backend
-    
-    @default('search_path')
-    def _search_path_default(self):
-        # FIXME: Search path only works on developer installs.
-        import opendisc
-        pkg_dir = Path(opendisc.__file__).parent
-        note_dir = pkg_dir.joinpath('..', 'annotations').resolve()
-        return [ str(note_dir) ]
 
 
 class Annotation(blitzdb.Document):
     """ Partial schema for annotation.
     
-    Should be regarded as an implementation detail of AnnotationDB.
-    """    
-    language = fields.CharField(indexed=True)
-    package = fields.CharField(indexed=True)
-    kind = fields.EnumField(['function', 'object'], indexed=True)
-    id = fields.CharField(indexed=True)
+    Treat this class as an implementation detail of AnnotationDB.
+    """
+    # XXX: The BlitzDB SQL backend does not support changing the primary key.
+    #class Meta(blitzdb.Document.Meta):
+    #    primary_key = '_id'
+    #
+    #_id = fields.CharField(nullable=False, indexed=True)
+    
+    language = fields.CharField(nullable=False, indexed=True)
+    package = fields.CharField(nullable=False, indexed=True)
+    id = fields.CharField(nullable=False, indexed=True)
+    kind = fields.EnumField(['object', 'morphism'], nullable=False, indexed=True)
+    
+    function = fields.CharField(nullable=True, indexed=True)
+    method = fields.CharField(nullable=True, indexed=True)

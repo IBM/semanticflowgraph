@@ -20,7 +20,7 @@ class TestGraphMLIO(unittest.TestCase):
     def assert_graphs_equal(self, one, two):
         """ Assert that two networkx graphs are equal.
         
-        This is exact equality, including node/edge IDs and data.
+        This is exact equality, including node/edge names and attributes.
         """
         # These are added by the GraphML reader, but we ignore them.
         for graph in (one, two):

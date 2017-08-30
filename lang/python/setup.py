@@ -17,6 +17,7 @@ setup_args = {
         'networkx==1.11',
         'cachetools>=2.0.0',
         'blitzdb>=0.3',
+        'CouchDB>=1.1.1',
         'sqlalchemy',
         'ipykernel>=4.3.0',
     ],

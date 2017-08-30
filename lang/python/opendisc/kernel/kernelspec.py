@@ -8,12 +8,12 @@ import sys
 from ipykernel.kernelspec import make_ipkernel_cmd, InstallIPythonKernelSpecApp
 
 
-def get_kernel_dict():
+def get_kernel_dict(extra_arguments=None):
     """ Construct dict for kernel.json.
     """
     mod = 'opendisc.kernel'
     return {
-        'argv': make_ipkernel_cmd(mod),
+        'argv': make_ipkernel_cmd(mod, extra_arguments=extra_arguments),
         'display_name': 'Python %i [Open Discovery]' % sys.version_info[0],
         'language': 'python',
     }

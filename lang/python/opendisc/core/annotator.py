@@ -7,10 +7,12 @@ import types
 
 from cachetools import cachedmethod
 from cachetools.keys import hashkey
-from traitlets import HasTraits, Dict, Instance, Set, Unicode
+from traitlets import HasTraits, Dict, Instance, default
 
-from opendisc.core.annotation_db import AnnotationDB
-from .frame_util import get_func_full_name
+from opendisc.trace.frame_util import get_class_module, get_class_full_name, \
+    get_func_full_name
+from .annotation_db import AnnotationDB
+from .remote_annotation_db import RemoteAnnotationDB
 
 
 class Annotator(HasTraits):
@@ -25,10 +27,9 @@ class Annotator(HasTraits):
     # Database of annotations.
     # Do not manually load package annotations, as the annotator will load them
     # on-the-fly as needed.
-    db = Instance(AnnotationDB, args=())
+    db = Instance(AnnotationDB)
     
     # Private traits.
-    _loaded = Set(Unicode()) # Set of loaded packages
     _func_cache = Dict()
     _type_cache = Dict()
     
@@ -68,19 +69,19 @@ class Annotator(HasTraits):
         if isinstance(func, types.MethodType):
             cls = self._get_method_self(func)
             query_extra = { 
-                'kind': 'function',
+                'kind': 'morphism',
                 'method': func.__name__,
             }
             note = self._resolve_type(cls, query_extra)
         
-        # If that fails, look for a function annotation.
+        # Failing that, look for a function annotation.
         if note is None:
             name = get_func_full_name(func)
             package = name.split('.')[0]
             query = { 
                 'language': 'python',
                 'package': package,
-                'kind': 'function',
+                'kind': 'morphism',
                 'function': name,
             }
             note = next(self._query(query), None)
@@ -100,10 +101,9 @@ class Annotator(HasTraits):
         """ Query the annotation DB.
         """
         # Ensure package annotations have been loaded.
-        package = query['package']
-        if package not in self._loaded:
+        if isinstance(self.db, RemoteAnnotationDB):
+            package = query['package']
             self.db.load_package('python', package)
-            self._loaded.add(package)
         
         return self.db.filter(query)
     
@@ -115,13 +115,16 @@ class Annotator(HasTraits):
         """
         # Get all subclasses using the MRO (we ignore the order here).
         mro = inspect.getmro(type)
-        subclasses = { c.__module__ + '.' + c.__name__ : c for c in mro }
+        subclasses = { get_class_full_name(c) : c for c in mro }
         
         # Find the best (highest precedence) annotation.
         best = None
         for name, subclass in subclasses.items():
-            package = subclass.__module__.split('.')[0]
-            query = { 'language': 'python', 'package': package }
+            package = get_class_module(subclass).split('.')[0]
+            query = {
+                'language': 'python',
+                'package': package,
+            }
             query.update(query_extra)
             for note in self._query(query):
                 note_classes = self._get_annotation_classes(note)
@@ -172,7 +175,7 @@ class Annotator(HasTraits):
     def _get_type_key(self, type):
         """ Key for type cache.
         """
-        return type.__module__ + '.' + type.__name__
+        return get_class_full_name(type)
     
     def _get_method_self(self, func):
         """ Get the object to which the method is bound.
@@ -185,3 +188,9 @@ class Annotator(HasTraits):
             # Instance method
             cls = func.__self__.__class__
         return cls
+    
+    # Trait initializers
+    
+    @default("db")
+    def _db_default(self):
+        return RemoteAnnotationDB()

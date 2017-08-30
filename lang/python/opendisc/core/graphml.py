@@ -35,21 +35,19 @@ GraphML Spec: http://graphml.graphdrawing.org/specification/dtd.html
 """
 from __future__ import absolute_import
 
+from collections import OrderedDict
 from io import BytesIO
 import json
-import six
 try:
     from xml.etree.cElementTree import Element
 except ImportError:
     from xml.etree.ElementTree import Element
 
+from ipykernel.jsonutil import json_clean
 import networkx as nx
 from networkx.readwrite.graphml import GraphMLReader as BaseGraphMLReader, \
     GraphMLWriter as BaseGraphMLWriter
 from networkx.utils import open_file, make_str
-
-from ..json.util import json_clean
-from .ordered import ordered_graphs
 
 
 @open_file(1, mode='wb')
@@ -171,10 +169,15 @@ class GraphMLWriter(BaseGraphMLWriter):
         default = graph.graph.get('edge_default', {})
         for u,v,data in graph.edges_iter(data=True):
             edge_element = Element('edge', source=make_str(u), target=make_str(v))
-            if 'sourceport' in data:
-                edge_element.set('sourceport', data['sourceport'])
-            if 'targetport' in data:
-                edge_element.set('targetport', data['targetport'])
+            
+            sourceport = data.get('sourceport')
+            if sourceport is not None:
+                edge_element.set('sourceport', sourceport)
+            
+            targetport = data.get('targetport')
+            if targetport is not None:
+                edge_element.set('targetport', targetport)
+            
             self.add_attributes('edge', edge_element, data, default)
             graph_element.append(edge_element)
     
@@ -215,13 +218,6 @@ class GraphMLReader(BaseGraphMLReader):
         self.multigraph = multigraph
         self.python_type['json'] = 'json'
     
-    def make_graph(self, graph_xml, graphml_keys, defaults):
-        """ Reimplemented to ensure deterministic node/edge order.
-        """
-        with ordered_graphs():
-            return super(GraphMLReader, self).make_graph(
-                graph_xml, graphml_keys, defaults)
-    
     def make_nested_graph(self, nested_xml, graphml_keys):
         """ Create a nested subgraph.
         """
@@ -240,7 +236,7 @@ class GraphMLReader(BaseGraphMLReader):
         data = self.decode_data_elements(graphml_keys, node_xml)
         
         # Add ports.
-        ports = {}
+        ports = OrderedDict()
         ports_xml = node_xml.findall('{%s}port' % self.NS_GRAPHML)
         for port_xml in ports_xml:
             name = port_xml.get("name")
@@ -280,7 +276,7 @@ class GraphMLReader(BaseGraphMLReader):
         if targetport is not None:
             data['targetport'] = targetport
         
-        graph.add_edge(source, target, **data)
+        graph.add_edge(source, target, attr_dict=data)
     
     def decode_data_elements(self, graphml_keys, obj_xml):
         """ Reimplemented to handle JSON data.

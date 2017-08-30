@@ -5,13 +5,31 @@ import unittest
 import sys
 
 from opendisc.core.tests import objects
-from ..frame_util import get_func_module, get_func_qual_name, \
-    get_func_full_name, get_frame_module, get_frame_func
+from ..frame_util import *
 
 
 class TestFrameUtil(unittest.TestCase):
     """ Test cases for frame utility functions.
     """
+    
+    def test_get_class_module(self):
+        """ Can we get the module in which a class is defined?
+        """
+        module = objects.__name__
+        self.assertEqual(get_class_module(objects.Foo), module)
+    
+    def test_get_class_qual_name(self):
+        """ Can we get the qualified name of a class?
+        """
+        self.assertEqual(get_class_qual_name(Toplevel), 'Toplevel')
+        if sys.version_info[0] >= 3 and sys.version_info[1] >= 3:
+            self.assertEqual(get_class_qual_name(Nested.Inner), 'Nested.Inner')
+    
+    def test_get_class_full_name(self):
+        """ Can we get the full name of a class?
+        """
+        full_name = objects.__name__ + '.Foo'
+        self.assertEqual(get_class_full_name(objects.Foo), full_name)
     
     def test_get_func_module(self):
         """ Can we get the module in which a function object is defined?
@@ -45,7 +63,7 @@ class TestFrameUtil(unittest.TestCase):
         """ Can we get the name of this module from a frame?
         """
         self.assertEqual(get_frame_module(inspect.currentframe()),
-                         'opendisc.kernel.trace.tests.test_frame_util')
+                         'opendisc.trace.tests.test_frame_util')
     
     def test_get_frame_func(self):
         """ Can we get the function object from a frame?

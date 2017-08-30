@@ -13,7 +13,7 @@ class OpenDiscIPythonShell(ZMQInteractiveShell):
     # `InteractiveShell` interface
     
     def run_code(self, code_obj, result=None):        
-        # Delay tracing as long as possible. This is function in the shell
+        # Delay tracing as long as possible. This is the method in the shell
         # that actually calls `exec()` on user code.
         if self.kernel._trace_flag:
             with self.kernel._tracer:

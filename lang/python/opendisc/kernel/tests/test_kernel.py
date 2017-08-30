@@ -8,7 +8,7 @@ from ipykernel.tests import utils as tu
 from ipykernel.tests.utils import execute, kernel, wait_for_idle
 import networkx as nx
 
-from ...core.graph.graphml import read_graphml_str
+from ...core.graphml import read_graphml_str
 from ...core.tests import objects as test_objects
 from ..kernelspec import get_kernel_name
 
@@ -46,11 +46,11 @@ class TestOpenDiscKernel(unittest.TestCase):
         """
         tu.KM, tu.KC = tu.start_new_kernel(kernel_name=get_kernel_name())
         
-        search_path = Path(test_objects.__file__).parent.joinpath('annotations')
+        json_path = Path(test_objects.__file__).parent.joinpath('data', 'opendisc.json')
         code = dedent("""\
         shell = get_ipython()
-        shell.kernel.annotator.db.search_path = ['%s']
-        """ % search_path)
+        shell.kernel.annotator.db.load_file('%s')
+        """ % json_path)
         with kernel() as kc:
             safe_execute(code, kc, silent=True)
     

@@ -30,6 +30,16 @@ class Baz(Bar, BarMixin):
     pass
 
 
+class FooSlots(object):
+    
+    def __init__(self, x=1, y=1):
+        self.x = x
+        self.y = y
+    
+    def do_sum(self):
+        return self.x + self.y
+
+
 class FooContainer(object):
     
     def __init__(self):

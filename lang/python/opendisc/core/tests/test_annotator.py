@@ -3,16 +3,16 @@ from __future__ import absolute_import
 from pathlib2 import Path
 import unittest
 
-from opendisc.core.tests import objects
+from . import objects
 from ..annotator import Annotator
 
 
 class TestAnnotator(unittest.TestCase):
     
     def setUp(self):
-        search_path = Path(objects.__file__).parent.joinpath('annotations')
+        json_path = Path(objects.__file__).parent.joinpath('data', 'opendisc.json')
         self.annotator = Annotator()
-        self.annotator.db.search_path = [ str(search_path) ]
+        self.annotator.db.load_file(json_path)
     
     def test_function(self):
         """ Can we notate a function?

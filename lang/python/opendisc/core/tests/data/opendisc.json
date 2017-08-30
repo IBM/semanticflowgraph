@@ -1,0 +1,189 @@
+[
+  {
+    "_id": "annotation/python/opendisc/foo",
+    "language": "python",
+    "package": "opendisc",
+    "id": "foo",
+    "kind": "object",
+    "class": "opendisc.core.tests.objects.Foo"
+  },
+  {
+    "_id": "annotation/python/opendisc/foo-slots",
+    "language": "python",
+    "package": "opendisc",
+    "id": "foo-slots",
+    "kind": "object",
+    "class": "opendisc.core.tests.objects.FooSlots",
+    "slots": {
+      "x": "x",
+      "y": "y",
+      "sum": "do_sum"
+    }
+  },
+  {
+    "_id": "annotation/python/opendisc/bar",
+    "language": "python",
+    "package": "opendisc",
+    "id": "bar",
+    "kind": "object",
+    "class": "opendisc.core.tests.objects.Bar"
+  },
+  {
+    "_id": "annotation/python/opendisc/bar-with-mixin",
+    "language": "python",
+    "package": "opendisc",
+    "id": "bar-with-mixin",
+    "kind": "object",
+    "class": [
+      "opendisc.core.tests.objects.Bar",
+      "opendisc.core.tests.objects.BarMixin"
+    ]
+  },
+  {
+    "_id": "annotation/python/opendisc/baz",
+    "language": "python",
+    "package": "opendisc",
+    "id": "baz",
+    "kind": "object",
+    "class": "opendisc.core.tests.objects.Baz"
+  },
+  {
+    "_id": "annotation/python/opendisc/foo-container",
+    "language": "python",
+    "package": "opendisc",
+    "id": "foo-container",
+    "kind": "object",
+    "class": "opendisc.core.tests.objects.FooContainer",
+    "slots": {
+      "foo": "foo"
+    }
+  },
+  {
+    "_id": "annotation/python/opendisc/create-foo",
+    "language": "python",
+    "package": "opendisc",
+    "id": "create-foo",
+    "kind": "morphism",
+    "function": "opendisc.core.tests.objects.create_foo",
+    "domain": [],
+    "codomain": [
+      {
+        "slot": "__return__",
+        "name": "foo"
+      }
+    ]
+  },
+  {
+    "_id": "annotation/python/opendisc/bar-from-foo",
+    "language": "python",
+    "package": "opendisc",
+    "id": "bar-from-foo",
+    "kind": "morphism",
+    "function": "opendisc.core.tests.objects.bar_from_foo",
+    "domain": [
+      {
+        "slot": 0,
+        "name": "foo"
+      },
+      {
+        "slot": "x"
+      },
+      {
+        "slot": "y"
+      }
+    ],
+    "codomain": [
+      {
+        "slot": "__return__",
+        "name": "bar"
+      }
+    ]
+  },
+  {
+    "_id": "annotation/python/opendisc/bar-from-foo-mutating",
+    "language": "python",
+    "package": "opendisc",
+    "id": "bar-from-foo-mutating",
+    "kind": "morphism",
+    "function": "opendisc.core.tests.objects.bar_from_foo_mutating",
+    "domain": [
+      {
+        "slot": 0,
+        "name": "foo"
+      }
+    ],
+    "codomain": [
+      {
+        "slot": 0,
+        "name": "foo"
+      },
+      {
+        "slot": "__return__",
+        "name": "bar"
+      }
+    ]
+  },
+  {
+    "_id": "annotation/python/opendisc/foo-sum",
+    "language": "python",
+    "package": "opendisc",
+    "id": "foo-sum",
+    "kind": "morphism",
+    "class": "opendisc.core.tests.objects.Foo",
+    "method": "do_sum",
+    "domain": [
+      {
+        "slot": "self",
+        "name": "foo"
+      }
+    ],
+    "codomain": [
+      {
+        "slot": "__return__",
+        "name": "sum"
+      }
+    ]
+  },
+  {
+    "_id": "annotation/python/opendisc/foo-prod",
+    "language": "python",
+    "package": "opendisc",
+    "id": "foo-prod",
+    "kind": "morphism",
+    "class": "opendisc.core.tests.objects.Foo",
+    "method": "do_prod",
+    "domain": [
+      {
+        "slot": "self",
+        "name": "foo"
+      }
+    ],
+    "codomain": [
+      {
+        "slot": "__return__",
+        "name": "prod"
+      }
+    ]
+  },
+  {
+    "_id": "annotation/python/opendisc/bar-prod",
+    "language": "python",
+    "package": "opendisc",
+    "id": "bar-prod",
+    "kind": "morphism",
+    "class": "opendisc.core.tests.objects.Bar",
+    "method": "do_prod",
+    "domain": [
+      {
+        "slot": "self",
+        "name": "bar"
+      }
+    ],
+    "codomain": [
+      {
+        "slot": "__return__",
+        "name": "prod"
+      }
+    ]
+  }
+]
