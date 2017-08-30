@@ -5,7 +5,15 @@
     "package": "opendisc",
     "id": "foo",
     "kind": "object",
-    "class": "opendisc.core.tests.objects.Foo",
+    "class": "opendisc.core.tests.objects.Foo"
+  },
+  {
+    "_id": "annotation/python/opendisc/foo-slots",
+    "language": "python",
+    "package": "opendisc",
+    "id": "foo-slots",
+    "kind": "object",
+    "class": "opendisc.core.tests.objects.FooSlots",
     "slots": {
       "x": "x",
       "y": "y",

@@ -63,7 +63,7 @@ class TestAnnotationDB(unittest.TestCase):
         }
         notes = list(self.db.filter(query))
         self.assertEqual(len(notes), 1)
-        self.assertEqual(notes[0]['id'], 'foo')
+        self.assertEqual(notes[0]['id'], 'foo-slots')
 
 
 if __name__ == '__main__':

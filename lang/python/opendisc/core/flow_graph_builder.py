@@ -129,18 +129,15 @@ class FlowGraphBuilder(HasTraits):
         graph = context.graph
         
         # Create a new node for this call.
-        node = self._add_call_node(event, graph)
+        annotation = self.annotator.notate_function(event.function) or {}
+        node = self._add_call_node(event, graph, annotation)
         
         # Add edges for function arguments.
-        annotation = self.annotator.notate_function(event.function) or {}
         object_tracker = event.tracer.object_tracker
         for arg_name, arg in event.arguments.items():
-            is_pure = self.is_pure(event, annotation, arg_name)
-            self._add_call_in_edge(event, context, node, arg_name, arg,
-                                   is_pure=is_pure)
+            self._add_call_in_edge(event, context, node, arg_name, arg)
             for value in self._hidden_referents(object_tracker, arg):
-                self._add_call_in_edge(event, context, node, arg_name, value,
-                                       is_pure=is_pure)
+                self._add_call_in_edge(event, context, node, arg_name, value)
         
         # If the call is not atomic, we will enter a new scope.
         # Create a nested flow graph for the node.
@@ -167,19 +164,27 @@ class FlowGraphBuilder(HasTraits):
         graph = context.graph
                 
         # Update node data for this call.
-        self._update_call_node_for_return(event, graph, node)
+        annotation = self.annotator.notate_function(event.function) or {}
+        self._update_call_node_for_return(event, graph, annotation, node)
         
         # Set output for return value.
+        object_tracker = event.tracer.object_tracker
         return_value = event.return_value
-        return_id = event.tracer.object_tracker.get_id(return_value)
+        return_id = object_tracker.get_id(return_value)
         if return_id:
             self._set_object_output_node(
                 context, return_value, return_id, node, '__return__')
+        
+        # Set outputs for mutated arguments.
+        for arg_name, arg in event.arguments.items():
+            arg_id = object_tracker.get_id(arg)
+            if arg_id and not self.is_pure(event, annotation, arg_name):
+                port = self._mutated_port_name(arg_name)
+                self._set_object_output_node(context, arg, arg_id, node, port)
     
-    def _add_call_node(self, event, graph):
+    def _add_call_node(self, event, graph, annotation):
         """ Add a new call node for a call event.
         """
-        annotation = self.annotator.notate_function(event.function) or {}
         node = node_name(graph, event.qual_name)
         data = {
             'annotation': self._annotation_key(annotation),
@@ -195,13 +200,11 @@ class FlowGraphBuilder(HasTraits):
         graph.add_node(node, **data)
         return node
     
-    def _update_call_node_for_return(self, event, graph, node):
+    def _update_call_node_for_return(self, event, graph, annotation, node):
         """ Update a call node for a return event.
         """
-        annotation = self.annotator.notate_function(event.function) or {}
-        data = graph.node[node]
-        
         # Add output ports.
+        data = graph.node[node]
         port_names = []
         if event.return_value is not None:
             port_names.append('__return__')
@@ -217,7 +220,7 @@ class FlowGraphBuilder(HasTraits):
             { 'portkind': 'output' },
         ))
     
-    def _add_call_in_edge(self, event, context, node, arg_name, arg, is_pure=True):
+    def _add_call_in_edge(self, event, context, node, arg_name, arg):
         """ Add an incoming edge to a call node.
         """
         # Only proceed if the argument is tracked.
@@ -239,11 +242,6 @@ class FlowGraphBuilder(HasTraits):
         elif not (event.atomic and event.qual_name.endswith('__init__') and
                   arg_name == 'self'):
             self._add_object_input_node(context, arg, arg_id, node, arg_name)
-    
-        # Update output node if this call is atomic and mutating.
-        if event.atomic and not is_pure:
-            port = self._mutated_port_name(arg_name)
-            self._set_object_output_node(context, arg, arg_id, node, port)
     
     def _add_object_edge(self, graph, obj, obj_id, source, target, 
                          sourceport=None, targetport=None):
@@ -291,6 +289,39 @@ class FlowGraphBuilder(HasTraits):
         output_table[obj_id] = (node, port)
         self._add_object_edge(graph, obj, obj_id, node, output_node,
                               sourceport=port)
+        
+        # The object has been created or mutated, so fetch its slots.
+        self._add_object_slots(context, obj, obj_id, node, port)
+    
+    def _add_object_slots(self, context, obj, obj_id, node, port):
+        """ Add nodes and edges for annotated slots of an object.
+        """
+        graph = context.graph
+        note = self.annotator.notate_object(obj) or {}
+        slots = note.get('slots', {})
+        for name, slot in slots.items():
+            try:
+                slot_value = get_slot(obj, slot)
+            except AttributeError:
+                continue
+            slot_node = node_name(graph, 'slot')
+            slot_node_data = {
+                'slot': slot,
+                'slot_annotation': name,
+                'ports': OrderedDict([
+                    ('in', self._get_port_data(obj,
+                        portkind='input',
+                        annotation=1,
+                    )),
+                    ('out', self._get_port_data(slot_value,
+                        portkind='output',
+                        annotation=1,
+                    )),
+                ])
+            }
+            graph.add_node(slot_node, attr_dict=slot_node_data)
+            self._add_object_edge(graph, obj, obj_id, node, slot_node,
+                                  sourceport=port)
     
     def _get_object_data(self, obj, obj_id=None):
         """ Get data to store for an object.
@@ -339,17 +370,16 @@ class FlowGraphBuilder(HasTraits):
             except AttributeError:
                 obj = None
                 
-            data = self._get_port_data(name, obj, extra_data)
+            data = self._get_port_data(obj, argname=name, **extra_data)
             if name in annotation_table:
                 data['annotation'] = annotation_table[name]
             ports[portname] = data
         return ports
     
-    def _get_port_data(self, name, obj, extra_data={}):
+    def _get_port_data(self, obj, **extra_data):
         """ Get data for a single port on a node.
         """
-        data = { 'argname': name }
-        data.update(extra_data)
+        data = extra_data
         
         # Store primitive, non-trackable values on the port. Logically, the
         # values should be stored on the edges, but for now edges only carry

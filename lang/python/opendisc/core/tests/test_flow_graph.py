@@ -23,13 +23,15 @@ class TestFlowGraph(unittest.TestCase):
     def assert_isomorphic(self, g1, g2, check_id=True):
         """ Assert that two flow graphs are isomorphic.
         """
+        node_attrs = [ 'qual_name', 'slot' ]
+        node_defaults = [ None ] * len(node_attrs)
         if check_id:
             edge_attrs = [ 'id', 'sourceport', 'targetport' ]
         else:
             edge_attrs = [ 'sourceport', 'targetport' ]
         edge_defaults = [ None ] * len(edge_attrs)
         
-        node_match = iso.categorical_node_match('qual_name', None)
+        node_match = iso.categorical_node_match(node_attrs, node_defaults)
         edge_match = iso.categorical_multiedge_match(edge_attrs, edge_defaults)
         self.assertTrue(nx.is_isomorphic(
             g1, g2, node_match=node_match, edge_match=edge_match))
@@ -481,6 +483,39 @@ class TestFlowGraph(unittest.TestCase):
             }),
         ])
         self.assertEqual(actual, desired)
+    
+    def test_object_slots(self):
+        """ Test that object slots with primitive values are captured.
+        """
+        with self.tracer:
+            foo = objects.FooSlots()
+        
+        actual = graph = self.builder.graph
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='FooSlots.__init__')
+        target.add_node('x', slot='x')
+        target.add_node('y', slot='y')
+        target.add_node('sum', slot='do_sum')
+        target.add_edge('1', 'x', id=self.id(foo), sourceport='self!')
+        target.add_edge('1', 'y', id=self.id(foo), sourceport='self!')
+        target.add_edge('1', 'sum', id=self.id(foo), sourceport='self!')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
+        self.assert_isomorphic(actual, target)
+        
+        node = find_node(graph, lambda n: n.get('slot') == 'do_sum')
+        ports = graph.node[node]['ports']
+        self.assertEqual(ports, OrderedDict([
+            ('in', {
+                'portkind': 'input',
+                'annotation': 1,
+            }),
+            ('out', {
+                'portkind': 'output',
+                'annotation': 1,
+                'value': foo.do_sum(),
+            })
+        ]))
     
     def test_two_join_three_object_flow(self):
         """ Test join of simple, three-object flow captured in two stages.
