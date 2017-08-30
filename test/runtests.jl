@@ -8,7 +8,4 @@ end
   include("Wiring.jl")
 end
 
-@testset "Ontology" begin
-  include("Concepts.jl")
-  include("Annotations.jl")
-end
+include("ontology/Ontology.jl")

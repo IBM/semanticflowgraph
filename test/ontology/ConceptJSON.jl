@@ -1,4 +1,4 @@
-module TestConcepts
+module TestConceptJSON
 using Base.Test
 
 using Catlab

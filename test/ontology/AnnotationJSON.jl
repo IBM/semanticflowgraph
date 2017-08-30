@@ -1,4 +1,4 @@
-module TestAnnotations
+module TestAnnotationJSON
 using Base.Test
 
 using Catlab
