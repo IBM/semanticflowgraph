@@ -10,7 +10,8 @@ from ..annotator import Annotator
 class TestAnnotator(unittest.TestCase):
     
     def setUp(self):
-        json_path = Path(objects.__file__).parent.joinpath('data', 'opendisc.json')
+        objects_path = Path(objects.__file__).parent
+        json_path = objects_path.joinpath('data', 'annotations.json')
         self.annotator = Annotator()
         self.annotator.db.load_file(json_path)
     

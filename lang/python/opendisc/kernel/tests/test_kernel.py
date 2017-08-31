@@ -46,7 +46,8 @@ class TestOpenDiscKernel(unittest.TestCase):
         """
         tu.KM, tu.KC = tu.start_new_kernel(kernel_name=get_kernel_name())
         
-        json_path = Path(test_objects.__file__).parent.joinpath('data', 'opendisc.json')
+        objects_path = Path(test_objects.__file__).parent
+        json_path = objects_path.joinpath('data', 'annotations.json')
         code = dedent("""\
         shell = get_ipython()
         shell.kernel.annotator.db.load_file('%s')

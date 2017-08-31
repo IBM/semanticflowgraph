@@ -1,6 +1,7 @@
 [
   {
     "_id": "annotation/python/opendisc/foo",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "foo",
@@ -9,6 +10,7 @@
   },
   {
     "_id": "annotation/python/opendisc/foo-slots",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "foo-slots",
@@ -22,6 +24,7 @@
   },
   {
     "_id": "annotation/python/opendisc/bar",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "bar",
@@ -30,6 +33,7 @@
   },
   {
     "_id": "annotation/python/opendisc/bar-with-mixin",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "bar-with-mixin",
@@ -41,6 +45,7 @@
   },
   {
     "_id": "annotation/python/opendisc/baz",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "baz",
@@ -49,6 +54,7 @@
   },
   {
     "_id": "annotation/python/opendisc/foo-container",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "foo-container",
@@ -60,6 +66,7 @@
   },
   {
     "_id": "annotation/python/opendisc/create-foo",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "create-foo",
@@ -75,6 +82,7 @@
   },
   {
     "_id": "annotation/python/opendisc/bar-from-foo",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "bar-from-foo",
@@ -101,6 +109,7 @@
   },
   {
     "_id": "annotation/python/opendisc/bar-from-foo-mutating",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "bar-from-foo-mutating",
@@ -125,6 +134,7 @@
   },
   {
     "_id": "annotation/python/opendisc/foo-sum",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "foo-sum",
@@ -146,6 +156,7 @@
   },
   {
     "_id": "annotation/python/opendisc/foo-prod",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "foo-prod",
@@ -167,6 +178,7 @@
   },
   {
     "_id": "annotation/python/opendisc/bar-prod",
+    "schema": "annotation",
     "language": "python",
     "package": "opendisc",
     "id": "bar-prod",

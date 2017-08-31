@@ -312,8 +312,8 @@ class FlowGraphBuilder(HasTraits):
                 continue
             slot_node = node_name(graph, 'slot')
             slot_node_data = {
+                'annotation': name,
                 'slot': slot,
-                'slot_annotation': name,
                 'ports': OrderedDict([
                     ('self', self._get_port_data(obj,
                         portkind='input',
@@ -331,7 +331,7 @@ class FlowGraphBuilder(HasTraits):
             
             # If object is trackable, recursively set it as output.
             if ObjectTracker.is_trackable(slot_value):
-                slot_id = event.tracer.object_tracker.track(slot_value)
+                slot_id = event.tracer.track_object(slot_value)
                 self._set_object_output_node(
                     event, slot_value, slot_id, slot_node, '__return__')
     

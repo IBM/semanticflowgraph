@@ -12,7 +12,7 @@ class TestAnnotationDB(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        json_path = Path(__file__).parent.joinpath('data', 'opendisc.json')
+        json_path = Path(__file__).parent.joinpath('data', 'annotations.json')
         cls.db = AnnotationDB()
         cls.db.load_file(json_path)
     

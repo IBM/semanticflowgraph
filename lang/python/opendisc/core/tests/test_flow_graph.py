@@ -48,7 +48,8 @@ class TestFlowGraph(unittest.TestCase):
     def setUp(self):
         """ Create the tracer and flow graph builder.
         """
-        json_path = Path(objects.__file__).parent.joinpath('data', 'opendisc.json')
+        objects_path = Path(objects.__file__).parent
+        json_path = objects_path.joinpath('data', 'annotations.json')
         db = AnnotationDB()
         db.load_file(str(json_path))
         
