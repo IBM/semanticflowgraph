@@ -2,7 +2,7 @@ module Wiring
 export to_wiring_diagram
 
 import JSON
-using LightXML
+using LightXML: XMLDocument
 
 using Catlab
 using Catlab.Diagram
@@ -59,18 +59,18 @@ end
 
 struct RawNode
   annotation::Nullable{String}
-  language::Dict{String,String}
+  language::Dict{String,Any}
 end
 
 struct RawPort
   annotation::Nullable{Int}
-  language::Dict{String,String}
+  language::Dict{String,Any}
   value::Any
 end
 
 struct RawWire
   annotation::Nullable{String}
-  language::Dict{String,String}
+  language::Dict{String,Any}
   id::String
   value::Any
 end
@@ -78,59 +78,29 @@ end
 """ Read raw flow graph from GraphML.
 """
 function read_raw_graph(xdoc::XMLDocument)
-  GraphML.read_graphml(RawNode, RawWire, RawPort, xdoc)
+  GraphML.read_graphml(RawNode, RawPort, RawWire, xdoc)
 end
 
-function GraphML.read_graphml_data(xelem::XMLElement, ::Type{RawNode})
-  annotation = Nullable{String}()
-  language = Dict{String,String}()
-  for (key, data) in iter_graphml_data(xelem)
-    if key == "annotation"
-      annotation = Nullable(data)
-    else
-      language[key] = data
-    end
-  end
-  RawNode(annotation, language)
+function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
+  annotation = Nullable{String}(pop!(data, "annotation", nothing))
+  RawNode(annotation, data)
 end
 
-function GraphML.read_graphml_data(xelem::XMLElement, ::Type{RawPort})
-  annotation = Nullable{Int}()
-  language = Dict{String,String}()
-  value = nothing
-  for (key, data) in iter_graphml_data(xelem)
-    if key == "annotation"
-      annotation = Nullable(parse(Int, data))
-    elseif key == "value"
-      value = JSON.parse(data)
-    else
-      language[key] = data
-    end
-  end
-  RawPort(annotation, language, value)
+function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
+  annotation = Nullable{String}(pop!(data, "annotation", nothing))
+  value = pop!(data, "value", nothing)
+  RawPort(annotation, data, value)
 end
 
-function GraphML.read_graphml_data(xelem::XMLElement, ::Type{RawWire})
-  annotation = Nullable{String}()
-  language = Dict{String,String}()
-  id = Nullable{String}()
-  value = nothing
-  for (key, data) in iter_graphml_data(xelem)
-    if key == "annotation"
-      annotation = Nullable(data)
-    elseif key == "id"
-      id = Nullable(data)
-    elseif key == "value"
-      value = JSON.parse(data)
-    else
-      language[key] = data
-    end
-  end
-  RawWire(annotation, language, get(id), value)
+function GraphML.convert_from_graphml_data(::Type{RawWire}, data::Dict)
+  annotation = Nullable{String}(pop!(data, "annotation", nothing))
+  id = pop!(data, "id")
+  value = pop!(data, "value", nothing)
+  RawWire(annotation, data, id, value)
 end
 
-function iter_graphml_data(xelem::XMLElement)
-  ((attribute(xdata, "key") => content(xdata)) for xdata in xelem["data"])
-end
+# JSON data in GraphML.
+# FIXME: Should this functionality be in Catlab?
+GraphML.read_graphml_data_value(::Type{Val{:json}}, x::String) = JSON.parse(x)
 
 end
