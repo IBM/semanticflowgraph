@@ -2,14 +2,14 @@ module Wiring
 export to_wiring_diagram
 
 using Catlab
-using Catlab.Diagram: Wiring, GraphvizWiring
+using Catlab.Diagram
 import Catlab.Diagram.Wiring: Box, WiringDiagram, to_wiring_diagram,
-  validate_wire_types
+  validate_ports
 
 using ..Doctrine
 
-# Abstract wiring diagrams
-##########################
+# Monocl
+########
 
 function Box(f::Monocl.Hom)
   Box(f, collect(dom(f)), collect(codom(f)))
@@ -19,9 +19,9 @@ function WiringDiagram(dom::Monocl.Ob, codom::Monocl.Ob)
 end
 
 function to_wiring_diagram(expr::Monocl.Hom)
-  functor((WireTypes, WiringDiagram), expr;
+  functor((Ports, WiringDiagram), expr;
     terms = Dict(
-      :Ob => (expr) -> WireTypes([expr]),
+      :Ob => (expr) -> Ports([expr]),
       :Hom => (expr) -> WiringDiagram(expr),
       :coerce => (expr) -> WiringDiagram(expr),
       :construct => (expr) -> WiringDiagram(expr),
@@ -29,18 +29,14 @@ function to_wiring_diagram(expr::Monocl.Hom)
   )
 end
 
-function validate_wire_types(source::Monocl.Ob, target::Monocl.Ob)
-  # XXX: Implicit conversion is not implemented, so we disable domain checks.
-  nothing
-end
+# XXX: Implicit conversion is not implemented, so we disable domain checks.
+function validate_ports(source::Monocl.Ob, target::Monocl.Ob) end
 
-# Graphviz wiring diagrams
-##########################
-
-GraphvizWiring.label(box::Box{Monocl.Hom{:coerce}}) = "coerce"
-GraphvizWiring.node_id(box::Box{Monocl.Hom{:coerce}}) = "__coerce__"
+# Graphviz support.
+GraphvizWiring.label(box::Box{Monocl.Hom{:coerce}}) = "to"
+GraphvizWiring.node_id(box::Box{Monocl.Hom{:coerce}}) = ":coerce"
 
 GraphvizWiring.label(box::Box{Monocl.Hom{:construct}}) = string(codom(box.value))
-GraphvizWiring.node_id(box::Box{Monocl.Hom{:construct}}) = "__construct__"
+GraphvizWiring.node_id(box::Box{Monocl.Hom{:construct}}) = ":construct"
 
 end

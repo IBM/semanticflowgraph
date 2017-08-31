@@ -14,14 +14,14 @@ g = Hom(:g, B, A)
 
 diagram = to_wiring_diagram(f)
 @test boxes(diagram) == [ Box(f) ]
-@test input_types(diagram) == [ A ]
-@test output_types(diagram) == [ B ]
+@test input_ports(diagram) == [ A ]
+@test output_ports(diagram) == [ B ]
 
 coercion = coerce(SubOb(A0, A))
 diagram = to_wiring_diagram(compose(coercion, f))
 @test boxes(diagram) == [ Box(coercion), Box(f) ]
-@test input_types(diagram) == [ A0 ]
-@test output_types(diagram) == [ B ]
+@test input_ports(diagram) == [ A0 ]
+@test output_ports(diagram) == [ B ]
 
 # Graphviz wiring diagrams
 ##########################
