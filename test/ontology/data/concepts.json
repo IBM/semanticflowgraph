@@ -1,0 +1,116 @@
+[
+  {
+    "_id": "concept/number",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "object",
+    "id": "number",
+    "name": "number",
+    "description": "a number, integer or decimal"
+  },
+  {
+    "_id": "concept/foo",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "object",
+    "id": "foo",
+    "name": "Foo"
+  },
+  {
+    "_id": "concept/bar",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "object",
+    "id": "bar",
+    "name": "Bar",
+    "subconcept": [
+      "foo"
+    ]
+  },
+  {
+    "_id": "concept/baz",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "object",
+    "id": "baz",
+    "name": "Baz",
+    "subconcept": [
+      "bar"
+    ]
+  },
+  {
+    "_id": "concept/bar-from-foo",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "morphism",
+    "id": "bar-from-foo",
+    "name": "transform foo to bar",
+    "domain": [
+      {
+        "object": "foo"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "bar"
+      }
+    ]
+  },
+  {
+    "_id": "concept/foo-x",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "morphism",
+    "id": "foo-x",
+    "name": "slot x of foo",
+    "domain": [
+      {
+        "object": "foo"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "number",
+        "name": "x"
+      }
+    ]
+  },
+  {
+    "_id": "concept/foo-y",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "morphism",
+    "id": "foo-y",
+    "name": "slot y of foo",
+    "domain": [
+      {
+        "object": "foo"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "number",
+        "name": "y"
+      }
+    ]
+  },
+  {
+    "_id": "concept/foo-sum",
+    "schema": "concept",
+    "ontology": "test-ontology",
+    "kind": "morphism",
+    "id": "foo-sum",
+    "name": "sum slot of foo",
+    "domain": [
+      {
+        "object": "foo"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "number",
+        "name": "sum"
+      }
+    ]
+  }
+]

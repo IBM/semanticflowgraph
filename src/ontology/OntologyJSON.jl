@@ -12,7 +12,6 @@ using ..Ontology
 """
 function presentation_from_json(docs)::Presentation
   presentation = Presentation(String)
-  docs = filter(doc -> doc["schema"] == "concept", docs)
   for doc in filter(doc -> doc["kind"] == "object", docs)
     add_ob_generator_from_json!(presentation, doc)
   end

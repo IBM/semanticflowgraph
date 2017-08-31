@@ -3,6 +3,19 @@ using Base.Test
 
 using OpenDiscCore
 
+# Local file
+############
+
+# Load concepts.
+db = OntologyDB()
+@test_throws OntologyError concept(db, "foo")
+load_ontology_file(db, joinpath(@__DIR__, "data", "concepts.json"))
+@test isa(concept(db, "foo"), Monocl.Ob)
+@test isa(concept(db, "bar-from-foo"), Monocl.Hom)
+
+# Remote database
+#################
+
 # Load concepts.
 db = OntologyDB()
 @test_throws OntologyError concept(db, "model")

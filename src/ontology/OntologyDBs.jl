@@ -1,12 +1,14 @@
 module OntologyDBs
 export OntologyDB, OntologyError, concept, concepts, annotation, annotations,
-  load_concepts, load_annotation, load_annotations
+  load_ontology_file, load_concepts, load_annotation, load_annotations
 
 using DataStructures: OrderedDict
+import JSON
 
 using Catlab
 using ..Ontology
 
+# FIXME: Store these somewhere else?
 const default_db_url = "https://d393c3b5-9979-4183-98f4-7537a5de15f5-bluemix.cloudant.com"
 const default_db_name = "data-science-ontology"
 
@@ -48,12 +50,43 @@ function annotation(db::OntologyDB, id::String)
 end
 annotation(db::OntologyDB, id::AnnotationID) = annotation(db, db_id(id))
 
+db_id(id::AnnotationID) = "annotation/$(id.language)/$(id.package)/$(id.id)"
+
+# Local file
+############
+
+""" Load concepts/annotations from a local JSON file.
+"""
+function load_ontology_file(db::OntologyDB, filename::String)
+  open(filename) do file
+    load_ontology_file(db, file)
+  end
+end
+function load_ontology_file(db::OntologyDB, io::IO)
+  load_documents(db, JSON.parse(io)::Vector)
+end
+
+""" Load concepts/annotations from a list of JSON documents.
+"""
+function load_documents(db::OntologyDB, docs)
+  concept_docs = filter(doc -> doc["schema"] == "concept", docs)
+  if !isempty(concept_docs)
+    db.concepts = presentation_from_json(concept_docs)
+  end
+  
+  annotation_docs = filter(doc -> doc["schema"] == "annotation", docs)
+  for doc in annotation_docs
+    db.annotation[doc["_id"]] = annotation_from_json(doc, db.concepts)
+  end
+end
+
 # Remote database
 #################
 
-db_id(id::AnnotationID) = "annotation/$(id.language)/$(id.package)/$(id.id)"
-
 """ Load all concepts in ontology from remote database.
+
+Note the concepts cannot be loaded incrementally because concepts may depend
+upon each other in complicated ways.
 """
 function load_concepts(db::OntologyDB)
   query = Dict("schema" => "concept")
