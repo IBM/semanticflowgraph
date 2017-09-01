@@ -86,18 +86,40 @@ class TestGraphMLIO(unittest.TestCase):
         self.assert_graphs_equal(foo_recovered, foo_graph)
         self.assert_graphs_equal(bar_recovered, bar_graph)
     
-    def test_nested_graph_edges(self):
-        """ Can a nested graph contain references to the parent node?
+    def test_nested_graph_edges_undirected(self):
+        """ Can an undirected nested graph contain references to parent node?
         """
-        graph = nx.DiGraph()
+        graph = nx.Graph()
         graph.add_node('root')
-        nested = nx.DiGraph()
-        nested.add_path(['root', 'n1', 'n2', 'root'])
+        nested = nx.DiGraph(node='__node__')
+        nested.add_path(['__node__', 'n1', 'n2', '__node__'])
         graph.node['root']['graph'] = nested
 
         recovered = roundtrip(graph)
         nested_recovered = recovered.node['root']['graph']
         self.assert_graphs_equal(nested_recovered, nested)
+        
+        # The reference node ID should only appear as a graph attribute.
+        xml = write_graphml_str(graph)
+        self.assertEqual(xml.count('__node__'), 1)
+    
+    def test_nested_graph_edges_directed(self):
+        """ Can a directed nested graph contain references to the parent node?
+        """
+        graph = nx.DiGraph()
+        graph.add_node('root')
+        nested = nx.DiGraph(input_node='__in__', output_node='__out__')
+        nested.add_path(['__in__', 'n1', 'n2', '__out__'])
+        graph.node['root']['graph'] = nested
+
+        recovered = roundtrip(graph)
+        nested_recovered = recovered.node['root']['graph']
+        self.assert_graphs_equal(nested_recovered, nested)
+        
+        # The reference node IDs should only appear as graph attributes.
+        xml = write_graphml_str(graph)
+        self.assertEqual(xml.count('__in__'), 1)
+        self.assertEqual(xml.count('__out__'), 1)
     
     def test_duplicate_node_ids(self):
         """ Are duplicate node IDs in sibling nested graphs detected?

@@ -9,15 +9,18 @@ distinguish them from other dataflow graphs in the Open Discovery system.
 from __future__ import absolute_import
 
 import networkx as nx
-from .graphutil import node_name
 
 
 def new_flow_graph():
     """ Create a new, empty flow graph.
     """
+    # Warning: The names `__in__` and `__out__` are not a public interface.
+    # Always access the input and output nodes through the `input_node` and
+    # `output_node` graph attributes.
+    input_node = '__in__'
+    output_node = '__out__'
+    
     graph = nx.MultiDiGraph()
-    input_node = node_name(graph, '__in__')
-    output_node = node_name(graph, '__out__')
     graph.add_nodes_from((input_node, output_node))
     graph.graph.update({
         'input_node': input_node,
