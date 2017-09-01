@@ -216,7 +216,7 @@ class GraphMLReader(BaseGraphMLReader):
     def __init__(self, multigraph=False, **kwargs):
         super(GraphMLReader, self).__init__(**kwargs)
         self.multigraph = multigraph
-        self.python_type['json'] = 'json'
+        self.python_type['json'] = json.loads
     
     def make_nested_graph(self, nested_xml, graphml_keys):
         """ Create a nested subgraph.
@@ -277,31 +277,3 @@ class GraphMLReader(BaseGraphMLReader):
             data['targetport'] = targetport
         
         graph.add_edge(source, target, attr_dict=data)
-    
-    def decode_data_elements(self, graphml_keys, obj_xml):
-        """ Reimplemented to handle JSON data.
-        
-        Unlike the base class, we do *not* support yFiles metadata.
-        """
-        # XXX: Mostly a copy-paste from the base class.
-        data = {}
-        for data_element in obj_xml.findall("{%s}data" % self.NS_GRAPHML):
-            key = data_element.get('key')
-            try:
-                data_name = graphml_keys[key]['name']
-                data_type = graphml_keys[key]['type']
-            except KeyError:
-                raise nx.NetworkXError("Bad GraphML data: no key %s" % key)
-            text = data_element.text
-
-            if data_type == 'json':
-                data[data_name] = json.loads(text)
-                
-            elif callable(data_type) and text is not None:
-                if data_type == bool:
-                    # Ignore cases.
-                    # http://docs.oracle.com/javase/6/docs/api/java/lang/Boolean.html#parseBoolean%28java.lang.String%29
-                    data[data_name] = self.convert_bool[text.lower()]
-                else:
-                    data[data_name] = data_type(text)
-        return data
