@@ -234,14 +234,14 @@ class GraphMLReader(BaseGraphMLReader):
     def make_graph(self, graph_xml, graphml_keys, defaults, parent_node=None):
         """ Reimplemented to handle nested graphs.
         """
-        # set default graph type
+        # Set default graph type.
         edgedefault = graph_xml.get("edgedefault", None)
         if edgedefault == 'directed':
             graph = nx.MultiDiGraph()
         else:
             graph = nx.MultiGraph()
         
-        # set defaults for graph attributes
+        # Set defaults for graph attributes.
         for key_id, value in defaults.items():
             key_for = graphml_keys[key_id]['for']
             name = graphml_keys[key_id]['name']
@@ -250,22 +250,28 @@ class GraphMLReader(BaseGraphMLReader):
                 data = graph.graph.setdefault('%s_default' % key_for, {})
                 data.update({name: python_type(value)})
         
-        # add graph data
+        # Add graph data.
         data = self.decode_data_elements(graphml_keys, graph_xml)
         graph.graph.update(data)
         
-        # add nodes
+        # Add nodes.
         for node_xml in graph_xml.findall("{%s}node" % self.NS_GRAPHML):
             self.add_node(graph, node_xml, graphml_keys, defaults, parent_node)
-        # add edges
+        
+        for key in ('node', 'input_node', 'output_node'):
+            if key in graph.graph:
+                graph.add_node(self.node_type(graph.graph[key]))
+        
+        # Add edges.
         for edge_xml in graph_xml.findall("{%s}edge" % self.NS_GRAPHML):
             self.add_edge(graph, edge_xml, graphml_keys, parent_node)
-        # hyperedges are not supported
+        
+        # Hyperedges are not supported.
         hyperedge=graph_xml.find("{%s}hyperedge" % self.NS_GRAPHML)
         if hyperedge is not None:
             raise nx.NetworkXError("GraphML reader does not support hyperedges")
         
-        # switch to Graph or DiGraph if no parallel edges were found.
+        # Switch to Graph or DiGraph if no parallel edges were found.
         if not self.multigraph:
             if graph.is_directed():
                 return nx.DiGraph(graph)

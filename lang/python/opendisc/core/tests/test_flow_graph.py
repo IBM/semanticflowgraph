@@ -9,7 +9,8 @@ import networkx.algorithms.isomorphism as iso
 
 from opendisc.trace.tracer import Tracer
 from ..annotation_db import AnnotationDB
-from ..flow_graph import new_flow_graph, flatten, join
+from ..flow_graph import new_flow_graph, flatten, join, \
+    flow_graph_to_graphml, flow_graph_from_graphml
 from ..flow_graph_builder import FlowGraphBuilder
 from ..graphutil import find_node
 from ..graphml import read_graphml_str, write_graphml_str
@@ -621,11 +622,11 @@ class TestFlowGraph(unittest.TestCase):
             bar = objects.bar_from_foo(foo)
         graph = self.builder.graph
         
-        xml = write_graphml_str(graph)
-        roundtripped = read_graphml_str(xml, multigraph=True)
-        self.assertEqual(graph.graph, roundtripped.graph)
-        self.assertEqual(graph.node, roundtripped.node)
-        self.assertEqual(graph.edge, roundtripped.edge)
+        xml = write_graphml_str(flow_graph_to_graphml(graph))
+        recovered = flow_graph_from_graphml(read_graphml_str(xml, multigraph=True))
+        self.assertEqual(graph.graph, recovered.graph)
+        self.assertEqual(graph.node, recovered.node)
+        self.assertEqual(graph.edge, recovered.edge)
 
 
 # Test data

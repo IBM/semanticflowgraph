@@ -1,7 +1,8 @@
-""" Operations on object flow graphs.
+""" Operations on flow graphs.
 
-This module contains functions that operate on existing flow graphs. To create 
-a new flow graph by tracing Python code, see the `flow_graph_builder` module.
+This module contains functions that create empty flow graphs and operate on
+existing flow graphs. To create a new flow graph by tracing Python code, see the
+`flow_graph_builder` module.
 
 These graphs are sometimes called "concrete" or "raw" flow graphs to
 distinguish them from other dataflow graphs in the Open Discovery system.
@@ -41,6 +42,29 @@ def copy_flow_graph(source_graph, dest_graph):
     dest_graph.add_edges_from(
         edge for edge in source_graph.edges_iter(data=True)
         if edge[0] not in skip and edge[1] not in skip)
+
+
+def flow_graph_to_graphml(graph):
+    """ Prepare a flow graph for serialization as GraphML.
+    
+    Returns another NetworkX graph suitable for serialization, not raw XML.
+    To perform the serialization, call `graphml.write_graphml`.
+    """
+    outer = nx.MultiDiGraph()
+    node = '__root__'
+    outer.add_node(node, graph=graph)
+    return outer
+
+def flow_graph_from_graphml(outer):
+    """ Returns a flow graph from deserialized GraphML.
+    
+    Accepts a NetworkX graph, not raw XML. To deserialize GraphML, call
+    `graphml.read_grapml`.
+    """
+    assert len(outer) == 1
+    node = outer.nodes()[0]
+    graph = outer.node[node]['graph']
+    return graph
 
 
 def flatten(graph, copy=True):
