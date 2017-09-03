@@ -117,7 +117,7 @@ class FlowGraphBuilder(HasTraits):
         # Default: pure unless explicitly annotated otherwise!
         codomain = annotation.get('codomain', [])
         slots = _IOSlots(event)
-        return not any(arg_name == slots.name(obj['slot']) for obj in codomain)
+        return not any(arg_name == slots.__name(obj['slot']) for obj in codomain)
     
     # Protected interface
             
@@ -373,7 +373,7 @@ class FlowGraphBuilder(HasTraits):
         slots = _IOSlots(event)
         annotation_table = { 
             # Index annotation domain starting at 1: it is language-agnostic.
-            slots.name(dom['slot']): i+1 for i, dom in enumerate(annotation)
+            slots.__name(dom['slot']): i+1 for i, dom in enumerate(annotation)
         }
         for name in names:
             name, portname = name if isinstance(name, tuple) else (name, name)
@@ -477,7 +477,7 @@ class _IOSlots(object):
     def __init__(self, event):
         self.__event = event
     
-    def name(self, slot):
+    def __name(self, slot):
         """ Map the function slot (integer or string) to a string name, if any.
         """
         event = self.__event
