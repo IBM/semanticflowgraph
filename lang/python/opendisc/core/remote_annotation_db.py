@@ -1,9 +1,12 @@
 from __future__ import absolute_import
 
+from pathlib2 import Path
+
 import couchdb
 from traitlets import Bool, Dict, Instance, Unicode, default
-from traitlets.config import Configurable
+from traitlets.config import Configurable, PyFileConfigLoader
 
+import opendisc
 from .annotation_db import AnnotationDB
 
 
@@ -28,6 +31,14 @@ class RemoteAnnotationDB(AnnotationDB, Configurable):
     _couchdb = Instance(couchdb.Database)
     _initialized = Bool(False)
     _loaded = Dict()
+    
+    @classmethod
+    def from_library_config(cls):
+        """ Create annotation DB with library config file.
+        """
+        config_path = Path(opendisc.__file__).parent.joinpath("config.py")
+        config = PyFileConfigLoader(str(config_path)).load_config()
+        return cls(config=config)
 
     def load_package(self, language, package):
         """ Load annotations for the given language and package.

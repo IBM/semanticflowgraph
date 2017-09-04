@@ -1,11 +1,7 @@
 from __future__ import absolute_import
 
-from pathlib2 import Path
 import unittest
 
-from traitlets.config import PyFileConfigLoader
-
-import opendisc
 from ..remote_annotation_db import RemoteAnnotationDB
 
 
@@ -15,9 +11,7 @@ class TestRemoteAnnotationDB(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        config_path = Path(opendisc.__file__).parent.joinpath("config.py")
-        config = PyFileConfigLoader(str(config_path)).load_config()
-        cls.db = RemoteAnnotationDB(config=config)
+        cls.db = RemoteAnnotationDB.from_library_config()
     
     def test_load_package(self):
         """ Test loading annotations for a single package.

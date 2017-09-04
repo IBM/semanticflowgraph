@@ -7,7 +7,7 @@ import types
 
 from cachetools import cachedmethod
 from cachetools.keys import hashkey
-from traitlets import HasTraits, Dict, Instance, default
+from traitlets import HasTraits, Dict, Instance
 
 from opendisc.trace.frame_util import get_class_module, get_class_full_name, \
     get_func_full_name
@@ -27,7 +27,7 @@ class Annotator(HasTraits):
     # Database of annotations.
     # Do not manually load package annotations, as the annotator will load them
     # on-the-fly as needed.
-    db = Instance(AnnotationDB)
+    db = Instance(AnnotationDB, args=())
     
     # Private traits.
     _func_cache = Dict()
@@ -188,9 +188,3 @@ class Annotator(HasTraits):
             # Instance method
             cls = func.__self__.__class__
         return cls
-    
-    # Trait initializers
-    
-    @default("db")
-    def _db_default(self):
-        return RemoteAnnotationDB()
