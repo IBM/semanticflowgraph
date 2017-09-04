@@ -84,8 +84,14 @@ class ObjectTracker(HasTraits):
         obj_id = uuid.uuid4().hex
         
         def obj_gc_callback(ref):
-            del self._mem_map[obj_addr]
-            del self._ref_map[obj_id]
+            try:
+                del self._mem_map[obj_addr]
+                del self._ref_map[obj_id]
+            except:
+                # If the ObjectTracker has itself been garbage-collected,
+                # we'll get an attribute error.
+                pass
+        
         self._mem_map[obj_addr] = obj_id
         self._ref_map[obj_id] = weakref.ref(obj, obj_gc_callback)
         
