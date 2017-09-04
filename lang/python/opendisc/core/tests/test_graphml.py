@@ -41,6 +41,19 @@ class TestGraphMLIO(unittest.TestCase):
         graph.add_edge('foo', 'baz', id=1)
         self.assert_graphs_equal(roundtrip(graph), graph)
     
+    def test_bytes_property(self):
+        """ Can we store both unicode and bytes strings?
+        """
+        graph = nx.Graph()
+        graph.add_node('foo', val1=u'foo', val2=b'foo')
+        target = nx.Graph()
+        target.add_node('foo', val1='foo', val2='foo')
+        self.assert_graphs_equal(roundtrip(graph), target)
+        
+        # Store bytes as string attribute, not JSON.
+        xml = write_graphml_str(graph)
+        self.assertFalse("json" in xml)
+    
     def test_json_property(self):
         """ Can we store JSON objects as graph/node/edge properties?
         """
@@ -50,15 +63,6 @@ class TestGraphMLIO(unittest.TestCase):
         graph.add_edge('foo', 'bar', value={'id': 0})
         graph.add_edge('foo', 'baz', value=None)
         self.assert_graphs_equal(roundtrip(graph), graph)
-    
-    def test_json_property_bytes(self):
-        """ Can we store JSON property data with unicode and bytes strings?
-        """
-        graph = nx.Graph()
-        graph.add_node('foo', val1=u'foo', val2=b'foo')
-        target = nx.Graph()
-        target.add_node('foo', val1='foo', val2='foo')
-        self.assert_graphs_equal(roundtrip(graph), target)
     
     def test_nested_graph(self):
         """ Can a node contain a nested subgraph?
