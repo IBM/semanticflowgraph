@@ -27,6 +27,12 @@ class TraceEvent(HasTraits):
     atomic = Bool()
     
     @property
+    def name(self):
+        """ Short name of the called function.
+        """
+        return self.qual_name.split('.')[-1]
+    
+    @property
     def full_name(self):
         """ Full name of the called function.
         """

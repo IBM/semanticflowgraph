@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from collections import OrderedDict
 from copy import deepcopy
 import gc
+import types
 
 from ipykernel.jsonutil import json_clean
 import networkx as nx
@@ -117,7 +118,7 @@ class FlowGraphBuilder(HasTraits):
         # Default: pure unless explicitly annotated otherwise!
         codomain = annotation.get('codomain', [])
         slots = _IOSlots(event)
-        return not any(arg_name == slots.__name(obj['slot']) for obj in codomain)
+        return not any(arg_name == slots._name(obj['slot']) for obj in codomain)
     
     # Protected interface
             
@@ -161,7 +162,8 @@ class FlowGraphBuilder(HasTraits):
                 
         # Update node data for this call.
         annotation = self.annotator.notate_function(event.function) or {}
-        self._update_call_node_for_return(event, annotation, node)
+        if not self._update_call_node_for_return(event, annotation, node):
+            return
         
         # Set output for return value.
         object_tracker = event.tracer.object_tracker
@@ -185,7 +187,6 @@ class FlowGraphBuilder(HasTraits):
         graph = context.graph
         node = node_name(graph, event.qual_name)
         data = {
-            'annotation': self._annotation_key(annotation),
             'module': event.module,
             'qual_name': event.qual_name,
             'ports': self._get_ports_data(
@@ -195,7 +196,9 @@ class FlowGraphBuilder(HasTraits):
                 { 'portkind': 'input' },
             ),
         }
-        graph.add_node(node, **data)
+        if annotation:
+            data['annotation'] = self._annotation_key(annotation)
+        graph.add_node(node, attr_dict=data)
         return node
     
     def _update_call_node_for_return(self, event, annotation, node):
@@ -204,6 +207,19 @@ class FlowGraphBuilder(HasTraits):
         context = self._stack[-1]
         graph = context.graph
         data = graph.node[node]
+        
+        # Handle attribute accessors.
+        if event.name in ('__getattr__', '__getattribute__'):
+            # If attribute is actually a bound method, remove the call node.
+            # Method objects are not tracked and the method will be traced when
+            # it is called, so the getattr node is redundant and useless.
+            if isinstance(event.return_value, types.MethodType):
+                graph.remove_node(node)
+                return False
+            # Otherwise, record the attribute as a slot access.
+            else:
+                name = list(event.arguments.values())[1]
+                data['slot'] = name
         
         # Add output ports.
         port_names = []
@@ -220,6 +236,8 @@ class FlowGraphBuilder(HasTraits):
             annotation.get('codomain', []),
             { 'portkind': 'output' },
         ))
+        
+        return True
     
     def _add_call_in_edge(self, event, node, arg_name, arg):
         """ Add an incoming edge to a call node.
@@ -373,7 +391,7 @@ class FlowGraphBuilder(HasTraits):
         slots = _IOSlots(event)
         annotation_table = { 
             # Index annotation domain starting at 1: it is language-agnostic.
-            slots.__name(dom['slot']): i+1 for i, dom in enumerate(annotation)
+            slots._name(dom['slot']): i+1 for i, dom in enumerate(annotation)
         }
         for name in names:
             name, portname = name if isinstance(name, tuple) else (name, name)
@@ -405,10 +423,8 @@ class FlowGraphBuilder(HasTraits):
     def _annotation_key(self, note):
         """ Get a key identifying an annotation.
         """
-        if note:
-            keys = ('language', 'package', 'id')
-            return '/'.join(note[key] for key in keys)
-        return None
+        keys = ('language', 'package', 'id')
+        return '/'.join(note[key] for key in keys)
     
     def _hidden_referents(self, tracker, obj):
         """ Get "hidden" referents of an object.
@@ -451,13 +467,13 @@ class _CallContext(HasTraits):
     # The trace call event for this call stack item.
     event = Instance(TraceCall)
     
-    # Name of graph node created for call.
+    # Name of graph node created for call, if any.
     node = Unicode()
     
-    # Graph nested in node, if any.
+    # Flow graph nested in node, if any.
     graph = Instance(nx.MultiDiGraph, allow_none=True)
     
-    # Output table for the graph.
+    # Output table for the flow graph.
     #
     # At any given time during execution, an object is the output of at most one
     # node, i.e., there is at most one incoming edge to the special output node
@@ -477,7 +493,7 @@ class _IOSlots(object):
     def __init__(self, event):
         self.__event = event
     
-    def __name(self, slot):
+    def _name(self, slot):
         """ Map the function slot (integer or string) to a string name, if any.
         """
         event = self.__event

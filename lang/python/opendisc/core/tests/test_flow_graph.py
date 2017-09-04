@@ -263,6 +263,34 @@ class TestFlowGraph(unittest.TestCase):
         target.add_edge('2', outputs, id=self.id(bar), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
+    def test_attributes_methods(self):
+        """ Test that attribute accesses and method calls are traced.
+        """
+        with self.tracer:
+            foo = objects.Foo()
+            x = foo.x
+            y = foo.y
+            foo_sum = foo.do_sum()
+            foo_prod = foo.do_prod()
+        
+        actual = self.builder.graph
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Foo.__init__')
+        target.add_node('x', qual_name='Foo.__getattribute__', slot='x')
+        target.add_node('y', qual_name='Foo.__getattribute__', slot='y')
+        target.add_node('sum', qual_name='Foo.do_sum')
+        target.add_node('prod', qual_name='Foo.do_prod')
+        target.add_edge('1', 'x', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('1', 'y', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('1', 'sum', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('1', 'prod', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
+    
     def test_higher_order_function(self):
         """ Test that higher-order functions using user-defined functions work.
         """
@@ -274,11 +302,8 @@ class TestFlowGraph(unittest.TestCase):
         target = new_flow_graph()
         outputs = target.graph['output_node']
         target.add_node('1', qual_name='Foo.__init__')
-        target.add_node('2', qual_name='Foo.__getattribute__')
-        target.add_node('3', qual_name='Foo.apply')
+        target.add_node('2', qual_name='Foo.apply')
         target.add_edge('1', '2', id=self.id(foo),
-                        sourceport='self!', targetport='self')
-        target.add_edge('1', '3', id=self.id(foo),
                         sourceport='self!', targetport='self')
         target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         self.assert_isomorphic(actual, target)
