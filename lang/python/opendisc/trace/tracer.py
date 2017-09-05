@@ -124,8 +124,12 @@ class Tracer(HasTraits):
             if event != 'return':
                 return
             
-            # Track the return value, if possible.
-            if self.object_tracker.is_trackable(value):
+            # Track the return value(s), if possible.
+            if isinstance(value, tuple):
+                for subvalue in value:
+                    if self.object_tracker.is_trackable(subvalue):
+                        self.track_object(subvalue)
+            elif self.object_tracker.is_trackable(value):
                 self.track_object(value)
             
             # Create a return event and pop the corresponding call event.

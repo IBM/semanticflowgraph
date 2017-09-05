@@ -511,6 +511,34 @@ class TestFlowGraph(unittest.TestCase):
         ])
         self.assertEqual(actual, desired)
     
+    def test_multiple_outputs(self):
+        """ Test that multiple outputs are created for tuple return values.
+        """
+        with self.tracer:
+            foo, bar = objects.create_foo_and_bar()
+        
+        graph = self.builder.graph
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='create_foo_and_bar')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='__return__.0')
+        target.add_edge('1', outputs, id=self.id(bar), sourceport='__return__.1')
+        self.assert_isomorphic(graph, target)
+        
+        node = find_node(graph, lambda n: n.get('qual_name') == 'create_foo_and_bar')
+        actual = self.get_ports(graph, node, 'output')
+        desired = OrderedDict([
+            ('__return__.0', {
+                'argname': '__return__.0',
+                'portkind': 'output',
+            }),
+            ('__return__.1', {
+                'argname': '__return__.1',
+                'portkind': 'output',
+            }),
+        ])
+        self.assertEqual(actual, desired)
+    
     def test_object_slots_disabled(self):
         """ Test that capture of annotated object slots can be disabled.
         """

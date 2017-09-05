@@ -8,7 +8,7 @@ class Foo(object):
         self.y = y
     
     def apply(self, f):
-        return (f(self.x), f(self.y))
+        return [f(self.x), f(self.y)]
     
     def do_sum(self):
         return self.x + self.y
@@ -52,6 +52,11 @@ class FooContainer(object):
 
 def create_foo():
     return Foo()
+
+def create_foo_and_bar():
+    foo = Foo()
+    bar = Bar()
+    return (foo, bar)
 
 def nested_create_foo():
     foo = create_foo()

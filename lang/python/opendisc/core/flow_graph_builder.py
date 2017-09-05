@@ -168,13 +168,22 @@ class FlowGraphBuilder(HasTraits):
         if not self._update_call_node_for_return(event, annotation, node):
             return
         
-        # Set output for return value.
+        # Set output for return value(s).
         object_tracker = event.tracer.object_tracker
         return_value = event.return_value
-        return_id = object_tracker.get_id(return_value)
-        if return_id:
-            self._set_object_output_node(
-                event, return_value, return_id, node, '__return__')
+        if isinstance(return_value, tuple):
+            # Interpret tuples as multiple return values, per Python convention.
+            for i, value in enumerate(return_value):
+                value_id = object_tracker.get_id(value)
+                if value_id:
+                    self._set_object_output_node(
+                        event, value, value_id, node, '__return__.%i' % i)
+        else:
+            # All other objects are treated as a single return value.
+            return_id = object_tracker.get_id(return_value)
+            if return_id:
+                self._set_object_output_node(
+                    event, return_value, return_id, node, '__return__')
         
         # Set outputs for mutated arguments.
         for arg_name, arg in event.arguments.items():
@@ -226,7 +235,11 @@ class FlowGraphBuilder(HasTraits):
         
         # Add output ports.
         port_names = []
-        if event.return_value is not None:
+        return_value = event.return_value
+        if isinstance(return_value, tuple):
+            for i in range(len(return_value)):
+                port_names.append('__return__.%i' % i)
+        elif return_value is not None:
             port_names.append('__return__')
         for arg_name in event.arguments.keys():
             if not self.is_pure(event, annotation, arg_name):
@@ -446,7 +459,8 @@ class FlowGraphBuilder(HasTraits):
         
         See also `Tracker.is_trackable()`.
         """
-        # FIXME: Should we find referents recursively?
+        # FIXME: This whole method is a hack. We should find a better way to
+        # solve this problem.
         if isinstance(obj, (tuple, list, dict, set, frozenset)):
             for referent in gc.get_referents(obj):
                 if tracker.is_tracked(referent):
