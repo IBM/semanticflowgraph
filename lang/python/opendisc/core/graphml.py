@@ -94,7 +94,6 @@ class GraphMLWriter(BaseGraphMLWriter):
         super(GraphMLWriter, self).__init__(**kwargs)
         self.all_nodes = set()
         self.xml_type.update({
-            bytes: 'string',
             tuple: 'json',
             list: 'json',
             dict: 'json',
@@ -212,21 +211,21 @@ class GraphMLWriter(BaseGraphMLWriter):
     def add_data(self, name, element_type, value, scope='all', default=None):
         """ Reimplemented to handle JSON data.
         """
+        # JSON clean first to handle conversion of numpy arrays, tuples, etc.
+        value = json_clean(value)
+        element_type = type(value)
         if element_type not in self.xml_type:
             raise nx.NetworkXError('GraphML writer does not support '
                                    '%s as data values.' % element_type)
+        
         xml_type = self.xml_type[element_type]
         key_id = self.get_key(name, xml_type, scope, default)
         data_element = Element('data', key=key_id)
         if xml_type == 'json':
-            text = json.dumps(json_clean(value))
-        elif isinstance(value, bytes):
-            # Decode bytes to unicode with the default encoding (UTF-8).
-            text = json_clean(value)
+            data_element.text = json.dumps(value)
         else:
-            # Fallback from base class: naive cast to string.
-            text = make_str(value)
-        data_element.text = text
+            # From base class: cast to string.
+            data_element.text = make_str(value)
         return data_element
     
     def is_parent_reference(self, graph, node):
