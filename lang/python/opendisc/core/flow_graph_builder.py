@@ -7,7 +7,7 @@ import types
 
 from ipykernel.jsonutil import json_clean
 import networkx as nx
-from traitlets import HasTraits, Dict, Instance, List, Unicode, default
+from traitlets import HasTraits, Bool, Dict, Instance, List, Unicode, default
 
 from opendisc.kernel.slots import get_slot
 from opendisc.trace.frame_util import get_class_module, get_class_qual_name
@@ -30,6 +30,9 @@ class FlowGraphBuilder(HasTraits):
     
     # Annotator for Python objects and functions.
     annotator = Instance(Annotator, args=())
+    
+    # Whether to store annotated slots for objects on creation or mutation.
+    store_slots = Bool(True)
     
     # Private traits.
     _stack = List() # List(Instance(_CallContext))
@@ -314,7 +317,8 @@ class FlowGraphBuilder(HasTraits):
         self._add_object_edge(obj, obj_id, node, output_node, sourceport=port)
         
         # The object has been created or mutated, so fetch its slots.
-        self._add_object_slots(event, obj, obj_id, node, port)
+        if self.store_slots:
+            self._add_object_slots(event, obj, obj_id, node, port)
     
     def _add_object_slots(self, event, obj, obj_id, node, port):
         """ Add nodes and edges for annotated slots of an object.

@@ -511,6 +511,20 @@ class TestFlowGraph(unittest.TestCase):
         ])
         self.assertEqual(actual, desired)
     
+    def test_object_slots_disabled(self):
+        """ Test that capture of annotated object slots can be disabled.
+        """
+        self.builder.store_slots = False
+        with self.tracer:
+            foo = objects.FooSlots()
+        
+        actual = self.builder.graph
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='FooSlots.__init__')
+        target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
+        self.assert_isomorphic(actual, target)
+    
     def test_object_slots_primitive(self):
         """ Test that annotated object slots with primitive values are captured.
         """
