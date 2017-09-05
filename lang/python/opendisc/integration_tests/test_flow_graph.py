@@ -166,6 +166,51 @@ class IntegrationTestFlowGraph(unittest.TestCase):
                         sourceport='__return__', targetport='labels_pred',
                         annotation='python/numpy/ndarray')
         self.assert_isomorphic(graph, target)
+    
+    def test_sklearn_regression_metrics(self):
+        """ Errors metrics for linear regression in sklearn.
+        """
+        graph = self.trace_script("sklearn_regression_metrics")
+        graph.remove_node(graph.graph['output_node'])
+        
+        target = new_flow_graph()
+        target.remove_node(target.graph['output_node'])
+        target.add_node('read', qual_name='_make_parser_function.<locals>.parser_f',
+                        annotation='python/pandas/read-table')
+        target.add_node('X', qual_name='NDFrame.drop')
+        target.add_node('y', qual_name='DataFrame.__getitem__')
+        target.add_node('lm', qual_name='LinearRegression.__init__')
+        target.add_node('fit', qual_name='LinearRegression.fit',
+                        annotation='python/sklearn/fit-regression')
+        target.add_node('predict', qual_name='LinearModel.predict',
+                        annotation='python/sklearn/predict-regression')
+        target.add_node('l1', qual_name='mean_absolute_error',
+                        annotation='python/sklearn/mean-absolute-error')
+        target.add_node('l2', qual_name='mean_squared_error',
+                        annotation='python/sklearn/mean-squared-error')
+        target.add_edge('read', 'X', sourceport='__return__', targetport='self',
+                        annotation='python/pandas/data-frame')
+        target.add_edge('read', 'y', sourceport='__return__', targetport='self',
+                        annotation='python/pandas/data-frame')
+        target.add_edge('lm', 'fit', sourceport='self!', targetport='self',
+                        annotation='python/sklearn/linear-regression')
+        target.add_edge('X', 'fit', sourceport='__return__', targetport='X',
+                        annotation='python/pandas/data-frame')
+        target.add_edge('y', 'fit', sourceport='__return__', targetport='y',
+                        annotation='python/pandas/series')
+        target.add_edge('fit', 'predict', sourceport='self!', targetport='self',
+                        annotation='python/sklearn/linear-regression')
+        target.add_edge('X', 'predict', sourceport='__return__', targetport='X',
+                        annotation='python/pandas/data-frame')
+        target.add_edge('y', 'l1', sourceport='__return__', targetport='y_true',
+                        annotation='python/pandas/series')
+        target.add_edge('predict', 'l1', sourceport='__return__', targetport='y_pred',
+                        annotation='python/numpy/ndarray')
+        target.add_edge('y', 'l2', sourceport='__return__', targetport='y_true',
+                        annotation='python/pandas/series')
+        target.add_edge('predict', 'l2', sourceport='__return__', targetport='y_pred',
+                        annotation='python/numpy/ndarray')
+        self.assert_isomorphic(graph, target)
 
 
 if __name__ == '__main__':

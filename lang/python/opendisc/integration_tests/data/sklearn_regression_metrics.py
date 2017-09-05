@@ -1,10 +1,8 @@
-from opendisc.api import read_data
+import pandas as pd
 from sklearn.linear_model import LinearRegression
 import sklearn.metrics
 
-diabetes_path = str(data_path.joinpath('diabetes.csv'))
-diabetes = read_data(diabetes_path)
-
+diabetes = pd.read_csv('datasets/diabetes.csv')
 X = diabetes.drop('y', 1)
 y = diabetes['y']
 lm = LinearRegression()
