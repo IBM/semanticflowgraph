@@ -83,6 +83,24 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         
         return graph
     
+    def test_pandas_read_sql(self):
+        """ Read SQL table using pandas and SQLAlchemy.
+        """
+        graph = self.trace_script("pandas_read_sql")
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('create_engine', qual_name='create_engine')
+        target.add_node('read_table', qual_name='read_sql_table',
+                        annotation='python/pandas/read-sql-table')
+        target.add_edge('create_engine', 'read_table',
+                        sourceport='__return__', targetport='con',
+                        annotation='python/sqlalchemy/engine')
+        target.add_edge('create_engine', outputs, sourceport='__return__',
+                        annotation='python/sqlalchemy/engine')
+        target.add_edge('read_table', outputs, sourceport='__return__',
+                        annotation='python/pandas/data-frame')
+        self.assert_isomorphic(graph, target)
+    
     def test_sklearn_clustering_kmeans(self):
         """ K-means clustering on the Iris dataset.
         """
