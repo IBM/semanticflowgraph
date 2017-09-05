@@ -102,7 +102,7 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         self.assert_isomorphic(graph, target)
     
     def test_sklearn_clustering_kmeans(self):
-        """ K-means clustering on the Iris dataset.
+        """ K-means clustering on the Iris dataset using sklearn.
         """
         graph = self.trace_script("sklearn_clustering_kmeans")
         graph.remove_node(graph.graph['output_node'])
@@ -168,7 +168,7 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         self.assert_isomorphic(graph, target)
     
     def test_sklearn_regression_metrics(self):
-        """ Errors metrics for linear regression in sklearn.
+        """ Errors metrics for linear regression using sklearn.
         """
         graph = self.trace_script("sklearn_regression_metrics")
         graph.remove_node(graph.graph['output_node'])
@@ -210,6 +210,36 @@ class IntegrationTestFlowGraph(unittest.TestCase):
                         annotation='python/pandas/series')
         target.add_edge('predict', 'l2', sourceport='__return__', targetport='y_pred',
                         annotation='python/numpy/ndarray')
+        self.assert_isomorphic(graph, target)
+    
+    def test_statsmodel_regression(self):
+        """ Linear regression on an R dataset using statsmodels.
+        """
+        graph = self.trace_script("statsmodels_regression")
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('read', qual_name='get_rdataset',
+                        annotation='python/statsmodels/get-r-dataset')
+        target.add_node('read-get', qual_name='Dataset.__getattribute__',
+                        slot='data')
+        target.add_node('ols', qual_name='Model.from_formula')
+        target.add_node('fit', qual_name='RegressionModel.fit',
+                        annotation='python/statsmodels/fit')
+        target.add_edge('read', 'read-get',
+                        sourceport='__return__', targetport='self')
+        target.add_edge('read-get', 'ols',
+                        sourceport='__return__', targetport='data',
+                        annotation='python/pandas/data-frame')
+        target.add_edge('ols', 'fit',
+                        sourceport='__return__', targetport='self',
+                        annotation='python/statsmodels/ols')
+        target.add_edge('read', outputs, sourceport='__return__')
+        target.add_edge('read-get', outputs, sourceport='__return__',
+                        annotation='python/pandas/data-frame')
+        target.add_edge('ols', outputs, sourceport='__return__',
+                        annotation='python/statsmodels/ols')
+        target.add_edge('fit', outputs, sourceport='__return__',
+                        annotation='python/statsmodels/regression-results-wrapper')
         self.assert_isomorphic(graph, target)
 
 
