@@ -47,7 +47,7 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         """
         node_attrs = [ 'annotation', 'qual_name', 'slot' ]
         node_defaults = [ None ] * len(node_attrs)
-        edge_attrs = [ 'sourceport', 'targetport' ]
+        edge_attrs = [ 'annotation', 'sourceport', 'targetport' ]
         edge_defaults = [ None ] * len(edge_attrs)
         node_match = iso.categorical_node_match(node_attrs, node_defaults)
         edge_match = iso.categorical_multiedge_match(edge_attrs, edge_defaults)
@@ -107,10 +107,46 @@ class IntegrationTestFlowGraph(unittest.TestCase):
                         slot='labels_')
         target.add_edge('kmeans', 'fit', annotation='python/sklearn/k-means',
                         sourceport='self!', targetport='self')
-        target.add_edge('values', 'fit', annotation='python/sklearn/k-means',
+        target.add_edge('values', 'fit', annotation='python/numpy/ndarray',
                         sourceport='__return__', targetport='X')
         target.add_edge('fit', 'clusters', annotation='python/sklearn/k-means',
                         sourceport='self!', targetport='self')
+        self.assert_isomorphic(graph, target)
+    
+    def test_sklearn_clustering_metric(self):
+        """ Compare sklearn clustering models using a cluster similarity metric.
+        """
+        graph = self.trace_script("sklearn_clustering_metrics")
+        graph.remove_node(graph.graph['output_node'])
+        
+        target = new_flow_graph()
+        target.remove_node(target.graph['output_node'])
+        target.add_node('make_blobs', qual_name='make_blobs')
+        target.add_node('kmeans', qual_name='KMeans.__init__')
+        target.add_node('fit_kmeans', qual_name='KMeans.fit_predict',
+                        annotation='python/sklearn/fit-predict-clustering')
+        target.add_node('agglom', qual_name='AgglomerativeClustering.__init__')
+        target.add_node('fit_agglom', qual_name='ClusterMixin.fit_predict',
+                        annotation='python/sklearn/fit-predict-clustering')
+        target.add_node('score', qual_name='mutual_info_score')
+        target.add_edge('kmeans', 'fit_kmeans',
+                        sourceport='self!', targetport='self',
+                        annotation='python/sklearn/k-means')
+        target.add_edge('make_blobs', 'fit_kmeans',
+                        sourceport='__return__.0', targetport='X',
+                        annotation='python/numpy/ndarray')
+        target.add_edge('agglom', 'fit_agglom',
+                        sourceport='self!', targetport='self',
+                        annotation='python/sklearn/agglomerative')
+        target.add_edge('make_blobs', 'fit_agglom',
+                        sourceport='__return__.0', targetport='X',
+                        annotation='python/numpy/ndarray')
+        target.add_edge('fit_kmeans', 'score',
+                        sourceport='__return__', targetport='labels_true',
+                        annotation='python/numpy/ndarray')
+        target.add_edge('fit_agglom', 'score',
+                        sourceport='__return__', targetport='labels_pred',
+                        annotation='python/numpy/ndarray')
         self.assert_isomorphic(graph, target)
 
 
