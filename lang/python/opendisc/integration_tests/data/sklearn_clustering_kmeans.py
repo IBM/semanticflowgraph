@@ -1,8 +1,7 @@
-from opendisc.api import read_data
+import pandas as pd
 from sklearn.cluster import KMeans
 
-iris_path = str(data_path.joinpath('iris.csv'))
-iris = read_data(iris_path)
+iris = pd.read_csv('datasets/iris.csv')
 iris = iris.drop('Species', 1)
 
 kmeans = KMeans(n_clusters=3).fit(iris.values)
