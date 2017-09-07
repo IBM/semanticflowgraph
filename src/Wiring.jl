@@ -42,6 +42,33 @@ GraphvizWiring.node_id(box::Box{Monocl.Hom{:coerce}}) = ":coerce"
 GraphvizWiring.label(box::Box{Monocl.Hom{:construct}}) = string(codom(box.value))
 GraphvizWiring.node_id(box::Box{Monocl.Hom{:construct}}) = ":construct"
 
+# TikZ support.
+function TikZWiring.box(name::String, f::Monocl.Hom{:generator})
+  TikZWiring.rect(name, f)
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:mcopy})
+  TikZWiring.junction_circle(name, f)
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:delete})
+  TikZWiring.junction_circle(name, f)
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:coerce})
+  TikZWiring.trapezium(
+    name,
+    "to",
+    TikZWiring.wires(dom(f)),
+    TikZWiring.wires(codom(f))
+  )
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:construct})
+  TikZWiring.rect(
+    name,
+    string(codom(f)),
+    TikZWiring.wires(dom(f)),
+    TikZWiring.wires(codom(f))
+  )
+end
+
 # Semantic flow graph
 #####################
 
