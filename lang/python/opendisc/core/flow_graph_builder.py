@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from collections import OrderedDict
 from copy import deepcopy
 import gc
-import types
+import inspect, types
 
 from ipykernel.jsonutil import json_clean
 import networkx as nx
@@ -272,11 +272,14 @@ class FlowGraphBuilder(HasTraits):
                                   sourceport=src_port, targetport=arg_name)
         
         # Otherwise, mark the argument as an unknown input.
-        # Special case: Treat `self` in object initializer as return value.
-        # This is semantically correct, though inconsistent with the
-        # Python implementation.
-        elif not (event.atomic and event.qual_name.endswith('__init__') and
-                  arg_name == 'self'):
+        #
+        # Exceptions: Do not treat the following as inputs.
+        #   1) `self` argument in constructors
+        #   2) `cls` argument in class methods
+        elif not (event.atomic and 
+                  ((arg_name == 'self' and event.name == '__init__') or
+                   (arg_name == 'cls' and inspect.ismethod(event.function) and
+                    event.function.__self__ is arg))):
             self._add_object_input_node(arg, arg_id, node, arg_name)
     
     def _add_object_edge(self, obj, obj_id, source, target, 
@@ -461,7 +464,8 @@ class FlowGraphBuilder(HasTraits):
         """
         # FIXME: This whole method is a hack. We should find a better way to
         # solve this problem.
-        if isinstance(obj, (tuple, list, dict, set, frozenset)):
+        if (isinstance(obj, (tuple, list, dict, set, frozenset)) and
+            not ObjectTracker.is_trackable(obj)):
             for referent in gc.get_referents(obj):
                 if tracker.is_tracked(referent):
                     yield referent

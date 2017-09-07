@@ -168,6 +168,20 @@ class TestFlowGraph(unittest.TestCase):
         target.add_edge('3', outputs, id=self.id(baz), sourceport='__return__')
         self.assert_isomorphic(actual, target)
     
+    def test_class_methods(self):
+        """ Test that class methods are represented correctly.
+        """
+        with self.tracer:
+            bar = objects.Bar.make_bar()
+        
+        actual = self.builder.graph
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('1', qual_name='Bar.make_bar')
+        target.add_edge('1', outputs, id=self.id(bar), sourceport='__return__')
+        print(actual.edges())
+        self.assert_isomorphic(actual, target)
+    
     def test_singly_nested(self):
         """ Test that nested function calls are mapped to a nested subgraph.
         """
@@ -308,7 +322,7 @@ class TestFlowGraph(unittest.TestCase):
         target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         self.assert_isomorphic(actual, target)
     
-    def test_tracked_inside_list(self):
+    def test_track_inside_list(self):
         """ Test a function call with tracked objects inside a list.
         """
         with self.tracer:

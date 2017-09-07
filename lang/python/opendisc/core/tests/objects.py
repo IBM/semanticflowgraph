@@ -18,7 +18,10 @@ class Foo(object):
 
 
 class Bar(Foo):
-    pass
+    
+    @classmethod
+    def make_bar(cls):
+        return cls(x=2, y=2)
 
 class BarMixin(object):
     pass
