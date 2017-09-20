@@ -2,6 +2,8 @@ module TestDoctrine
 using Base.Test
 
 using Catlab
+using Catlab.Diagram
+import Catlab.Diagram: Graphviz
 using OpenDiscCore.Doctrine
 
 # Monocl category
@@ -51,5 +53,27 @@ sub = otimes(subA, subB)
 @test pair(f,g) == compose(mcopy(A), otimes(f,g))
 @test dom(pair(A0,f,g)) == A0
 @test codom(pair(A0,f,g)) == otimes(B,C)
+
+# Monocl wiring diagram
+#######################
+
+A0, A, B0, B = Ob(Monocl, :A0, :A, :B0, :B)
+f = Hom(:f, A, B)
+g = Hom(:g, B, A)
+
+diagram = to_wiring_diagram(f)
+@test boxes(diagram) == [ Box(f) ]
+@test input_ports(diagram) == [ A ]
+@test output_ports(diagram) == [ B ]
+
+coercion = coerce(SubOb(A0, A))
+diagram = to_wiring_diagram(compose(coercion, f))
+@test boxes(diagram) == [ Box(coercion), Box(f) ]
+@test input_ports(diagram) == [ A0 ]
+@test output_ports(diagram) == [ B ]
+
+# Graphviz support.
+diagram = to_wiring_diagram(compose(coerce(SubOb(A0,A)), construct(g)))
+@test isa(to_graphviz(diagram), Graphviz.Graph)
 
 end

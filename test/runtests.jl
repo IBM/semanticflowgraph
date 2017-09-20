@@ -4,8 +4,8 @@ using Base.Test
   include("Doctrine.jl")
 end
 
-@testset "Diagram" begin
-  include("Wiring.jl")
-end
-
 include("ontology/Ontology.jl")
+
+@testset "FlowGraph" begin
+  include("FlowGraph.jl")
+end

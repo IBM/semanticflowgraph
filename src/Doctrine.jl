@@ -1,12 +1,16 @@
 module Doctrine
 export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, dom, codom,
   compose, id, subid, otimes, munit, opow, braid, mcopy, delete, pair,
-  hom, ev, curry, coerce, construct
+  hom, ev, curry, coerce, construct, to_wiring_diagram
 
 using Catlab
 using Catlab.Doctrine: CategoryExpr, ObExpr, HomExpr, SymmetricMonoidalCategory
 import Catlab.Doctrine: Ob, Hom, dom, codom, compose, id, otimes, munit,
   braid, mcopy, delete, pair, hom, ev, curry
+
+using Catlab.Diagram
+import Catlab.Diagram.Wiring: Box, WiringDiagram, to_wiring_diagram,
+  validate_ports
 
 # Cartesian (closed) category
 #############################
@@ -122,5 +126,65 @@ function pair(fs::Vector{Monocl.Hom})
 end
 pair(A::Monocl.Ob, fs::Vararg{Monocl.Hom}) = pair(A, collect(Monocl.Hom,fs))
 pair(fs::Vararg{Monocl.Hom}) = pair(collect(Monocl.Hom,fs))
+
+# Monocl wiring diagrams
+########################
+
+function Box(f::Monocl.Hom)
+  Box(f, collect(dom(f)), collect(codom(f)))
+end
+function WiringDiagram(dom::Monocl.Ob, codom::Monocl.Ob)
+  WiringDiagram(collect(dom), collect(codom))
+end
+
+""" Convert a Monocl morphism into a wiring diagram.
+"""
+function to_wiring_diagram(expr::Monocl.Hom)
+  functor((Ports, WiringDiagram), expr;
+    terms = Dict(
+      :Ob => (expr) -> Ports([expr]),
+      :Hom => (expr) -> WiringDiagram(expr),
+      :coerce => (expr) -> WiringDiagram(expr),
+      :construct => (expr) -> WiringDiagram(expr),
+    )
+  )
+end
+
+# XXX: Implicit conversion is not implemented, so we disable domain checks.
+validate_ports(source::Monocl.Ob, target::Monocl.Ob) = nothing
+
+# Graphviz support.
+GraphvizWiring.label(box::Box{Monocl.Hom{:coerce}}) = "to"
+GraphvizWiring.node_id(box::Box{Monocl.Hom{:coerce}}) = ":coerce"
+
+GraphvizWiring.label(box::Box{Monocl.Hom{:construct}}) = string(codom(box.value))
+GraphvizWiring.node_id(box::Box{Monocl.Hom{:construct}}) = ":construct"
+
+# TikZ support.
+function TikZWiring.box(name::String, f::Monocl.Hom{:generator})
+  TikZWiring.rect(name, f)
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:mcopy})
+  TikZWiring.junction_circle(name, f)
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:delete})
+  TikZWiring.junction_circle(name, f)
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:coerce})
+  TikZWiring.trapezium(
+    name,
+    "to",
+    TikZWiring.wires(dom(f)),
+    TikZWiring.wires(codom(f))
+  )
+end
+function TikZWiring.box(name::String, f::Monocl.Hom{:construct})
+  TikZWiring.rect(
+    name,
+    string(codom(f)),
+    TikZWiring.wires(dom(f)),
+    TikZWiring.wires(codom(f))
+  )
+end
 
 end
