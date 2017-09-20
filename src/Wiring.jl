@@ -1,8 +1,8 @@
 module Wiring
-export to_wiring_diagram
+export to_wiring_diagram, read_raw_graph, read_raw_graph_file
 
 import JSON
-using LightXML: XMLDocument
+import LightXML
 
 using Catlab
 using Catlab.Diagram
@@ -33,7 +33,7 @@ function to_wiring_diagram(expr::Monocl.Hom)
 end
 
 # XXX: Implicit conversion is not implemented, so we disable domain checks.
-function validate_ports(source::Monocl.Ob, target::Monocl.Ob) end
+validate_ports(source::Monocl.Ob, target::Monocl.Ob) = nothing
 
 # Graphviz support.
 GraphvizWiring.label(box::Box{Monocl.Hom{:coerce}}) = "to"
@@ -69,18 +69,6 @@ function TikZWiring.box(name::String, f::Monocl.Hom{:construct})
   )
 end
 
-# Semantic flow graph
-#####################
-
-""" Object in the category of elements of the Monocl language.
-
-This type is the value type of wires in the semantic flow graph.
-"""
-struct MonoclElement
-  ob::Monocl.Ob
-  value::Any
-end
-
 # Raw flow graph
 ################
 
@@ -102,11 +90,16 @@ struct RawWire
   value::Any
 end
 
+# Do not validate raw ports: there is nothing that must match.
+validate_ports(source::RawPort, target::RawPort) = nothing
+
 """ Read raw flow graph from GraphML.
 """
-function read_raw_graph(xdoc::XMLDocument)
+function read_raw_graph(xdoc::LightXML.XMLDocument)
   GraphML.read_graphml(RawNode, RawPort, RawWire, xdoc)
 end
+read_raw_graph(xml::String) = read_raw_graph(LightXML.parse_string(xml))
+read_raw_graph_file(args...) = read_raw_graph(LightXML.parse_file(args...))
 
 function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
@@ -114,7 +107,7 @@ function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
 end
 
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
-  annotation = Nullable{String}(pop!(data, "annotation", nothing))
+  annotation = Nullable{Int}(pop!(data, "annotation", nothing))
   value = pop!(data, "value", nothing)
   RawPort(annotation, data, value)
 end

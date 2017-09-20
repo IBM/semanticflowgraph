@@ -103,7 +103,7 @@ end
   coerce(sub::SubOb) = dom(sub) == codom(sub) ? id(dom(sub)) : Super.coerce(sub)
 end
 
-""" Unnamed subobject generator.
+""" Subobject generator with no name.
 """
 SubOb(dom::Monocl.Ob, codom::Monocl.Ob) = SubOb(nothing, dom, codom)
 
