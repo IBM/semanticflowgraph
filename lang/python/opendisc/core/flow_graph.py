@@ -50,20 +50,52 @@ def flow_graph_to_graphml(graph):
     Returns another NetworkX graph suitable for serialization, not raw XML.
     To perform the serialization, call `graphml.write_graphml`.
     """
-    outer = nx.MultiDiGraph()
+    graph = graph.copy()
+    # Bring the flow graph into conformance with the conventions for
+    # representing wiring diagrams in GraphML.
+    
+    # The top-level graph must contain a single node, representing the outer box.
     node = '__root__'
+    outer = nx.MultiDiGraph()
     outer.add_node(node, graph=graph)
+    
+    # Every edge must have a source port and a target port. The only edges
+    # that might be missing a source port (resp. target port) are the edges
+    # from the input node (resp. to the output node) because these are
+    # "unknown" inputs (resp. "unused" outputs). Make up port names for these.
+    ports = {}
+    input_node = graph.graph['input_node']
+    output_node = graph.graph['output_node']
+    for _, _, data in graph.out_edges_iter(input_node, data=True):
+        portname = 'in:' + data['id']
+        data['sourceport'] = portname
+        ports[portname] = { 'portkind': 'input' }
+    for _, _, data in graph.in_edges_iter(output_node, data=True):
+        portname = 'out:' + data['id']
+        data['targetport'] = portname
+        ports[portname] = { 'portkind': 'output' }
+    outer.node[node]['ports'] = ports
+    
     return outer
 
 def flow_graph_from_graphml(outer):
     """ Returns a flow graph from deserialized GraphML.
     
-    Accepts a NetworkX graph, not raw XML. To deserialize GraphML, call
-    `graphml.read_grapml`.
+    Expects a NetworkX graph, not raw XML.
+    To deserialize GraphML, call `graphml.read_grapml`.
     """
+    # Undo the transformations performed by `flow_graph_to_graphml`.
     assert len(outer) == 1
     node = outer.nodes()[0]
     graph = outer.node[node]['graph']
+
+    input_node = graph.graph['input_node']
+    output_node = graph.graph['output_node']
+    for _, _, data in graph.out_edges_iter(input_node, data=True):
+        del data['sourceport']
+    for _, _, data in graph.in_edges_iter(output_node, data=True):
+        del data['targetport']
+    
     return graph
 
 
