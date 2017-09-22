@@ -43,14 +43,19 @@ function concept(db::OntologyDB, name::String)
 end
 
 function annotation(db::OntologyDB, id::String)
-  if !haskey(db.annotations, id)
+  doc_id = "annotation/$id"
+  if !haskey(db.annotations, doc_id)
     throw(OntologyError("No annotation named '$id'"))
   end
-  db.annotations[id]
+  db.annotations[doc_id]
 end
-annotation(db::OntologyDB, id::AnnotationID) = annotation(db, db_id(id))
+function annotation(db::OntologyDB, id::AnnotationID)
+  annotation(db, annotation_id_string(id))
+end
 
-db_id(id::AnnotationID) = "annotation/$(id.language)/$(id.package)/$(id.id)"
+function annotation_id_string(id::AnnotationID)
+  join([id.language, id.package, id.id], "/")
+end
 
 # Local file
 ############
@@ -76,7 +81,7 @@ function load_documents(db::OntologyDB, docs)
   
   annotation_docs = filter(doc -> doc["schema"] == "annotation", docs)
   for doc in annotation_docs
-    db.annotation[doc["_id"]] = annotation_from_json(doc, db.concepts)
+    db.annotations[doc["_id"]] = annotation_from_json(doc, db.concepts)
   end
 end
 
@@ -113,17 +118,20 @@ end
 """ Load single annotation from remote database, if it's not available locally.
 """
 function load_annotation(db::OntologyDB, id::String)::Annotation
-  if haskey(db.annotations, id)
-    return db.annotations[id]
+  doc_id = "annotation/$id"
+  if haskey(db.annotations, doc_id)
+    return db.annotations[doc_id]
   end
   
-  doc = CouchDB.get(db.url, db.db, id)
+  doc = CouchDB.get(db.url, db.db, doc_id)
   if get(doc, "error", nothing) == "not_found"
     throw(OntologyError("No annotation named '$id'"))
   end
   db.annotations[doc["_id"]] = annotation_from_json(doc, db.concepts)
 end
-load_annotation(db::OntologyDB, id::AnnotationID) = load_annotation(db, db_id(id))
+function load_annotation(db::OntologyDB, id::AnnotationID)
+  load_annotation(db, annotation_id_string(id))
+end
 
 # CouchDB client
 ################
