@@ -1,8 +1,11 @@
 julia 0.6
 
 AutoHashEquals
+Parameters
 Reexport
-JSON
+
 HTTP
+JSON
+LightXML
 
 Catlab

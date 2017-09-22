@@ -9,8 +9,7 @@ import Catlab.Doctrine: Ob, Hom, dom, codom, compose, id, otimes, munit,
   braid, mcopy, delete, pair, hom, ev, curry
 
 using Catlab.Diagram
-import Catlab.Diagram.Wiring: Box, WiringDiagram, to_wiring_diagram,
-  validate_ports
+import Catlab.Diagram.Wiring: Box, WiringDiagram, to_wiring_diagram
 
 # Cartesian (closed) category
 #############################
@@ -149,9 +148,6 @@ function to_wiring_diagram(expr::Monocl.Hom)
     )
   )
 end
-
-# XXX: Implicit conversion is not implemented, so we disable domain checks.
-validate_ports(source::Monocl.Ob, target::Monocl.Ob) = nothing
 
 # Graphviz support.
 GraphvizWiring.label(box::Box{Monocl.Hom{:coerce}}) = "to"

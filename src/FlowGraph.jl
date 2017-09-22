@@ -1,38 +1,36 @@
 module FlowGraph
-export read_raw_graph, read_raw_graph_file, to_semantic_graph
+export RawNode, RawPort, RawWire, read_raw_graph, read_raw_graph_file,
+  to_semantic_graph
 
 import JSON
 import LightXML
+using Parameters
 
 using Catlab.Diagram
-import Catlab.Diagram.Wiring: validate_ports
 using ..Doctrine
 using ..Ontology
 
 # Raw flow graph
 ################
 
-struct RawNode
-  annotation::Nullable{String}
-  language::Dict{String,Any}
-  slot::Bool
+@with_kw struct RawNode
+  annotation::Nullable{String} = Nullable{String}()
+  language::Dict{String,Any} = Dict{String,Any}()
+  slot::Bool = false
 end
 
-struct RawPort
-  annotation::Nullable{Int}
-  language::Dict{String,Any}
-  value::Any
+@with_kw struct RawPort
+  annotation::Nullable{Int} = Nullable{Int}()
+  language::Dict{String,Any} = Dict{String,Any}()
+  value::Nullable = Nullable()
 end
 
-struct RawWire
-  annotation::Nullable{String}
-  language::Dict{String,Any}
-  id::String
-  value::Any
+@with_kw struct RawWire
+  annotation::Nullable{String} = Nullable{String}()
+  language::Dict{String,Any} = Dict{String,Any}()
+  id::Nullable{String} = Nullable{String}()
+  value::Nullable = Nullable()
 end
-
-# Do not validate raw ports: there is nothing that must match.
-validate_ports(source::RawPort, target::RawPort) = nothing
 
 """ Read raw flow graph from GraphML.
 """
@@ -50,14 +48,14 @@ end
 
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
   annotation = Nullable{Int}(pop!(data, "annotation", nothing))
-  value = pop!(data, "value", nothing)
+  value = pop!(data, "value", Nullable())
   RawPort(annotation, data, value)
 end
 
 function GraphML.convert_from_graphml_data(::Type{RawWire}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
-  id = pop!(data, "id")
-  value = pop!(data, "value", nothing)
+  id = Nullable{String}(pop!(data, "id", nothing))
+  value = pop!(data, "value", Nullable())
   RawWire(annotation, data, id, value)
 end
 
@@ -105,15 +103,23 @@ function expand_annotated_box(db::OntologyDB, node::RawNode,
   end
   
   # General case: annotated function.
+  # Expand the function definition as a wiring diagram and permute the
+  # incoming and outoging wires.
   note = annotation(db, get(node.annotation))::HomAnnotation
-  dom_perm = Int[ get(p.annotation) for p in inputs if !isnull(p.annotation) ]
-  codom_perm = Int[ get(p.annotation) for p in outputs if !isnull(p.annotation) ]
-  definition = note.definition
-  compose(
-    permute(Ports(collect(dom(definition))), dom_perm, inverse=true),
-    to_wiring_diagram(definition),
-    permute(Ports(collect(codom(definition))), codom_perm),
-  )
+  f = WiringDiagram(inputs, outputs)
+  v = add_box!(f, to_wiring_diagram(note.definition))
+  for (i, port) in enumerate(inputs)
+    if !isnull(port.annotation)
+      add_wire!(f, (input_id(f), i) => (v, get(port.annotation)))
+    end
+  end
+  for (i, port) in enumerate(outputs)
+    if !isnull(port.annotation)
+      add_wire!(f, (v, get(port.annotation)) => (output_id(f), i))
+    end
+  end
+  substitute!(f, v)
+  return f
 end
 
 end
