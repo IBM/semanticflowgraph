@@ -6,7 +6,8 @@
     "package": "opendisc",
     "id": "foo",
     "kind": "object",
-    "class": "opendisc.core.tests.objects.Foo"
+    "class": "opendisc.core.tests.objects.Foo",
+    "definition": "foo"
   },
   {
     "_id": "annotation/python/opendisc/foo-slots",
@@ -17,10 +18,11 @@
     "kind": "object",
     "class": "opendisc.core.tests.objects.FooSlots",
     "slots": {
-      "x": "x",
-      "y": "y",
-      "sum": "do_sum"
-    }
+      "foo-x": "x",
+      "foo-y": "y",
+      "foo-sum": "do_sum"
+    },
+    "definition": "foo"
   },
   {
     "_id": "annotation/python/opendisc/bar",
@@ -29,7 +31,8 @@
     "package": "opendisc",
     "id": "bar",
     "kind": "object",
-    "class": "opendisc.core.tests.objects.Bar"
+    "class": "opendisc.core.tests.objects.Bar",
+    "definition": "bar"
   },
   {
     "_id": "annotation/python/opendisc/bar-with-mixin",
@@ -41,7 +44,8 @@
     "class": [
       "opendisc.core.tests.objects.Bar",
       "opendisc.core.tests.objects.BarMixin"
-    ]
+    ],
+    "definition": "bar"
   },
   {
     "_id": "annotation/python/opendisc/baz",
@@ -50,7 +54,8 @@
     "package": "opendisc",
     "id": "baz",
     "kind": "object",
-    "class": "opendisc.core.tests.objects.Baz"
+    "class": "opendisc.core.tests.objects.Baz",
+    "definition": "baz"
   },
   {
     "_id": "annotation/python/opendisc/foo-container",
@@ -105,7 +110,8 @@
         "slot": "__return__",
         "name": "bar"
       }
-    ]
+    ],
+    "definition": "bar-from-foo"
   },
   {
     "_id": "annotation/python/opendisc/bar-from-foo-mutating",
@@ -130,7 +136,8 @@
         "slot": "__return__",
         "name": "bar"
       }
-    ]
+    ],
+    "definition": "bar-from-foo"
   },
   {
     "_id": "annotation/python/opendisc/foo-sum",

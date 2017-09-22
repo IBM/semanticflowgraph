@@ -2,7 +2,7 @@
   {
     "_id": "concept/number",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "object",
     "id": "number",
     "name": "number",
@@ -11,7 +11,7 @@
   {
     "_id": "concept/foo",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "object",
     "id": "foo",
     "name": "Foo"
@@ -19,7 +19,7 @@
   {
     "_id": "concept/bar",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "object",
     "id": "bar",
     "name": "Bar",
@@ -30,7 +30,7 @@
   {
     "_id": "concept/baz",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "object",
     "id": "baz",
     "name": "Baz",
@@ -41,7 +41,7 @@
   {
     "_id": "concept/bar-from-foo",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "morphism",
     "id": "bar-from-foo",
     "name": "transform foo to bar",
@@ -59,7 +59,7 @@
   {
     "_id": "concept/foo-x",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "morphism",
     "id": "foo-x",
     "name": "slot x of foo",
@@ -78,7 +78,7 @@
   {
     "_id": "concept/foo-y",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "morphism",
     "id": "foo-y",
     "name": "slot y of foo",
@@ -97,7 +97,7 @@
   {
     "_id": "concept/foo-sum",
     "schema": "concept",
-    "ontology": "test-ontology",
+    "ontology": "foobar",
     "kind": "morphism",
     "id": "foo-sum",
     "name": "sum slot of foo",

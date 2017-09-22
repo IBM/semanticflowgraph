@@ -58,7 +58,7 @@ class TestAnnotationDB(unittest.TestCase):
         query = {
             'kind': 'object',
             'slots': {
-                'sum': 'do_sum'
+                'foo-sum': 'do_sum'
             }
         }
         notes = list(self.db.filter(query))
