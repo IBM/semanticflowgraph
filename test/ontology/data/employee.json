@@ -1,0 +1,229 @@
+[
+  {
+    "_id": "concept/person",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "object",
+    "id": "person",
+    "name": "Person"
+  },
+  {
+    "_id": "concept/employee",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "object",
+    "id": "employee",
+    "name": "Employee",
+    "description": "Employee of an organization",
+    "subobject": [
+      "person"
+    ]
+  },
+  {
+    "_id": "concept/manager",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "object",
+    "id": "manager",
+    "name": "Manager",
+    "description": "Employee who manages other employees",
+    "subobject": [
+      "employee"
+    ]
+  },
+  {
+    "_id": "concept/department",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "object",
+    "id": "department",
+    "name": "Department",
+    "description": "Department in an organization"
+  },
+  {
+    "_id": "concept/string",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "object",
+    "id": "string",
+    "name": "String",
+    "description": "primitive string type"
+  },
+  {
+    "_id": "concept/number",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "object",
+    "id": "number",
+    "name": "Number",
+    "description": "primitive number type"
+  },
+  {
+    "_id": "concept/person-first-name",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "morphism",
+    "id": "person-first-name",
+    "name": "first name",
+    "description": "first name (given name) of person",
+    "domain": [
+      {
+        "object": "person"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "string"
+      }
+    ]
+  },
+  {
+    "_id": "concept/person-last-name",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "morphism",
+    "id": "person-last-name",
+    "name": "last name",
+    "description": "last name (family name) of person",
+    "domain": [
+      {
+        "object": "person"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "string"
+      }
+    ]
+  },
+  {
+    "_id": "concept/employee-salary",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "morphism",
+    "id": "employee-salary",
+    "name": "salary",
+    "description": "salary of an employee (in USD)",
+    "domain": [
+      {
+        "object": "employee"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "number"
+      }
+    ]
+  },
+  {
+    "_id": "concept/works-in",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "morphism",
+    "id": "works-in",
+    "name": "works in",
+    "description": "department that employee works in",
+    "domain": [
+      {
+        "object": "employee"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "department"
+      }
+    ]
+  },
+  {
+    "_id": "concept/reports-to",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "morphism",
+    "id": "reports-to",
+    "name": "reports to",
+    "description": "manager that employee reports to",
+    "domain": [
+      {
+        "object": "employee"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "manager"
+      }
+    ]
+  },
+  {
+    "_id": "concept/department-secretary",
+    "schema": "concept",
+    "ontology": "employee",
+    "kind": "morphism",
+    "id": "department-secretary",
+    "name": "secretary",
+    "description": "secretary of a department",
+    "domain": [
+      {
+        "object": "department"
+      }
+    ],
+    "codomain": [
+      {
+        "object": "employee"
+      }
+    ]
+  },
+  {
+    "_id": "annotation/opendisc/employee/employee",
+    "schema": "annotation",
+    "language": "opendisc",
+    "package": "employee",
+    "id": "emplyee",
+    "kind": "object",
+    "definition": "employee"
+  },
+  {
+    "_id": "annotation/opendisc/employee/department",
+    "schema": "annotation",
+    "language": "opendisc",
+    "package": "employee",
+    "id": "department",
+    "kind": "object",
+    "definition": "department"
+  },
+  {
+    "_id": "annotation/opendisc/employee/manager",
+    "schema": "annotation",
+    "language": "opendisc",
+    "package": "employee",
+    "id": "manager",
+    "kind": "morphism",
+    "definition": "reports-to"
+  },
+  {
+    "_id": "annotation/opendisc/employee/second-level-manager",
+    "schema": "annotation",
+    "language": "opendisc",
+    "package": "employee",
+    "id": "second-level-manager",
+    "kind": "morphism",
+    "definition": [
+      "compose",
+      "reports-to",
+      "reports-to"
+    ]
+  },
+  {
+    "_id": "annotation/opendisc/employee/third-level-manager",
+    "schema": "annotation",
+    "language": "opendisc",
+    "package": "employee",
+    "id": "third-level-manager",
+    "kind": "morphism",
+    "definition": [
+      "compose",
+      "reports-to",
+      "reports-to",
+      "reports-to"
+    ]
+  }
+]
