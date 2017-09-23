@@ -136,17 +136,24 @@ function WiringDiagram(dom::Monocl.Ob, codom::Monocl.Ob)
   WiringDiagram(collect(dom), collect(codom))
 end
 
-""" Convert a Monocl morphism into a wiring diagram.
-"""
 function to_wiring_diagram(expr::Monocl.Hom)
-  functor((Ports, WiringDiagram), expr;
+  functor((Ports, WiringDiagram, Monocl.SubOb), expr;
     terms = Dict(
       :Ob => (expr) -> Ports([expr]),
       :Hom => (expr) -> WiringDiagram(expr),
-      :coerce => (expr) -> WiringDiagram(expr),
+      :SubOb => identity,
+      :coerce => (expr) -> to_wiring_diagram(first(expr)),
       :construct => (expr) -> WiringDiagram(expr),
     )
   )
+end
+
+function to_wiring_diagram(sub::Monocl.SubOb)
+  A, B = collect(dom(sub)), collect(codom(sub))
+  @assert length(A) == length(B)
+  f = WiringDiagram(A, B)
+  add_wires!(f, ((input_id(f),i) => (output_id(f),i) for i in eachindex(A)))
+  return f
 end
 
 # Graphviz support.

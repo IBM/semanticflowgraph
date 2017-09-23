@@ -66,9 +66,10 @@ diagram = to_wiring_diagram(f)
 @test input_ports(diagram) == [ A ]
 @test output_ports(diagram) == [ B ]
 
-coercion = coerce(SubOb(A0, A))
-diagram = to_wiring_diagram(compose(coercion, f))
-@test boxes(diagram) == [ Box(coercion), Box(f) ]
+# Coercion
+sub = SubOb(A0, A)
+diagram = to_wiring_diagram(compose(coerce(sub), f))
+@test boxes(diagram) == [ Box(f) ]
 @test input_ports(diagram) == [ A0 ]
 @test output_ports(diagram) == [ B ]
 
