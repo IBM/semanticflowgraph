@@ -355,11 +355,11 @@ class FlowGraphBuilder(HasTraits):
                 'ports': OrderedDict([
                     ('self', self._get_port_data(obj,
                         portkind='input',
-                        annotation=1,
+                        annotation_index=1,
                     )),
                     ('__return__', self._get_port_data(slot_value,
                         portkind='output',
-                        annotation=1,
+                        annotation_index=1,
                     )),
                 ])
             }
@@ -375,8 +375,6 @@ class FlowGraphBuilder(HasTraits):
     
     def _get_object_data(self, obj, obj_id=None):
         """ Get data to store for an object.
-        
-        The data includes the object's class, ID, value, and/or annotation.
         """
         data = {}
         if obj is None:
@@ -396,8 +394,8 @@ class FlowGraphBuilder(HasTraits):
         if not module == 'builtins':
             data['module'] = module
             data['qual_name'] = get_class_qual_name(obj_type)
-                
-        # Add annotation, if it exists.
+        
+        # Add object annotation, if it exists.
         note = self.annotator.notate_object(obj)
         if note:
             data['annotation'] = self._annotation_key(note)
@@ -422,7 +420,7 @@ class FlowGraphBuilder(HasTraits):
                 
             data = self._get_port_data(obj, argname=name, **extra_data)
             if name in annotation_table:
-                data['annotation'] = annotation_table[name]
+                data['annotation_index'] = annotation_table[name]
             ports[portname] = data
         return ports
     
@@ -430,6 +428,11 @@ class FlowGraphBuilder(HasTraits):
         """ Get data for a single port on a node.
         """
         data = extra_data
+        
+        # Add object annotation, if it exists.
+        note = self.annotator.notate_object(obj)
+        if note:
+            data['annotation'] = self._annotation_key(note)
         
         # Store primitive, non-trackable values on the port. Logically, the
         # values should be stored on the edges, but for now edges only carry

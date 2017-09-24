@@ -421,18 +421,19 @@ class TestFlowGraph(unittest.TestCase):
             ('foo', {
                 'argname': 'foo',
                 'portkind': 'input',
-                'annotation': 1,
+                'annotation': 'python/opendisc/foo',
+                'annotation_index': 1,
             }),
             ('x', {
                 'argname': 'x',
                 'portkind': 'input',
-                'annotation': 2,
+                'annotation_index': 2,
                 'value': 10,
             }),
             ('y', {
                 'argname': 'y',
                 'portkind': 'input',
-                'annotation': 3,
+                'annotation_index': 3,
             })
         ])
         self.assertEqual(actual, desired)
@@ -484,7 +485,7 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__', {
                 'argname': '__return__',
                 'portkind': 'output',
-                'annotation': 1,
+                'annotation_index': 1,
                 'value': x,
             })
         ])
@@ -496,7 +497,8 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__', {
                 'argname': '__return__',
                 'portkind': 'output',
-                'annotation': 1,
+                'annotation': 'python/opendisc/foo',
+                'annotation_index': 1,
             })
         ])
         self.assertEqual(actual, desired)
@@ -515,12 +517,14 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__', {
                 'argname': '__return__',
                 'portkind': 'output',
-                'annotation': 2,
+                'annotation': 'python/opendisc/bar',
+                'annotation_index': 2,
             }),
             ('foo!', {
                 'argname': 'foo',
                 'portkind': 'output',
-                'annotation': 1,
+                'annotation': 'python/opendisc/foo',
+                'annotation_index': 1,
             }),
         ])
         self.assertEqual(actual, desired)
@@ -545,10 +549,12 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__.0', {
                 'argname': '__return__.0',
                 'portkind': 'output',
+                'annotation': 'python/opendisc/foo',
             }),
             ('__return__.1', {
                 'argname': '__return__.1',
                 'portkind': 'output',
+                'annotation': 'python/opendisc/bar',
             }),
         ])
         self.assertEqual(actual, desired)
@@ -594,11 +600,12 @@ class TestFlowGraph(unittest.TestCase):
         self.assertEqual(ports, OrderedDict([
             ('self', {
                 'portkind': 'input',
-                'annotation': 1,
+                'annotation': 'python/opendisc/foo-slots',
+                'annotation_index': 1,
             }),
             ('__return__', {
                 'portkind': 'output',
-                'annotation': 1,
+                'annotation_index': 1,
                 'value': foo.do_sum(),
             })
         ]))
