@@ -197,7 +197,18 @@
     "package": "employee",
     "id": "manager",
     "kind": "morphism",
-    "definition": "reports-to"
+    "definition": [
+      "compose",
+      "reports-to",
+      [
+        "coerce",
+        [
+          "SubOb",
+          "manager",
+          "employee"
+        ]
+      ]
+    ]
   },
   {
     "_id": "annotation/opendisc/employee/second-level-manager",

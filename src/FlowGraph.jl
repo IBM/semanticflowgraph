@@ -1,10 +1,10 @@
 module FlowGraph
 export RawNode, RawPort, RawWire, read_raw_graph, read_raw_graph_file,
-  to_semantic_graph
+  MonoclElem, to_semantic_graph
 
+using AutoHashEquals, Parameters
 import JSON
 import LightXML
-using Parameters
 
 using Catlab.Diagram
 using ..Doctrine
@@ -67,46 +67,77 @@ GraphML.read_graphml_data_value(::Type{Val{:json}}, x::String) = JSON.parse(x)
 # Semantic flow graph
 #####################
 
+""" Object in the Monocl category of elements.
+"""
+@auto_hash_equals struct MonoclElem
+  id::Nullable{String}
+  value::Nullable
+end
+
 """ Convert a raw flow graph into a semantic flow graph.
 """
-function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)
-  sem = deepcopy(raw)
-  expand_annotated_boxes!(db, sem)
+function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
+  sem = WiringDiagram(to_semantic_ports(db, input_ports(raw)),
+                      to_semantic_ports(db, output_ports(raw)))
+  
+  # Add boxes.
+  to_substitute = Int[]
+  for v in box_ids(raw)
+    raw_box = box(raw, v)
+    sem_box = to_semantic_graph(db, raw_box)
+    @assert add_box!(sem, sem_box) == v
+    if isa(raw_box, Box) && isa(sem_box, WiringDiagram)
+      # If the raw box is atomic but the semantic box is a wiring diagram,
+      # we should expand it by substitution. We defer the substitution until
+      # later so that the box IDs on the wires remain valid.
+      push!(to_substitute, v)
+    end    
+  end
+  
+  # Add wires.
+  for wire in wires(raw)
+    raw_wire = wire.value::RawWire
+    elem = MonoclElem(raw_wire.id, raw_wire.value)
+    add_wire!(sem, Wire(elem, wire.source, wire.target))
+  end
+  
+  substitute!(sem, to_substitute)
   return sem
 end
 
-""" Expand annotated boxes in raw graph using definitions in ontology.
-"""
-function expand_annotated_boxes!(db::OntologyDB, diagram::WiringDiagram)
-  expand = Int[]
-  expansions = WiringDiagram[]
-  for v in box_ids(diagram)
-    b = box(diagram, v)
-    node = b.value
-    if !isnull(node.annotation)
-      expansion = expand_annotated_box(db, node, input_ports(b), output_ports(b))
-      push!(expand, v)
-      push!(expansions, expansion)
-    end
+function to_semantic_graph(db::OntologyDB, raw_box::Box)::AbstractBox
+  raw_node = raw_box.value::RawNode
+  if isnull(raw_node.annotation)
+    Box(nothing,
+        to_semantic_ports(db, input_ports(raw_box)),
+        to_semantic_ports(db, output_ports(raw_box)))
+  else
+    expand_annotated_box(db, raw_box)
   end
-  substitute!(diagram, expand, expansions)
+end
+
+function to_semantic_ports(db::OntologyDB, ports::Vector{RawPort})
+  [ isnull(port.annotation) ? nothing : expand_annotated_port(db, port)
+    for port in ports ]
 end
 
 """ Expand a single annotated box from a raw flow graph.
 """
-function expand_annotated_box(db::OntologyDB, node::RawNode,
-                              inputs::Vector{RawPort},
-                              outputs::Vector{RawPort})::WiringDiagram
+function expand_annotated_box(db::OntologyDB, raw_box::Box)::WiringDiagram
+  raw_node = raw_box.value::RawNode
+  inputs = input_ports(raw_box)
+  outputs = output_ports(raw_box)
+  
   # Special case: slot of annotated object.
-  if node.slot
-    definition = concept(db, get(node.annotation))::Monocl.Hom
+  if raw_node.slot
+    definition = concept(db, get(raw_node.annotation))::Monocl.Hom
     return to_wiring_diagram(definition)
   end
   
   # General case: annotated function.
   # Expand the function definition as a wiring diagram and permute the
   # incoming and outoging wires.
-  note = annotation(db, get(node.annotation))::HomAnnotation
+  note = annotation(db, get(raw_node.annotation))::HomAnnotation
   f = WiringDiagram(inputs, outputs)
   v = add_box!(f, to_wiring_diagram(note.definition))
   add_wires!(f, ((input_id(f), i) => (v, get(port.index))
@@ -115,6 +146,13 @@ function expand_annotated_box(db::OntologyDB, node::RawNode,
                  for (i, port) in enumerate(outputs) if !isnull(port.index)))
   substitute!(f, v)
   return f
+end
+
+""" Expand a single annotated port from a raw flow graph.
+"""
+function expand_annotated_port(db::OntologyDB, raw_port::RawPort)::Monocl.Ob
+  note = annotation(db, get(raw_port.annotation))::ObAnnotation
+  note.definition
 end
 
 end

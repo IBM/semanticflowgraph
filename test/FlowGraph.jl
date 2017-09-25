@@ -2,8 +2,7 @@ module TestFlowGraph
 using Base.Test
 
 using Catlab.Diagram
-using OpenDiscCore.Ontology
-using OpenDiscCore.FlowGraph
+using OpenDiscCore
 
 # Raw flow graph
 ################
@@ -36,6 +35,8 @@ load_ontology_file(db, db_filename)
 # Convenience methods to create raw boxes and wires with or without annotations.
 const prefix = "opendisc/employee"
 add_raw_box!(f::WiringDiagram, args...) = add_box!(f, raw_box(args...))
+add_raw_wire!(f::WiringDiagram, args...; kw...) =
+  add_wire!(f, Wire(RawWire(; kw...), args...))
 raw_box(inputs, outputs) = Box(RawNode(), raw_ports(inputs), raw_ports(outputs))
 raw_box(name::String, inputs, outputs) =
   Box(RawNode(annotation="$prefix/$name"), raw_ports(inputs), raw_ports(outputs))
@@ -49,10 +50,15 @@ raw_port(args::Tuple) = raw_port(args...)
 # Expand single annotated node.
 f = WiringDiagram(raw_ports(["employee"]), raw_ports(["employee"]))
 v = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
-add_wire!(f, (input_id(f),1) => (v,1))
-add_wire!(f, (v,1) => (output_id(f),1))
+add_raw_wire!(f, (input_id(f),1) => (v,1))
+add_raw_wire!(f, (v,1) => (output_id(f),1))
 actual = to_semantic_graph(db, f)
-target = to_wiring_diagram(concept(db, "reports-to"))
+target = to_wiring_diagram(
+  compose(
+    concept(db, "reports-to"),
+    coerce(SubOb(concept(db, "manager"), concept(db, "employee")))
+  )
+)
 @test actual == target
 
 end
