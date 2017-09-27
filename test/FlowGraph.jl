@@ -61,4 +61,20 @@ target = to_wiring_diagram(
 )
 @test actual == target
 
+# Collapse two unannotated nodes.
+f = WiringDiagram(raw_ports(1), raw_ports(1))
+u = add_raw_box!(f, 1, 1)
+v = add_raw_box!(f, 1, 1)
+add_raw_wire!(f, (input_id(f),1) => (u,1))
+add_raw_wire!(f, (u,1) => (v,1))
+add_raw_wire!(f, (v,1) => (output_id(f),1))
+actual = to_semantic_graph(db, f)
+target = WiringDiagram([nothing], [nothing])
+v = add_box!(target, Box(nothing, [nothing], [nothing]))
+add_wires!(target, Pair[
+  (input_id(target), 1) => (v,1),
+  (v,1) => (output_id(target), 1)
+])
+@test actual == target
+
 end
