@@ -32,15 +32,15 @@ struct OntologyError <: Exception
   message::String
 end
 
-concepts(db::OntologyDB) = db.concepts
-annotations(db::OntologyDB) = values(db.annotations)
-
 function concept(db::OntologyDB, name::String)
   if !has_generator(db.concepts, name)
     throw(OntologyError("No concept named '$name'"))
   end
   generator(db.concepts, name)
 end
+
+concepts(db::OntologyDB) = db.concepts
+concepts(db::OntologyDB, names) = [ concept(db, name) for name in names ]
 
 function annotation(db::OntologyDB, id::String)
   doc_id = "annotation/$id"
@@ -56,6 +56,9 @@ end
 function annotation_id_string(id::AnnotationID)
   join([id.language, id.package, id.id], "/")
 end
+
+annotations(db::OntologyDB) = values(db.annotations)
+annotations(db::OntologyDB, ids) = [ annotation(db, id) for id in ids ]
 
 # Local file
 ############

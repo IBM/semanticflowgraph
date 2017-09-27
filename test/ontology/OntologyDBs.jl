@@ -1,6 +1,7 @@
 module TestOntologyDBs
 using Base.Test
 
+using Catlab
 using OpenDiscCore
 
 # Local file
@@ -12,6 +13,11 @@ db = OntologyDB()
 load_ontology_file(db, joinpath(@__DIR__, "data", "foobar.json"))
 @test isa(concept(db, "foo"), Monocl.Ob)
 @test isa(concept(db, "bar-from-foo"), Monocl.Hom)
+
+# Concept accessors.
+@test isa(concepts(db), Presentation)
+@test concepts(db, ["foo", "bar-from-foo"]) ==
+  [ concept(db, "foo"), concept(db, "bar-from-foo") ]
 
 # Remote database
 #################
