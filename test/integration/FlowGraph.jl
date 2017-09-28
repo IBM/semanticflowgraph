@@ -7,12 +7,12 @@ using OpenDiscCore
 const py_data_dir = abspath(joinpath(@__DIR__,
   "..", "..", "lang", "python", "opendisc", "integration_tests", "data"))
 
+# Raw flow graph
+################
+
 function read_py_raw_graph(name::String)
   read_raw_graph_file(joinpath(py_data_dir, "$name.xml"))
 end
-
-# Raw flow graph
-################
 
 # Deserialize raw flow graph from GraphML.
 diagram = read_py_raw_graph("pandas_read_sql")
@@ -30,6 +30,61 @@ b1, b2 = boxes(diagram)
 # Semantic flow graph
 #####################
 
-# TODO
+db = OntologyDB()
+
+# Read SQL table using pandas and SQLAlchemy.
+raw = read_py_raw_graph("pandas_read_sql")
+semantic = to_semantic_graph(db, diagram; elements=false)
+d = WiringDiagram([], concepts(db, ["table"]))
+conn = add_box!(d, Box(nothing, [], concepts(db, ["sql-database"])))
+read = add_box!(d, concept(db, "read-sql-table"))
+add_wires!(d, [
+  (conn, 1) => (read, 1),
+  (read, 1) => (output_id(diagram), 1),
+])
+@test semantic == d
+
+# K-means clustering on the Iris dataset using sklearn.
+raw = read_py_raw_graph("sklearn_clustering_kmeans")
+semantic = to_semantic_graph(db, diagram; elements=false) 
+d = WiringDiagram([], concepts(db, ["array"]))
+read = add_box!(d, concept(db, "read-tabular-file"))
+transform = add_box!(d, Box(
+  nothing, concepts(db, ["table"]), concepts(db, ["array"])))
+fit = add_box!(d, concept(db, "fit"))
+clusters = add_box!(d, concept(db, "clustering-model-clusters"))
+add_wires!(d, [
+  (read, 1) => (transform, 1),
+  (transform, 1) => (fit, 1),
+  (fit, 1) => (clusters, 1),
+  (clusters, 1) => (output_id(d), 1),
+])
+@test semantic == d
+
+# Compare sklearn clustering models using a cluster similarity metric.
+raw = read_py_raw_graph("sklearn_clustering_metrics")
+semantic = to_semantic_graph(db, diagram; elements=false)
+d = WiringDiagram([], concepts(db, ["number"]))
+make_data = add_box!(d, Box(
+  nothing, [], concepts(db, ["array", "array"])))
+kmeans = add_box!(d, construct(concept(db, "k-means")))
+kmeans_fit = add_box!(d, concept(db, "fit"))
+kmeans_clusters = add_box!(d, concept(db, "clustering-model-clusters"))
+agglom = add_box!(d, construct(concept(db, "agglomerative-clustering")))
+agglom_fit = add_box!(d, concept(db, "fit"))
+agglom_clusters = add_box!(d, concept(db, "clustering-model-clusters"))
+score = add_box!(d, Box(
+  nothing, concepts(db, ["array", "array"]), concept(db, ["number"])))
+add_wires!(d, [
+  (kmeans, 1) => (kmeans_fit, 1),
+  (make_data, 1) => (kmeans_fit, 2),
+  (kmeans_fit, 1) => (kmeans_clusters, 1),
+  (agglom, 1) => (agglom_fit, 1),
+  (make_data, 1) => (agglom_fit, 2),
+  (agglom_fit, 1) => (agglom_clusters, 1),
+  (kmeans_clusters, 1) => (score, 1),
+  (agglom_clusters, 1) => (score, 2),
+  (score, 1) => (output_id(d), 1),
+])
 
 end
