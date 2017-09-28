@@ -4,27 +4,6 @@ using Base.Test
 using Catlab.Diagram
 using OpenDiscCore
 
-# Raw flow graph
-################
-
-# Deserialize raw flow graph from GraphML.
-#
-# Although this is a unit test, we'll use a Python raw graph for realism.
-const py_data_dir = abspath(joinpath(
-  @__DIR__, "..", "lang", "python", "opendisc", "integration_tests", "data"))
-
-diagram = read_raw_graph_file(joinpath(py_data_dir, "pandas_read_sql.xml"))
-@test nboxes(diagram) == 2
-b1, b2 = boxes(diagram)
-@test isnull(b1.value.annotation)
-@test get(b2.value.annotation) == "python/pandas/read-sql-table"
-@test [ get(p.annotation, nothing) for p in output_ports(b1) ] ==
-  [ "python/sqlalchemy/engine" ]
-@test [ get(p.annotation, nothing) for p in input_ports(b2)[1:2] ] ==
-  [ nothing, "python/sqlalchemy/engine" ]
-@test [ get(p.annotation, nothing) for p in output_ports(b2) ] ==
-  [ "python/pandas/data-frame" ]
-
 # Semantic flow graph
 #####################
 

@@ -9,3 +9,5 @@ include("ontology/Ontology.jl")
 @testset "FlowGraph" begin
   include("FlowGraph.jl")
 end
+
+include("integration/IntegrationTest.jl")
