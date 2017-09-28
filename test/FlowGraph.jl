@@ -37,12 +37,12 @@ add_raw_wires!(f, [
   (input_id(f),1) => (v,1),
   (v,1) => (output_id(f),1)
 ])
-actual = to_semantic_graph(db, f)
+actual = to_semantic_graph(db, f; elements=false)
 target = WiringDiagram(concepts(db, ["employee"]), concepts(db, ["employee"]))
 reports_to = add_box!(target, concept(db, "reports-to"))
 add_wires!(target, [
-  Wire(MonoclElem(), (input_id(target), 1), (reports_to, 1)),
-  Wire(MonoclElem(), (reports_to, 1), (output_id(target), 1)),
+  (input_id(target), 1) => (reports_to, 1),
+  (reports_to, 1) => (output_id(target), 1),
 ])
 @test actual == target
 
@@ -90,12 +90,12 @@ add_raw_wires!(f, [
   (u,1) => (v,1),
   (v,1) => (output_id(f),1)
 ])
-actual = to_semantic_graph(db, f)
+actual = to_semantic_graph(db, f; elements=false)
 target = WiringDiagram([nothing], [nothing])
 v = add_box!(target, Box(nothing, [nothing], [nothing]))
 add_wires!(target, [
-  Wire(MonoclElem(), (input_id(target), 1), (v,1)),
-  Wire(MonoclElem(), (v,1), (output_id(target), 1)),
+  (input_id(target), 1) => (v,1),
+  (v,1) => (output_id(target), 1),
 ])
 @test actual == target
 

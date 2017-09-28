@@ -80,7 +80,8 @@ MonoclElem(; id=Nullable{String}(), value=Nullable()) = MonoclElem(id, value)
 
 """ Convert a raw flow graph into a semantic flow graph.
 """
-function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
+function to_semantic_graph(db::OntologyDB, raw::WiringDiagram;
+                           elements::Bool=true)::WiringDiagram
   sem = WiringDiagram(to_semantic_ports(db, input_ports(raw)),
                       to_semantic_ports(db, output_ports(raw)))
   
@@ -88,7 +89,7 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
   to_substitute = Int[]
   for v in box_ids(raw)
     raw_box = box(raw, v)
-    sem_box = to_semantic_graph(db, raw_box)
+    sem_box = to_semantic_graph(db, raw_box; elements=elements)
     @assert add_box!(sem, sem_box) == v
     if isa(raw_box, Box) && isa(sem_box, WiringDiagram)
       # If the raw box is atomic but the semantic box is a wiring diagram,
@@ -101,7 +102,7 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
   # Add wires.
   for wire in wires(raw)
     raw_wire = wire.value::RawWire
-    elem = MonoclElem(raw_wire.id, raw_wire.value)
+    elem = elements ? MonoclElem(raw_wire.id, raw_wire.value) : nothing
     add_wire!(sem, Wire(elem, wire.source, wire.target))
   end
   
@@ -114,7 +115,7 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
   return sem
 end
 
-function to_semantic_graph(db::OntologyDB, raw_box::Box)::AbstractBox
+function to_semantic_graph(db::OntologyDB, raw_box::Box; kw...)::AbstractBox
   raw_node = raw_box.value::RawNode
   if isnull(raw_node.annotation)
     Box(nothing,
