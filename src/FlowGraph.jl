@@ -76,6 +76,7 @@ GraphML.read_graphml_data_value(::Type{Val{:json}}, x::String) = JSON.parse(x)
   id::Nullable{String}
   value::Nullable
 end
+MonoclElem(; id=Nullable{String}(), value=Nullable()) = MonoclElem(id, value)
 
 """ Convert a raw flow graph into a semantic flow graph.
 """

@@ -191,6 +191,24 @@
     "definition": "department"
   },
   {
+    "_id": "annotation/opendisc/employee/str",
+    "schema": "annotation",
+    "language": "opendisc",
+    "package": "employee",
+    "id": "department",
+    "kind": "object",
+    "definition": "string"
+  },
+  {
+    "_id": "annotation/opendisc/employee/employee-department",
+    "schema": "annotation",
+    "language": "opendisc",
+    "package": "employee",
+    "id": "manager",
+    "kind": "morphism",
+    "definition": "works-in"
+  },
+  {
     "_id": "annotation/opendisc/employee/manager",
     "schema": "annotation",
     "language": "opendisc",
@@ -220,7 +238,15 @@
     "definition": [
       "compose",
       "reports-to",
-      "reports-to"
+      "reports-to",
+      [
+        "coerce",
+        [
+          "SubOb",
+          "manager",
+          "employee"
+        ]
+      ]
     ]
   },
   {
@@ -234,7 +260,15 @@
       "compose",
       "reports-to",
       "reports-to",
-      "reports-to"
+      "reports-to",
+      [
+        "coerce",
+        [
+          "SubOb",
+          "manager",
+          "employee"
+        ]
+      ]
     ]
   }
 ]
