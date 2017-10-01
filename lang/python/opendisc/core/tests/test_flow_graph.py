@@ -722,6 +722,29 @@ class TestFlowGraph(unittest.TestCase):
         self.assertEqual(graph.graph, recovered.graph)
         self.assertEqual(graph.node, recovered.node)
         self.assertEqual(graph.edge, recovered.edge)
+    
+    def test_graphml_output_ports(self):
+        """ Does a GraphML-serialized flow graph have correct output ports?
+        """
+        with self.tracer:
+            foo = objects.Foo()
+            bar = objects.bar_from_foo(foo)
+        
+        outer = flow_graph_to_graphml(self.builder.graph)
+        root = outer.nodes()[0]
+        graph, ports = outer.node[root]['graph'], outer.node[root]['ports']
+        outputs = { data['id'] for _, _, data in
+                    graph.in_edges_iter(graph.graph['output_node'], data=True) }
+        self.assertEqual(len(ports), 2)
+        self.assertEqual(outputs, { self.id(foo), self.id(bar) })
+        
+        outer = flow_graph_to_graphml(self.builder.graph, simplify_outputs=True)
+        root = outer.nodes()[0]
+        graph, ports = outer.node[root]['graph'], outer.node[root]['ports']
+        outputs = { data['id'] for _, _, data in
+                    graph.in_edges_iter(graph.graph['output_node'], data=True) }
+        self.assertEqual(len(ports), 1)
+        self.assertEqual(outputs, { self.id(bar) })
 
 
 # Test data
