@@ -427,6 +427,7 @@ class TestFlowGraph(unittest.TestCase):
             ('x', {
                 'argname': 'x',
                 'portkind': 'input',
+                'annotation': 'python/builtins/int',
                 'annotation_index': 2,
                 'value': 10,
             }),
@@ -451,21 +452,25 @@ class TestFlowGraph(unittest.TestCase):
             ('x', {
                 'argname': 'x',
                 'portkind': 'input',
+                'annotation': 'python/builtins/int',
                 'value': 1,
             }),
             ('y', {
                 'argname': 'y',
                 'portkind': 'input',
+                'annotation': 'python/builtins/int',
                 'value': 2,
             }),
             ('__vararg0__', {
                 'argname': '__vararg0__',
                 'portkind': 'input',
+                'annotation': 'python/builtins/int',
                 'value': 3,
             }),
             ('w', {
                 'argname': 'w',
                 'portkind': 'input',
+                'annotation': 'python/builtins/int',
                 'value': 4,
             })
         ])
@@ -485,6 +490,7 @@ class TestFlowGraph(unittest.TestCase):
             ('__return__', {
                 'argname': '__return__',
                 'portkind': 'output',
+                'annotation': 'python/builtins/int',
                 'annotation_index': 1,
                 'value': x,
             })
@@ -605,6 +611,7 @@ class TestFlowGraph(unittest.TestCase):
             }),
             ('__return__', {
                 'portkind': 'output',
+                'annotation': 'python/builtins/int',
                 'annotation_index': 1,
                 'value': foo.do_sum(),
             })

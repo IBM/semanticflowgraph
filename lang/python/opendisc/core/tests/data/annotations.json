@@ -204,5 +204,35 @@
         "name": "prod"
       }
     ]
+  },
+  {
+    "_id": "annotation/python/builtins/float",
+    "schema": "annotation",
+    "language": "python",
+    "package": "builtins",
+    "id": "float",
+    "kind": "object",
+    "class": "float",
+    "definition": "number"
+  },
+  {
+    "_id": "annotation/python/builtins/int",
+    "schema": "annotation",
+    "language": "python",
+    "package": "builtins",
+    "id": "int",
+    "kind": "object",
+    "class": "int",
+    "definition": "number"
+  },
+  {
+    "_id": "annotation/python/builtins/str",
+    "schema": "annotation",
+    "language": "python",
+    "package": "builtins",
+    "id": "str",
+    "kind": "object",
+    "class": "str",
+    "definition": "string"
   }
 ]
