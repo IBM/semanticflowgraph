@@ -30,6 +30,7 @@ class TestFrameUtil(unittest.TestCase):
         """
         full_name = objects.__name__ + '.Foo'
         self.assertEqual(get_class_full_name(objects.Foo), full_name)
+        self.assertEqual(get_class_full_name(str), 'str')
     
     def test_get_func_module(self):
         """ Can we get the module in which a function object is defined?
@@ -58,6 +59,7 @@ class TestFrameUtil(unittest.TestCase):
         """
         full_name = objects.__name__ + '.create_foo'
         self.assertEqual(get_func_full_name(objects.create_foo), full_name)
+        self.assertEqual(get_class_full_name(map), 'map')
     
     def test_get_frame_module(self):
         """ Can we get the name of this module from a frame?

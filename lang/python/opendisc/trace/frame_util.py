@@ -26,7 +26,11 @@ def get_class_qual_name(typ):
 def get_class_full_name(typ):
     """ Get the full name of a class.
     """
-    return get_class_module(typ) + '.' + get_class_qual_name(typ)
+    module_name = get_class_module(typ)
+    qual_name = get_class_qual_name(typ)
+    if module_name == 'builtins':
+        return qual_name
+    return module_name + '.' + qual_name
 
 
 def get_func_module(func):
@@ -63,7 +67,11 @@ def get_func_qual_name(func):
 def get_func_full_name(func):
     """ Get the full name of a function object.
     """
-    return get_func_module(func) + '.' + get_func_qual_name(func)
+    module_name = get_func_module(func)
+    qual_name = get_func_qual_name(func)
+    if module_name == 'builtins':
+        return qual_name
+    return module_name + '.' + qual_name
 
 
 def get_frame_module(frame):
