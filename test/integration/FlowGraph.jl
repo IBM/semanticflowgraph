@@ -4,8 +4,11 @@ using Base.Test
 using Catlab.Diagram
 using OpenDiscCore
 
-const py_data_dir = abspath(joinpath(@__DIR__,
-  "..", "..", "lang", "python", "opendisc", "integration_tests", "data"))
+const pkg_dir = abspath(joinpath(@__DIR__, "..", ".."))
+const py_data_dir = joinpath(pkg_dir,
+  "lang", "python", "opendisc", "integration_tests", "data")
+const dso_filename = joinpath(pkg_dir,
+  "..", "data-science-ontology", "ontology.json")
 
 # Raw flow graph
 ################
@@ -20,26 +23,31 @@ diagram = read_py_raw_graph("pandas_read_sql")
 b1, b2 = boxes(diagram)
 @test isnull(b1.value.annotation)
 @test get(b2.value.annotation) == "python/pandas/read-sql-table"
-@test [ get(p.annotation, nothing) for p in output_ports(b1) ] ==
+@test [ get(p.annotation) for p in output_ports(b1) ] ==
   [ "python/sqlalchemy/engine" ]
-@test [ get(p.annotation, nothing) for p in input_ports(b2)[1:2] ] ==
-  [ nothing, "python/sqlalchemy/engine" ]
-@test [ get(p.annotation, nothing) for p in output_ports(b2) ] ==
+@test [ get(p.annotation) for p in input_ports(b2)[1:2] ] ==
+  [ "python/builtins/str", "python/sqlalchemy/engine" ]
+@test [ get(p.annotation) for p in output_ports(b2) ] ==
   [ "python/pandas/data-frame" ]
 
 # Semantic flow graph
 #####################
 
 db = OntologyDB()
+load_ontology_file(db, dso_filename)
 
 # Read SQL table using pandas and SQLAlchemy.
 raw = read_py_raw_graph("pandas_read_sql")
 semantic = to_semantic_graph(db, diagram; elements=false)
 d = WiringDiagram([], concepts(db, ["table"]))
-conn = add_box!(d, Box(nothing, [], concepts(db, ["sql-database"])))
-read = add_box!(d, concept(db, "read-sql-table"))
+engine = add_box!(d, Box(
+  nothing, concepts(db, ["string"]), concepts(db, ["sql-database"])))
+cons = add_box!(d, construct(pair(concept(db, "sql-table-database"),
+                                  concept(db, "sql-table-name"))))
+read = add_box!(d, concept(db, "read-table"))
 add_wires!(d, [
-  (conn, 1) => (read, 1),
+  (engine, 1) => (cons, 1),
+  (cons, 1) => (read, 1),
   (read, 1) => (output_id(diagram), 1),
 ])
 @test semantic == d
@@ -74,7 +82,7 @@ agglom = add_box!(d, construct(concept(db, "agglomerative-clustering")))
 agglom_fit = add_box!(d, concept(db, "fit"))
 agglom_clusters = add_box!(d, concept(db, "clustering-model-clusters"))
 score = add_box!(d, Box(
-  nothing, concepts(db, ["array", "array"]), concept(db, ["number"])))
+  nothing, concepts(db, ["array", "array"]), concepts(db, ["number"])))
 add_wires!(d, [
   (kmeans, 1) => (kmeans_fit, 1),
   (make_data, 1) => (kmeans_fit, 2),
@@ -86,5 +94,6 @@ add_wires!(d, [
   (agglom_clusters, 1) => (score, 2),
   (score, 1) => (output_id(d), 1),
 ])
+@test semantic == d
 
 end

@@ -79,7 +79,8 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         graph = self.builder.graph
         if save:
             outname = str(data_path.joinpath(name + '.xml'))
-            write_graphml(flow_graph_to_graphml(graph), outname)
+            graphml = flow_graph_to_graphml(graph, simplify_outputs=True)
+            write_graphml(graphml, outname)
         
         return graph
     

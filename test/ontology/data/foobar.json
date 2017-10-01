@@ -9,6 +9,15 @@
     "description": "a number, integer or decimal"
   },
   {
+    "_id": "concept/string",
+    "schema": "concept",
+    "ontology": "foobar",
+    "kind": "object",
+    "id": "string",
+    "name": "string",
+    "description": "a string of characters"
+  },
+  {
     "_id": "concept/foo",
     "schema": "concept",
     "ontology": "foobar",
