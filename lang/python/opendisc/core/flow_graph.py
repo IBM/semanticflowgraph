@@ -73,11 +73,13 @@ def flow_graph_to_graphml(graph, simplify_outputs=False):
     ports = {}
     input_node = graph.graph['input_node']
     output_node = graph.graph['output_node']
+    data_keys = { 'annotation' }
     
     for _, _, data in graph.out_edges_iter(input_node, data=True):
         portname = 'in:' + data['id']
         data['sourceport'] = portname
-        ports[portname] = { 'portkind': 'input' }
+        port_data = ports[portname] = { 'portkind': 'input' }
+        port_data.update({k: data[k] for k in data_keys if k in data })
     
     for src, _, key, data in graph.in_edges(output_node, keys=True, data=True):
         if simplify_outputs and _ncopies(graph, src, data['id']) > 0:
@@ -85,7 +87,8 @@ def flow_graph_to_graphml(graph, simplify_outputs=False):
         else:
             portname = 'out:' + data['id']
             data['targetport'] = portname
-            ports[portname] = { 'portkind': 'output' }
+            port_data = ports[portname] = { 'portkind': 'output' }
+            port_data.update({k: data[k] for k in data_keys if k in data })
     
     outer.node[node]['ports'] = ports
     return outer

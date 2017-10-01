@@ -735,7 +735,16 @@ class TestFlowGraph(unittest.TestCase):
         graph, ports = outer.node[root]['graph'], outer.node[root]['ports']
         outputs = { data['id'] for _, _, data in
                     graph.in_edges_iter(graph.graph['output_node'], data=True) }
-        self.assertEqual(len(ports), 2)
+        self.assertEqual(list(ports.values()), [
+            {
+                'portkind': 'output',
+                'annotation': 'python/opendisc/foo',
+            },
+            {
+                'portkind': 'output',
+                'annotation': 'python/opendisc/bar',
+            },
+        ])
         self.assertEqual(outputs, { self.id(foo), self.id(bar) })
         
         outer = flow_graph_to_graphml(self.builder.graph, simplify_outputs=True)
@@ -743,7 +752,12 @@ class TestFlowGraph(unittest.TestCase):
         graph, ports = outer.node[root]['graph'], outer.node[root]['ports']
         outputs = { data['id'] for _, _, data in
                     graph.in_edges_iter(graph.graph['output_node'], data=True) }
-        self.assertEqual(len(ports), 1)
+        self.assertEqual(list(ports.values()), [
+            {
+                'portkind': 'output',
+                'annotation': 'python/opendisc/bar',
+            },
+        ])
         self.assertEqual(outputs, { self.id(bar) })
 
 
