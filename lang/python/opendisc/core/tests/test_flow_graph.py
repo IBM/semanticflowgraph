@@ -407,6 +407,24 @@ class TestFlowGraph(unittest.TestCase):
         }
         self.assertEqual(actual, desired)
     
+    def test_constructor_annotations(self):
+        """ Test that constructors of annotated objects are annotated.
+        """
+        with self.tracer:
+            foo = objects.Foo()
+        
+        graph = self.builder.graph
+        node = find_node(graph, lambda n: n.get('qual_name') == 'Foo.__init__')
+        actual = graph.node[node]
+        actual.pop('ports', None)
+        desired = {
+            'module': 'opendisc.core.tests.objects',
+            'qual_name': 'Foo.__init__',
+            'construct': True,
+            'construct_annotation': 'python/opendisc/foo',
+        }
+        self.assertEqual(actual, desired)
+    
     def test_input_ports(self):
         """ Test that data for input ports is stored.
         """

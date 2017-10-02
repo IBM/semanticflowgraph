@@ -16,7 +16,10 @@ using ..Ontology
 # Raw flow graph
 ################
 
-@enum RawNodeAnnotationKind FunctionAnnotation=0 SlotAnnotation=1
+@enum(RawNodeAnnotationKind,
+  FunctionAnnotation = 0,
+  ConstructAnnotation = 1,
+  SlotAnnotation = 2)
 
 @with_kw struct RawNode
   language::Dict{String,Any} = Dict{String,Any}()
@@ -47,9 +50,12 @@ read_raw_graph_file(args...) = read_raw_graph(LightXML.parse_file(args...))
 
 function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
-  slot_annotation = Nullable{String}(pop!(data, "slot_annotation", nothing))
-  if !isnull(slot_annotation)
-    RawNode(data, slot_annotation, SlotAnnotation)
+  construct = Nullable{String}(pop!(data, "construct_annotation", nothing))
+  slot = Nullable{String}(pop!(data, "slot_annotation", nothing))
+  if !isnull(construct)
+    RawNode(data, construct, ConstructAnnotation)
+  elseif !isnull(slot)
+    RawNode(data, slot, SlotAnnotation)
   else
     RawNode(data, annotation, FunctionAnnotation)
   end
@@ -141,11 +147,12 @@ end
 """
 function expand_annotated_box(db::OntologyDB, raw_box::Box)::WiringDiagram
   raw_node = raw_box.value::RawNode
-  inputs = input_ports(raw_box)
-  outputs = output_ports(raw_box)
   
-  # Special case: slot of annotated object.
-  if raw_node.annotation_kind == SlotAnnotation
+  # Special cases.
+  if raw_node.annotation_kind == ConstructAnnotation
+    note = annotation(db, get(raw_node.annotation))::ObAnnotation
+    return to_wiring_diagram(construct(note.definition))
+  elseif raw_node.annotation_kind == SlotAnnotation
     definition = concept(db, get(raw_node.annotation))::Monocl.Hom
     return to_wiring_diagram(definition)
   end
@@ -153,6 +160,8 @@ function expand_annotated_box(db::OntologyDB, raw_box::Box)::WiringDiagram
   # General case: annotated function.
   # Expand the function definition as a wiring diagram and permute the
   # incoming and outoging wires.
+  inputs = input_ports(raw_box)
+  outputs = output_ports(raw_box)
   note = annotation(db, get(raw_node.annotation))::HomAnnotation
   f = WiringDiagram(inputs, outputs)
   v = add_box!(f, to_wiring_diagram(note.definition))

@@ -231,13 +231,12 @@ class FlowGraphBuilder(HasTraits):
             # Otherwise, record the attribute as a slot access.
             elif not annotation:
                 self._update_getattr_node_for_return(event, node)
-                return True
         
-        #elif event.name == '__init__' and not annotation:
-        #    self._update_init_node_for_return(self, event, node)
-        #    return True
+        elif event.name == '__init__' and not annotation:
+            # Record the object initializer as a constructor.
+            self._update_init_node_for_return(event, node)
         
-        # General case: add output ports.
+        # Add output ports.
         port_names = []
         return_value = event.return_value
         if isinstance(return_value, tuple):
@@ -263,12 +262,7 @@ class FlowGraphBuilder(HasTraits):
         """ Update a `__getattr__` call node for a return event.
         """
         context = self._stack[-1]
-        graph = context.graph
-        data = graph.node[node]
-        ports = data['ports'] = self._get_ports_data(
-            event, ['self'], ['self'], {'portkind': 'input'})
-        ports.update(self._get_ports_data(
-            event, ['__return__'], ['__return__'], {'portkind': 'output'}))
+        data = context.graph.node[node]
         
         args = list(event.arguments.values())
         obj, name = args[0], args[1]
@@ -278,6 +272,18 @@ class FlowGraphBuilder(HasTraits):
                 data['slot_annotation'] = slot_annotation
                 break
         data['slot'] = name
+    
+    def _update_init_node_for_return(self, event, node):
+        """ Update an `__init__` call node for a return event.
+        """
+        context = self._stack[-1]
+        data = context.graph.node[node]
+        
+        obj = list(event.arguments.values())[0]
+        note = self.annotator.notate_object(obj)
+        if note:
+            data['construct_annotation'] = self._annotation_key(note)
+        data['construct'] = True
     
     def _add_call_in_edge(self, event, node, arg_name, arg):
         """ Add an incoming edge to a call node.
