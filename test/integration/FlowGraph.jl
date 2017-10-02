@@ -38,7 +38,7 @@ load_ontology_file(db, dso_filename)
 
 # Read SQL table using pandas and SQLAlchemy.
 raw = read_py_raw_graph("pandas_read_sql")
-semantic = to_semantic_graph(db, diagram; elements=false)
+semantic = to_semantic_graph(db, raw; elements=false)
 d = WiringDiagram([], concepts(db, ["table"]))
 engine = add_box!(d, Box(
   nothing, concepts(db, ["string"]), concepts(db, ["sql-database"])))
@@ -54,16 +54,20 @@ add_wires!(d, [
 
 # K-means clustering on the Iris dataset using sklearn.
 raw = read_py_raw_graph("sklearn_clustering_kmeans")
-semantic = to_semantic_graph(db, diagram; elements=false) 
+semantic = to_semantic_graph(db, raw; elements=false)
 d = WiringDiagram([], concepts(db, ["array"]))
+filename = add_box!(d, construct(concept(db, "filename")))
 read = add_box!(d, concept(db, "read-tabular-file"))
+kmeans = add_box!(d, construct(concept(db, "k-means")))
 transform = add_box!(d, Box(
   nothing, concepts(db, ["table"]), concepts(db, ["array"])))
 fit = add_box!(d, concept(db, "fit"))
 clusters = add_box!(d, concept(db, "clustering-model-clusters"))
 add_wires!(d, [
+  (filename, 1) => (read, 1),
   (read, 1) => (transform, 1),
-  (transform, 1) => (fit, 1),
+  (kmeans, 1) => (fit, 1),
+  (transform, 1) => (fit, 2),
   (fit, 1) => (clusters, 1),
   (clusters, 1) => (output_id(d), 1),
 ])
@@ -71,7 +75,7 @@ add_wires!(d, [
 
 # Compare sklearn clustering models using a cluster similarity metric.
 raw = read_py_raw_graph("sklearn_clustering_metrics")
-semantic = to_semantic_graph(db, diagram; elements=false)
+semantic = to_semantic_graph(db, raw; elements=false)
 d = WiringDiagram([], concepts(db, ["number"]))
 make_data = add_box!(d, Box(
   nothing, [], concepts(db, ["array", "array"])))
