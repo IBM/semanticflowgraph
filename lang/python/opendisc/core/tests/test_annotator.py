@@ -45,9 +45,6 @@ class TestAnnotator(unittest.TestCase):
     def test_object_basic(self):
         """ Can we notate an object from its class?
         """
-        self.assertEqual(self.annotator.notate_object(0), None)
-        self.assertEqual(self.annotator.notate_object('foo'), None)
-        
         note = self.annotator.notate_object(objects.Foo())
         self.assertEqual(note['id'], 'foo')
         self.assertEqual(note['language'], 'python')
@@ -55,6 +52,10 @@ class TestAnnotator(unittest.TestCase):
         
         note = self.annotator.notate_type(objects.Foo)
         self.assertEqual(note['id'], 'foo')
+        
+        note = self.annotator.notate_object(0)
+        self.assertEqual(note['id'], 'int')
+        self.assertEqual(self.annotator.notate_object(None), None)
     
     def test_object_precedence(self):
         """ Can we notate an object with mulitple class matches using the

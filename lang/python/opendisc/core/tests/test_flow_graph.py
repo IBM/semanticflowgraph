@@ -579,6 +579,33 @@ class TestFlowGraph(unittest.TestCase):
         target.add_edge('1', outputs, id=self.id(foo), sourceport='self!')
         self.assert_isomorphic(actual, target)
     
+    def test_object_slots_track_getattr(self):
+        """ Test that annotated object slots are captured on explicit getattrs.
+        """
+        self.builder.store_slots = False
+        with self.tracer:
+            foo = objects.FooSlots()
+            x = foo.x
+            y = foo.y
+        
+        actual = graph = self.builder.graph
+        target = new_flow_graph()
+        outputs = target.graph['output_node']
+        target.add_node('foo', qual_name='FooSlots.__init__')
+        target.add_node('x', qual_name='FooSlots.__getattribute__', slot='x')
+        target.add_node('y', qual_name='FooSlots.__getattribute__', slot='y')
+        target.add_edge('foo', 'x', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('foo', 'y', id=self.id(foo),
+                        sourceport='self!', targetport='self')
+        target.add_edge('foo', outputs, id=self.id(foo), sourceport='self!')
+        self.assert_isomorphic(actual, target)
+        
+        node = find_node(graph, lambda n: n.get('slot') == 'x')
+        self.assertEqual(graph.node[node]['slot_annotation'], 'foo-x')
+        node = find_node(graph, lambda n: n.get('slot') == 'y')
+        self.assertEqual(graph.node[node]['slot_annotation'], 'foo-y')
+    
     def test_object_slots_primitive(self):
         """ Test that annotated object slots with primitive values are captured.
         """

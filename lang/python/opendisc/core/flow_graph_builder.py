@@ -204,7 +204,7 @@ class FlowGraphBuilder(HasTraits):
             'ports': self._get_ports_data(
                 event,
                 event.arguments.keys(),
-                annotation.get('domain', []),
+                [ dom['slot'] for dom in annotation.get('domain', []) ],
                 { 'portkind': 'input' },
             ),
         }
@@ -220,7 +220,7 @@ class FlowGraphBuilder(HasTraits):
         graph = context.graph
         data = graph.node[node]
         
-        # Handle attribute accessors.
+        # Handle special methods (unless overriden by annotation).
         if event.name in ('__getattr__', '__getattribute__'):
             # If attribute is actually a bound method, remove the call node.
             # Method objects are not tracked and the method will be traced when
@@ -229,11 +229,15 @@ class FlowGraphBuilder(HasTraits):
                 graph.remove_node(node)
                 return False
             # Otherwise, record the attribute as a slot access.
-            else:
-                name = list(event.arguments.values())[1]
-                data['slot'] = name
+            elif not annotation:
+                self._update_getattr_node_for_return(event, node)
+                return True
         
-        # Add output ports.
+        #elif event.name == '__init__' and not annotation:
+        #    self._update_init_node_for_return(self, event, node)
+        #    return True
+        
+        # General case: add output ports.
         port_names = []
         return_value = event.return_value
         if isinstance(return_value, tuple):
@@ -249,11 +253,31 @@ class FlowGraphBuilder(HasTraits):
         ports.update(self._get_ports_data(
             event,
             port_names,
-            annotation.get('codomain', []),
+            [ dom['slot'] for dom in annotation.get('codomain', []) ],
             { 'portkind': 'output' },
         ))
         
         return True
+
+    def _update_getattr_node_for_return(self, event, node):
+        """ Update a `__getattr__` call node for a return event.
+        """
+        context = self._stack[-1]
+        graph = context.graph
+        data = graph.node[node]
+        ports = data['ports'] = self._get_ports_data(
+            event, ['self'], ['self'], {'portkind': 'input'})
+        ports.update(self._get_ports_data(
+            event, ['__return__'], ['__return__'], {'portkind': 'output'}))
+        
+        args = list(event.arguments.values())
+        obj, name = args[0], args[1]
+        note = self.annotator.notate_object(obj) or {}
+        for slot_annotation, slot in note.get('slots', {}).items():
+            if slot == name:
+                data['slot_annotation'] = slot_annotation
+                break
+        data['slot'] = name
     
     def _add_call_in_edge(self, event, node, arg_name, arg):
         """ Add an incoming edge to a call node.
@@ -350,8 +374,8 @@ class FlowGraphBuilder(HasTraits):
                 continue
             slot_node = node_name(graph, 'slot')
             slot_node_data = {
-                'annotation': name,
                 'slot': slot,
+                'slot_annotation': name,
                 'ports': OrderedDict([
                     ('self', self._get_port_data(obj,
                         portkind='input',
@@ -409,7 +433,7 @@ class FlowGraphBuilder(HasTraits):
         slots = _IOSlots(event)
         annotation_table = { 
             # Index annotation domain starting at 1: it is language-agnostic.
-            slots._name(dom['slot']): i+1 for i, dom in enumerate(annotation)
+            slots._name(slot): i+1 for i, slot in enumerate(annotation)
         }
         for name in names:
             name, portname = name if isinstance(name, tuple) else (name, name)
