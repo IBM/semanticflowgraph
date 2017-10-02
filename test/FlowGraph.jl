@@ -51,9 +51,11 @@ f = WiringDiagram(raw_ports(["employee"]), raw_ports(["department","str","str"])
 manager = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
 dept = add_raw_box!(f, "employee-department", [("employee",1)], [("department",1)])
 first_name = add_raw_box!(f, [("employee",1)], [("str",1)],
-                          annotation="person-first-name", slot=true)
+                          annotation="person-first-name",
+                          annotation_kind=FlowGraph.SlotAnnotation)
 last_name = add_raw_box!(f, [("employee",1)], [("str",1)],
-                         annotation="person-last-name", slot=true)
+                         annotation="person-last-name",
+                         annotation_kind=FlowGraph.SlotAnnotation)
 add_wires!(f, [
   Wire(RawWire(id="1"), (input_id(f), 1), (manager, 1)),
   Wire(RawWire(id="2"), (manager, 1), (dept, 1)),

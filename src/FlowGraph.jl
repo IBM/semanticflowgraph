@@ -1,6 +1,6 @@
 module FlowGraph
-export RawNode, RawPort, RawWire, read_raw_graph, read_raw_graph_file,
-  MonoclElem, to_semantic_graph
+export MonoclElem, RawNode, RawPort, RawWire, RawNodeAnnotationKind,
+  read_raw_graph, read_raw_graph_file, to_semantic_graph
 
 using Base.Iterators: product
 
@@ -16,10 +16,12 @@ using ..Ontology
 # Raw flow graph
 ################
 
+@enum RawNodeAnnotationKind FunctionAnnotation=0 SlotAnnotation=1
+
 @with_kw struct RawNode
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Nullable{String} = Nullable{String}()
-  slot::Bool = false
+  annotation_kind::RawNodeAnnotationKind = FunctionAnnotation
 end
 
 @with_kw struct RawPort
@@ -45,8 +47,12 @@ read_raw_graph_file(args...) = read_raw_graph(LightXML.parse_file(args...))
 
 function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
-  slot = haskey(data, "slot")
-  RawNode(data, annotation, slot)
+  slot_annotation = Nullable{String}(pop!(data, "slot_annotation", nothing))
+  if !isnull(slot_annotation)
+    RawNode(data, slot_annotation, SlotAnnotation)
+  else
+    RawNode(data, annotation, FunctionAnnotation)
+  end
 end
 
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
@@ -139,7 +145,7 @@ function expand_annotated_box(db::OntologyDB, raw_box::Box)::WiringDiagram
   outputs = output_ports(raw_box)
   
   # Special case: slot of annotated object.
-  if raw_node.slot
+  if raw_node.annotation_kind == SlotAnnotation
     definition = concept(db, get(raw_node.annotation))::Monocl.Hom
     return to_wiring_diagram(definition)
   end
