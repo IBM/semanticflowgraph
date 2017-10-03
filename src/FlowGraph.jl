@@ -204,7 +204,10 @@ function collapse_unannotated_boxes!(diagram::WiringDiagram)
     end
   end
   
-  components = [ c for c in connected_components(to_collapse) if length(c) > 1 ]
+  # Encapsulate connected sub-diagrams of unannotated boxes. Include even
+  # components of size 1 because encapsulation will simplify the ports.
+  components = [ c for c in connected_components(to_collapse)
+                 if length(c) > 1 || is_unannotated(first(c)) ]
   encapsulate!(diagram, components, nothing)
   return diagram
 end
