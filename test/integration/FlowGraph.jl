@@ -40,8 +40,7 @@ load_ontology_file(db, dso_filename)
 raw = read_py_raw_graph("pandas_read_sql")
 semantic = to_semantic_graph(db, raw; elements=false)
 d = WiringDiagram([], concepts(db, ["table"]))
-engine = add_box!(d, Box(
-  nothing, concepts(db, ["string"]), concepts(db, ["sql-database"])))
+engine = add_box!(d, Box(nothing, [], concepts(db, ["sql-database"])))
 cons = add_box!(d, construct(pair(concept(db, "sql-table-database"),
                                   concept(db, "sql-table-name"))))
 read = add_box!(d, concept(db, "read-table"))
@@ -76,27 +75,32 @@ add_wires!(d, [
 # Compare sklearn clustering models using a cluster similarity metric.
 raw = read_py_raw_graph("sklearn_clustering_metrics")
 semantic = to_semantic_graph(db, raw; elements=false)
-d = WiringDiagram([], concepts(db, ["number"]))
-make_data = add_box!(d, Box(
-  nothing, [], concepts(db, ["array", "array"])))
-kmeans = add_box!(d, construct(concept(db, "k-means")))
-kmeans_fit = add_box!(d, concept(db, "fit"))
-kmeans_clusters = add_box!(d, concept(db, "clustering-model-clusters"))
+clustering_fit = Hom("fit",
+  otimes(concept(db, "clustering-model"), concept(db, "data")),
+  concept(db, "clustering-model"))
+# XXX: The boxes are added to `d` in the exact order of `semantic`. That won't
+# be necessary when we implement graph isomorphism for wiring diagrams.
+d = WiringDiagram([], concepts(db, ["array", "k-means", "agglomerative-clustering"]))
+make_data = add_box!(d, Box(nothing, [], concepts(db, ["array", "array"])))
+kmeans_fit = add_box!(d, clustering_fit)
 agglom = add_box!(d, construct(concept(db, "agglomerative-clustering")))
-agglom_fit = add_box!(d, concept(db, "fit"))
 agglom_clusters = add_box!(d, concept(db, "clustering-model-clusters"))
-score = add_box!(d, Box(
-  nothing, concepts(db, ["array", "array"]), concepts(db, ["number"])))
+agglom_fit = add_box!(d, clustering_fit)
+score = add_box!(d, Box(nothing, concepts(db, ["array", "array"]), []))
+kmeans = add_box!(d, construct(concept(db, "k-means")))
+kmeans_clusters = add_box!(d, concept(db, "clustering-model-clusters"))
 add_wires!(d, [
-  (kmeans, 1) => (kmeans_fit, 1),
   (make_data, 1) => (kmeans_fit, 2),
-  (kmeans_fit, 1) => (kmeans_clusters, 1),
-  (agglom, 1) => (agglom_fit, 1),
   (make_data, 1) => (agglom_fit, 2),
-  (agglom_fit, 1) => (agglom_clusters, 1),
+  (make_data, 2) => (output_id(d), 1),
+  (kmeans, 1) => (kmeans_fit, 1),
+  (kmeans_fit, 1) => (kmeans_clusters, 1),
+  (kmeans_fit, 1) => (output_id(d), 2),
   (kmeans_clusters, 1) => (score, 1),
+  (agglom, 1) => (agglom_fit, 1),
+  (agglom_fit, 1) => (agglom_clusters, 1),
+  (agglom_fit, 1) => (output_id(d), 3),
   (agglom_clusters, 1) => (score, 2),
-  (score, 1) => (output_id(d), 1),
 ])
 @test semantic == d
 
