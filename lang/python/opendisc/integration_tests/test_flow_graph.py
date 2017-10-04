@@ -223,18 +223,21 @@ class IntegrationTestFlowGraph(unittest.TestCase):
                         annotation='python/statsmodels/get-r-dataset')
         target.add_node('read-get', qual_name='Dataset.__getattribute__',
                         slot='data')
-        target.add_node('ols', qual_name='Model.from_formula')
+        target.add_node('ols', qual_name='Model.from_formula',
+                        annotation='python/statsmodels/ols-from-formula')
         target.add_node('fit', qual_name='RegressionModel.fit',
                         annotation='python/statsmodels/fit')
         target.add_edge('read', 'read-get',
-                        sourceport='__return__', targetport='self')
+                        sourceport='__return__', targetport='self',
+                        annotation='python/statsmodels/dataset')
         target.add_edge('read-get', 'ols',
                         sourceport='__return__', targetport='data',
                         annotation='python/pandas/data-frame')
         target.add_edge('ols', 'fit',
                         sourceport='__return__', targetport='self',
                         annotation='python/statsmodels/ols')
-        target.add_edge('read', outputs, sourceport='__return__')
+        target.add_edge('read', outputs, sourceport='__return__',
+                        annotation='python/statsmodels/dataset')
         target.add_edge('read-get', outputs, sourceport='__return__',
                         annotation='python/pandas/data-frame')
         target.add_edge('ols', outputs, sourceport='__return__',
