@@ -1,5 +1,5 @@
 module Doctrine
-export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, dom, codom,
+export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom, dom, codom,
   compose, id, subid, otimes, munit, opow, braid, mcopy, delete, pair,
   hom, ev, curry, coerce, construct, to_wiring_diagram
 
@@ -51,14 +51,25 @@ end
 A doctrine of monoidal categories derived from the doctrine of cartesian closed
 categories with implicit conversion of types.
 """
-@signature CartesianClosedCategory(Ob,Hom) => MonoclCategory(Ob,Hom,SubOb) begin
+@signature CartesianClosedCategory(Ob,Hom) => MonoclCategory(Ob,Hom,SubOb,SubHom) begin
   """ Subobject relation.
   
-  The domain type is a subobject (subtype) of the codomain type.
+  The domain object is a subobject of the codomain object. Alternatively,
+  in PLT jargon, the domain type is a subtype of the codomain type.
   """
   SubOb(dom::Ob, codom::Ob)::TYPE
   
-  # Subcategory of subobject morphisms.
+  """ Submorphism relation.
+  
+  The domain morphism is a submorphism of the codomain morphism. This means
+  there is a natural transformation, whose components are subobject morphisms,
+  having as (co)domain the functor on the interval category determined by the
+  (co)domain morphism.
+  """
+  SubHom(dom::Hom, codom::Hom)::TYPE
+  
+  # Category of subobject morphisms.
+  # TODO: Support internal homs.
   # XXX: Cannot reuse `id` for subobjects because cannot dispatch on return type.
   subid(A::Ob)::SubOb(A,A)
   compose(f::SubOb(A,B), g::SubOb(B,C))::SubOb(A,C) <= (A::Ob, B::Ob, C::Ob)
@@ -80,10 +91,8 @@ end
 
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
 """
-@syntax Monocl(ObExpr,HomExpr,CategoryExpr) MonoclCategory begin
+@syntax Monocl(ObExpr,HomExpr,CategoryExpr,CategoryExpr) MonoclCategory begin
   
-  """ Establish subobject relation between two object generators.
-  """
   function SubOb(value::Any, A::Ob, B::Ob)
     if !(head(A) == :generator && head(B) == :generator)
       msg = "Cannot construct subobject $A <: $B: subobject generators must contain object generators"
@@ -106,9 +115,8 @@ end
   coerce(sub::SubOb) = dom(sub) == codom(sub) ? id(dom(sub)) : Super.coerce(sub)
 end
 
-""" Subobject generator with no name.
-"""
 SubOb(dom::Monocl.Ob, codom::Monocl.Ob) = SubOb(nothing, dom, codom)
+SubHom(dom::Monocl.Hom, codom::Monocl.Hom) = SubHom(nothing, dom, codom)
 
 """ Pairing of two (or more) morphisms.
 

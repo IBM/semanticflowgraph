@@ -13,6 +13,7 @@ A, B, C = Ob(Monocl, :A, :B, :C)
 A0, B0, A1, B1 = Ob(Monocl, :A0, :B0, :A1, :B1)
 I = munit(Monocl.Ob)
 f = Hom(:f, A, B)
+f0, f1 = Hom(:f0, A0, B0), Hom(:f1, A1, B1)
 g = Hom(:f, A, C)
 
 # Subobjects
@@ -34,7 +35,12 @@ sub = otimes(subA, subB)
 @test dom(sub) == otimes(A0,B0)
 @test codom(sub) == otimes(A,B)
 
-# Coercion
+# Submorphisms
+subf = SubHom(f0, f)
+@test dom(subf) == f0
+@test codom(subf) == f
+
+# Explicit coercions
 @test dom(coerce(subA)) == A0
 @test codom(coerce(subA)) == A
 @test coerce(subid(A)) == id(A)
@@ -47,7 +53,7 @@ sub = otimes(subA, subB)
 @test dom(construct(f)) == B
 @test codom(construct(f)) == A
 
-# Pair
+# Pairs
 @test dom(pair(f,g)) == A
 @test codom(pair(f,g)) == otimes(B,C)
 @test pair(f,g) == compose(mcopy(A), otimes(f,g))
