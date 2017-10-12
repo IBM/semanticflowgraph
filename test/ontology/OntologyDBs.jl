@@ -31,11 +31,11 @@ load_concepts(db)
 
 # Load single annotation.
 df_id = AnnotationID("python", "pandas", "data-frame")
-df_id_str = "python/pandas/data-frame"
 @test_throws OntologyError annotation(db, df_id)
 @test isa(load_annotation(db, df_id), ObAnnotation)
 @test isa(annotation(db, df_id), ObAnnotation)
-@test annotation(db, df_id) == annotation(db, df_id_str)
+@test annotation(db, df_id) == annotation(db, "python/pandas/data-frame")
+@test annotation(db, df_id) == annotation(db, "annotation/python/pandas/data-frame")
 
 # Load all annotations in package.
 series_id = AnnotationID("python", "pandas", "series")
