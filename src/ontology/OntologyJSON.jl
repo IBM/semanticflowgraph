@@ -24,11 +24,12 @@ end
 """ Add object from JSON document to presentation.
 """
 function add_ob_generator_from_json!(pres::Presentation, doc::Associative)
-  ob = Ob(Monocl, doc["id"])
+  name = doc["id"]
+  ob = Ob(Monocl, name)
   add_generator!(pres, ob)
   
-  for name in get(doc, "subconcept", [])
-    super_ob = Ob(Monocl, name)
+  for super_name in get(doc, "subconcept", [])
+    super_ob = Ob(Monocl, super_name)
     add_generator!(pres, SubOb(ob, super_ob))
   end
 end
@@ -41,6 +42,7 @@ function add_hom_generator_from_json!(pres::Presentation, doc::Associative)
   hom = Hom(doc["id"], dom_ob, codom_ob)
   add_generator!(pres, hom)
 end
+
 function domain_ob_from_json(pres::Presentation, docs)::Monocl.Ob
   if isempty(docs)
     munit(Monocl.Ob)

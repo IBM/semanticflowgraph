@@ -24,13 +24,16 @@ mutable struct OntologyDB
   annotations::OrderedDict{String,Annotation}
   
   function OntologyDB(; url=default_db_url, db=default_db_name)
-    new(url, db, Presentation(), OrderedDict{String,Annotation}())
+    new(url, db, Presentation(String), OrderedDict{String,Annotation}())
   end
 end
 
 struct OntologyError <: Exception
   message::String
 end
+
+# Ontology accessors
+####################
 
 function concept(db::OntologyDB, name::String)
   if !has_generator(db.concepts, name)
@@ -78,9 +81,7 @@ end
 """
 function load_documents(db::OntologyDB, docs)
   concept_docs = filter(doc -> doc["schema"] == "concept", docs)
-  if !isempty(concept_docs)
-    db.concepts = presentation_from_json(concept_docs)
-  end
+  merge_presentation!(db.concepts, presentation_from_json(concept_docs))
   
   annotation_docs = filter(doc -> doc["schema"] == "annotation", docs)
   for doc in annotation_docs
@@ -92,14 +93,11 @@ end
 #################
 
 """ Load all concepts in ontology from remote database.
-
-Note the concepts cannot be loaded incrementally because concepts may depend
-upon each other in complicated ways.
 """
 function load_concepts(db::OntologyDB)
   query = Dict("schema" => "concept")
   docs = CouchDB.find(db.url, db.db, query)
-  db.concepts = presentation_from_json(docs)
+  load_documents(db, docs)
 end
 
 """ Load annotations in ontology from remote database.
@@ -113,9 +111,7 @@ function load_annotations(db::OntologyDB; language=nothing, package=nothing)
     query["package"] = package
   end
   docs = CouchDB.find(db.url, db.db, query)
-  for doc in docs
-    db.annotations[doc["_id"]] = annotation_from_json(doc, db.concepts)
-  end
+  load_documents(db, docs)
 end
 
 """ Load single annotation from remote database, if it's not available locally.
