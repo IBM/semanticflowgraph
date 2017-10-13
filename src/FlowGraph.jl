@@ -150,10 +150,10 @@ function expand_annotated_box(db::OntologyDB, raw_box::Box)::WiringDiagram
   
   # Special cases.
   if raw_node.annotation_kind == ConstructAnnotation
-    note = annotation(db, get(raw_node.annotation))::ObAnnotation
+    note = load_annotation(db, get(raw_node.annotation))::ObAnnotation
     return to_wiring_diagram(construct(note.definition))
   elseif raw_node.annotation_kind == SlotAnnotation
-    definition = concept(db, get(raw_node.annotation))::Monocl.Hom
+    definition = load_concept(db, get(raw_node.annotation))::Monocl.Hom
     return to_wiring_diagram(definition)
   end
   
@@ -162,7 +162,7 @@ function expand_annotated_box(db::OntologyDB, raw_box::Box)::WiringDiagram
   # incoming and outoging wires.
   inputs = input_ports(raw_box)
   outputs = output_ports(raw_box)
-  note = annotation(db, get(raw_node.annotation))::HomAnnotation
+  note = load_annotation(db, get(raw_node.annotation))::HomAnnotation
   f = WiringDiagram(inputs, outputs)
   v = add_box!(f, to_wiring_diagram(note.definition))
   add_wires!(f, ((input_id(f), i) => (v, get(port.index))
@@ -176,7 +176,7 @@ end
 """ Expand a single annotated port from a raw flow graph.
 """
 function expand_annotated_port(db::OntologyDB, raw_port::RawPort)::Monocl.Ob
-  note = annotation(db, get(raw_port.annotation))::ObAnnotation
+  note = load_annotation(db, get(raw_port.annotation))::ObAnnotation
   note.definition
 end
 

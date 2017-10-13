@@ -22,12 +22,21 @@ load_ontology_file(db, joinpath(@__DIR__, "data", "foobar.json"))
 # Remote database
 #################
 
-# Load concepts.
+# Load single concept.
 db = OntologyDB()
 @test_throws OntologyError concept(db, "model")
-load_concepts(db)
+@test isa(load_concept(db, "model"), Monocl.Ob)
 @test isa(concept(db, "model"), Monocl.Ob)
+@test isa(load_concept(db, "fit"), Monocl.Hom)
 @test isa(concept(db, "fit"), Monocl.Hom)
+
+# Load all concepts.
+@test_throws OntologyError concept(db, "data-source")
+load_concepts(db)
+@test isa(concept(db, "model"), Monocl.Ob)       # Already loaded.
+@test isa(concept(db, "fit"), Monocl.Hom)        # Already loaded.
+@test isa(concept(db, "data-source"), Monocl.Ob) # Not loaded.
+@test isa(concept(db, "read-data"), Monocl.Hom)  # Not loaded.
 
 # Load single annotation.
 df_id = AnnotationID("python", "pandas", "data-frame")

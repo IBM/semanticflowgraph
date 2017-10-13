@@ -1,6 +1,7 @@
 module OntologyDBs
 export OntologyDB, OntologyError, concept, concepts, annotation, annotations,
-  load_ontology_file, load_concepts, load_annotation, load_annotations
+  load_concept, load_concepts, load_annotation, load_annotations,
+  load_ontology_file
 
 using DataStructures: OrderedDict
 import JSON
@@ -98,12 +99,31 @@ end
 """ Load concepts in ontology from remote database.
 """
 function load_concepts(db::OntologyDB; ontology=nothing)
-  query = Dict("schema" => "concept")
-  if ontology != nothing
-    query["ontology"] = ontology
+  if ontology == nothing
+    ontology = db.config[:ontology]
   end
+  query = Dict("schema" => "concept", "ontology" => ontology)
   docs = CouchDB.find(db.config[:database_url], db.config[:database_name], query)
   load_documents(db, docs)
+end
+
+""" Load single concept from remote database, if it's not already loaded.
+"""
+function load_concept(db::OntologyDB, id::String; ontology=nothing)
+  if has_generator(concepts(db), id)
+    return concept(db, id)
+  end
+  
+  if ontology == nothing
+    ontology = db.config[:ontology]
+  end
+  doc_id = "concept/$ontology/$id"
+  doc = CouchDB.get(db.config[:database_url], db.config[:database_name], doc_id)
+  if get(doc, "error", nothing) == "not_found"
+    throw(OntologyError("No concept named '$id'"))
+  end
+  load_documents(db, [doc])
+  concept(db, id)
 end
 
 """ Load annotations in ontology from remote database.

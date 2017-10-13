@@ -46,7 +46,7 @@ function domain_ob_from_json(pres::Presentation, docs)::Monocl.Ob
   if isempty(docs)
     munit(Monocl.Ob)
   else
-    otimes([ generator(pres, doc["object"]) for doc in docs ])
+    otimes([ Ob(Monocl, doc["object"]) for doc in docs ])
   end
 end
 
