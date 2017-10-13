@@ -8,7 +8,7 @@ using OpenDiscCore
 ############
 
 # Load concepts.
-db = OntologyDB()
+db = OntologyDB(; ontology="foobar")
 @test_throws OntologyError concept(db, "foo")
 load_ontology_file(db, joinpath(@__DIR__, "data", "foobar.json"))
 @test isa(concept(db, "foo"), Monocl.Ob)

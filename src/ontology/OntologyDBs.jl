@@ -8,9 +8,12 @@ import JSON
 using Catlab
 using ..Ontology
 
-# FIXME: Store these somewhere else?
-const default_db_url = "https://d393c3b5-9979-4183-98f4-7537a5de15f5-bluemix.cloudant.com"
-const default_db_name = "data-science-ontology"
+# FIXME: This default configuration should not be hard-coded here.
+const default_config = Dict(
+  :database_url => "https://d393c3b5-9979-4183-98f4-7537a5de15f5-bluemix.cloudant.com",
+  :database_name => "data-science-ontology",
+  :ontology => "data-science",
+)
 
 # Data types
 ############
@@ -18,15 +21,15 @@ const default_db_name = "data-science-ontology"
 """ Ontology database, containing concepts and annotations.
 """
 mutable struct OntologyDB
-  url::String
-  db::String
+  config::Dict{Symbol,Any}
   concepts::Presentation
   annotations::OrderedDict{String,Annotation}
   
-  function OntologyDB(; url=default_db_url, db=default_db_name)
-    new(url, db, Presentation(String), OrderedDict{String,Annotation}())
+  function OntologyDB(config::Dict{Symbol,Any})
+    new(config, Presentation(String), OrderedDict{String,Annotation}())
   end
 end
+OntologyDB(; kw...) = OntologyDB(merge(default_config, Dict{Symbol,Any}(kw)))
 
 struct OntologyError <: Exception
   message::String
@@ -35,15 +38,15 @@ end
 # Ontology accessors
 ####################
 
-function concept(db::OntologyDB, name::String)
-  if !has_generator(db.concepts, name)
-    throw(OntologyError("No concept named '$name'"))
+function concept(db::OntologyDB, id::String)
+  if !has_generator(db.concepts, id)
+    throw(OntologyError("No concept named '$id'"))
   end
-  generator(db.concepts, name)
+  generator(db.concepts, id)
 end
 
 concepts(db::OntologyDB) = db.concepts
-concepts(db::OntologyDB, names) = [ concept(db, name) for name in names ]
+concepts(db::OntologyDB, ids) = [ concept(db, id) for id in ids ]
 
 function annotation(db::OntologyDB, id)
   doc_id = annotation_document_id(id)
@@ -66,17 +69,6 @@ end
 # Local file
 ############
 
-""" Load concepts/annotations from a local JSON file.
-"""
-function load_ontology_file(db::OntologyDB, filename::String)
-  open(filename) do file
-    load_ontology_file(db, file)
-  end
-end
-function load_ontology_file(db::OntologyDB, io::IO)
-  load_documents(db, JSON.parse(io)::Vector)
-end
-
 """ Load concepts/annotations from a list of JSON documents.
 """
 function load_documents(db::OntologyDB, docs)
@@ -89,14 +81,28 @@ function load_documents(db::OntologyDB, docs)
   end
 end
 
+""" Load concepts/annotations from a local JSON file.
+"""
+function load_ontology_file(db::OntologyDB, filename::String)
+  open(filename) do file
+    load_ontology_file(db, file)
+  end
+end
+function load_ontology_file(db::OntologyDB, io::IO)
+  load_documents(db, JSON.parse(io)::Vector)
+end
+
 # Remote database
 #################
 
-""" Load all concepts in ontology from remote database.
+""" Load concepts in ontology from remote database.
 """
-function load_concepts(db::OntologyDB)
+function load_concepts(db::OntologyDB; ontology=nothing)
   query = Dict("schema" => "concept")
-  docs = CouchDB.find(db.url, db.db, query)
+  if ontology != nothing
+    query["ontology"] = ontology
+  end
+  docs = CouchDB.find(db.config[:database_url], db.config[:database_name], query)
   load_documents(db, docs)
 end
 
@@ -110,11 +116,11 @@ function load_annotations(db::OntologyDB; language=nothing, package=nothing)
   if package != nothing
     query["package"] = package
   end
-  docs = CouchDB.find(db.url, db.db, query)
+  docs = CouchDB.find(db.config[:database_url], db.config[:database_name], query)
   load_documents(db, docs)
 end
 
-""" Load single annotation from remote database, if it's not available locally.
+""" Load single annotation from remote database, if it's not already loaded.
 """
 function load_annotation(db::OntologyDB, id)::Annotation
   doc_id = annotation_document_id(id)
@@ -122,11 +128,12 @@ function load_annotation(db::OntologyDB, id)::Annotation
     return db.annotations[doc_id]
   end
   
-  doc = CouchDB.get(db.url, db.db, doc_id)
+  doc = CouchDB.get(db.config[:database_url], db.config[:database_name], doc_id)
   if get(doc, "error", nothing) == "not_found"
     throw(OntologyError("No annotation named '$id'"))
   end
-  db.annotations[doc["_id"]] = annotation_from_json(doc, db.concepts)
+  load_documents(db, [doc])
+  db.annotations[doc_id]
 end
 
 # CouchDB client
@@ -137,8 +144,8 @@ module CouchDB
 
   """ CouchDB endpoint: /{db}/{docid}
   """
-  function get(url::String, db::String, docid::String)
-    response = HTTP.get("$url/$db/$(HTTP.escape(docid))")
+  function get(url::String, db::String, doc_id::String)
+    response = HTTP.get("$url/$db/$(HTTP.escape(doc_id))")
     JSON.parse(response.body)
   end
 

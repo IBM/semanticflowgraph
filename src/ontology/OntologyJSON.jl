@@ -24,8 +24,7 @@ end
 """ Add object from JSON document to presentation.
 """
 function add_ob_generator_from_json!(pres::Presentation, doc::Associative)
-  name = doc["id"]
-  ob = Ob(Monocl, name)
+  ob = Ob(Monocl, doc["id"])
   add_generator!(pres, ob)
   
   for super_name in get(doc, "subconcept", [])
