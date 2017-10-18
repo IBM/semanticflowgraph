@@ -9,8 +9,10 @@ using OpenDiscCore
 
 # Load concepts.
 db = OntologyDB(; ontology="foobar")
+@test !has_concept(db, "foo")
 @test_throws OntologyError concept(db, "foo")
 load_ontology_file(db, joinpath(@__DIR__, "data", "foobar.json"))
+@test has_concept(db, "foo")
 @test isa(concept(db, "foo"), Monocl.Ob)
 @test isa(concept(db, "bar-from-foo"), Monocl.Hom)
 
@@ -40,9 +42,11 @@ load_concepts(db)
 
 # Load single annotation.
 df_id = AnnotationID("python", "pandas", "data-frame")
+@test !has_annotation(db, df_id)
 @test_throws OntologyError annotation(db, df_id)
 @test isa(load_annotation(db, df_id), ObAnnotation)
 @test isa(annotation(db, df_id), ObAnnotation)
+@test has_annotation(db, df_id)
 @test annotation(db, df_id) == annotation(db, "python/pandas/data-frame")
 @test annotation(db, df_id) == annotation(db, "annotation/python/pandas/data-frame")
 

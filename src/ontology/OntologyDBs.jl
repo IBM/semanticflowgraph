@@ -1,5 +1,6 @@
 module OntologyDBs
-export OntologyDB, OntologyError, concept, concepts, annotation, annotations,
+export OntologyDB, OntologyError,
+  concept, concepts, has_concept, annotation, annotations, has_annotation,
   load_concept, load_concepts, load_annotation, load_annotations,
   load_ontology_file
 
@@ -46,6 +47,8 @@ function concept(db::OntologyDB, id::String)
   generator(db.concepts, id)
 end
 
+has_concept(db::OntologyDB, id::String) = has_generator(db.concepts, id)
+
 concepts(db::OntologyDB) = db.concepts
 concepts(db::OntologyDB, ids) = [ concept(db, id) for id in ids ]
 
@@ -55,6 +58,10 @@ function annotation(db::OntologyDB, id)
     throw(OntologyError("No annotation named '$id'"))
   end
   db.annotations[doc_id]
+end
+
+function has_annotation(db::OntologyDB, id)
+  haskey(db.annotations, annotation_document_id(id))
 end
 
 annotations(db::OntologyDB) = values(db.annotations)
@@ -110,7 +117,7 @@ end
 """ Load single concept from remote database, if it's not already loaded.
 """
 function load_concept(db::OntologyDB, id::String; ontology=nothing)
-  if has_generator(concepts(db), id)
+  if has_concept(db, id)
     return concept(db, id)
   end
   
@@ -143,17 +150,17 @@ end
 """ Load single annotation from remote database, if it's not already loaded.
 """
 function load_annotation(db::OntologyDB, id)::Annotation
-  doc_id = annotation_document_id(id)
-  if haskey(db.annotations, doc_id)
-    return db.annotations[doc_id]
+  if has_annotation(db, id)
+    return annotation(db, id)
   end
   
+  doc_id = annotation_document_id(id)
   doc = CouchDB.get(db.config[:database_url], db.config[:database_name], doc_id)
   if get(doc, "error", nothing) == "not_found"
     throw(OntologyError("No annotation named '$id'"))
   end
   load_documents(db, [doc])
-  db.annotations[doc_id]
+  annotation(db, id)
 end
 
 # CouchDB client
