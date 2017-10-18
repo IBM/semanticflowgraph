@@ -26,19 +26,20 @@ load_ontology_file(db, joinpath(@__DIR__, "data", "foobar.json"))
 
 # Load single concept.
 db = OntologyDB()
-@test_throws OntologyError concept(db, "model")
+@test !has_concept(db, "model")
 @test isa(load_concept(db, "model"), Monocl.Ob)
 @test isa(concept(db, "model"), Monocl.Ob)
 @test isa(load_concept(db, "fit"), Monocl.Hom)
 @test isa(concept(db, "fit"), Monocl.Hom)
 
-# Load all concepts.
-@test_throws OntologyError concept(db, "data-source")
-load_concepts(db)
+# Load many concepts.
+@test !has_concept(db, "data-source")
+load_concepts(db; ids=["data", "data-source", "read-data"])
 @test isa(concept(db, "model"), Monocl.Ob)       # Already loaded.
 @test isa(concept(db, "fit"), Monocl.Hom)        # Already loaded.
 @test isa(concept(db, "data-source"), Monocl.Ob) # Not loaded.
 @test isa(concept(db, "read-data"), Monocl.Hom)  # Not loaded.
+@test !has_concept(db, "fit-supervised")
 
 # Load single annotation.
 df_id = AnnotationID("python", "pandas", "data-frame")
@@ -50,7 +51,7 @@ df_id = AnnotationID("python", "pandas", "data-frame")
 @test annotation(db, df_id) == annotation(db, "python/pandas/data-frame")
 @test annotation(db, df_id) == annotation(db, "annotation/python/pandas/data-frame")
 
-# Load all annotations in package.
+# Load all annotations in a package.
 series_id = AnnotationID("python", "pandas", "series")
 ndarray_id = AnnotationID("python", "numpy", "ndarray")
 @test_throws OntologyError annotation(db, series_id)

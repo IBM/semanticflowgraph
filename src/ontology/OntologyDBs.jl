@@ -106,11 +106,14 @@ end
 
 """ Load concepts in ontology from remote database.
 """
-function load_concepts(db::OntologyDB; ontology=nothing)
+function load_concepts(db::OntologyDB; ids=nothing, ontology=nothing)
   if ontology == nothing
     ontology = db.config[:ontology]
   end
-  query = Dict("schema" => "concept", "ontology" => ontology)
+  query = Dict{String,Any}("schema" => "concept", "ontology" => ontology)
+  if ids != nothing
+    query["id"] = Dict("\$in" => collect(ids))
+  end
   docs = CouchDB.find(db.config[:database_url], db.config[:database_name], query)
   load_documents(db, docs)
 end
@@ -137,7 +140,7 @@ end
 """ Load annotations in ontology from remote database.
 """
 function load_annotations(db::OntologyDB; language=nothing, package=nothing)
-  query = Dict("schema" => "annotation")
+  query = Dict{String,Any}("schema" => "annotation")
   if language != nothing
     query["language"] = language
   end
