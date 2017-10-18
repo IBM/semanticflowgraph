@@ -84,9 +84,9 @@ function load_documents(db::OntologyDB, docs)
   merge_presentation!(db.concepts, presentation_from_json(concept_docs))
   
   annotation_docs = filter(doc -> doc["schema"] == "annotation", docs)
-  loader = id -> load_concept(db, id)
+  load_reference = id -> load_concept(db, id)
   for doc in annotation_docs
-    db.annotations[doc["_id"]] = annotation_from_json(doc, loader)
+    db.annotations[doc["_id"]] = annotation_from_json(doc, load_reference)
   end
 end
 
