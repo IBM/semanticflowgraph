@@ -2,8 +2,7 @@ module TestOntology
 using Base.Test
 
 @testset "Ontology" begin
-  include("ConceptJSON.jl")
-  include("AnnotationJSON.jl")
+  include("OntologyJSON.jl")
   include("OntologyDBs.jl")
 end
 
