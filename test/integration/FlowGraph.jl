@@ -7,8 +7,6 @@ using OpenDiscCore
 const pkg_dir = abspath(joinpath(@__DIR__, "..", ".."))
 const py_data_dir = joinpath(pkg_dir,
   "lang", "python", "opendisc", "integration_tests", "data")
-const dso_filename = joinpath(pkg_dir,
-  "..", "data-science-ontology", "ontology.json")
 
 # Raw flow graph
 ################
@@ -34,7 +32,6 @@ b1, b2 = boxes(diagram)
 #####################
 
 db = OntologyDB()
-load_ontology_file(db, dso_filename)
 
 # Read SQL table using pandas and SQLAlchemy.
 raw = read_py_raw_graph("pandas_read_sql")

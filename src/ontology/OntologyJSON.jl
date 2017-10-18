@@ -57,12 +57,12 @@ const language_keys = [ "class", "function", "method", "domain", "codomain" ]
 
 """ Load annotation from JSON document.
 """
-function annotation_from_json(doc::Associative, pres::Presentation)::Annotation
+function annotation_from_json(doc::Associative, loader::Function)::Annotation
   name = AnnotationID(doc["language"], doc["package"], doc["id"])
   lang = Dict{Symbol,Any}(
     Symbol(key) => doc[key] for key in language_keys if haskey(doc, key)
   )
-  definition = expr_from_json(doc["definition"], pres)
+  definition = expr_from_json(doc["definition"], loader)
   if doc["kind"] == "object"
     ObAnnotation(name, lang, definition)
   elseif doc["kind"] == "morphism"
@@ -71,22 +71,23 @@ function annotation_from_json(doc::Associative, pres::Presentation)::Annotation
     error("Invalid kind of annotation: $(doc["kind"])")
   end
 end
+function annotation_from_json(doc::Associative, pres::Presentation)
+  annotation_from_json(doc, name -> generator(pres, name))
+end
 
 """ Load compound expression from S-expression encoded in JSON.
 
 FIXME: Belongs in `Catlab.Present`? Compare with `Catlab.Syntax.parse_json()`.
 """
-function expr_from_json(sexpr::Vector, pres::Presentation)
+function expr_from_json(sexpr::Vector, loader::Function)
   name = Symbol(sexpr[1])
   args = if name in (:Ob, :Hom)
-    [ sexpr[2]::String ; [ expr_from_json(x, pres) for x in sexpr[3:end] ]]
+    [ sexpr[2]::String ; [ expr_from_json(x, loader) for x in sexpr[3:end] ]]
   else
-    [ expr_from_json(x, pres) for x in sexpr[2:end] ]
+    [ expr_from_json(x, loader) for x in sexpr[2:end] ]
   end
   invoke_term(Monocl, name, args...)
 end
-function expr_from_json(sexpr::String, pres::Presentation)
-  generator(pres, sexpr)
-end
+expr_from_json(x::String, loader::Function) = loader(x)
 
 end
