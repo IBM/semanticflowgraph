@@ -27,8 +27,8 @@ subB = SubOb(B0, B)
 sub = compose(SubOb(A0, A), SubOb(A, A1))
 @test dom(sub) == A0
 @test codom(sub) == A1
-@test dom(subid(A)) == A
-@test codom(subid(A)) == A
+@test dom(subob_id(A)) == A
+@test codom(subob_id(A)) == A
 @test_throws SyntaxDomainError compose(subA, subB)
 
 sub = otimes(subA, subB)
@@ -36,16 +36,29 @@ sub = otimes(subA, subB)
 @test codom(sub) == otimes(A,B)
 
 # Submorphisms
-subf = SubHom(f0, f)
+subf = SubHom(f0, f, subA, subB)
 @test dom(subf) == f0
 @test codom(subf) == f
+@test subob_dom(subf) == subA
+@test subob_codom(subf) == subB
+
+subg = SubHom(f, f1, SubOb(A, A1), SubOb(B, B1))
+sub = compose(subf, subg)
+@test dom(sub) == f0
+@test codom(sub) == f1
+@test subob_dom(sub) == compose(SubOb(A0,A), SubOb(A,A1))
+@test subob_codom(sub) == compose(SubOb(B0,B), SubOb(B,B1))
+@test dom(subhom_id(f)) == f
+@test codom(subhom_id(f)) == f
+@test subob_dom(subhom_id(f)) == subob_id(A)
+@test subob_codom(subhom_id(f)) == subob_id(B)
 
 # Explicit coercions
 @test dom(coerce(subA)) == A0
 @test codom(coerce(subA)) == A
-@test coerce(subid(A)) == id(A)
-@test compose(coerce(subid(A)), f) == f
-@test compose(f, coerce(subid(B))) == f
+@test coerce(subob_id(A)) == id(A)
+@test compose(coerce(subob_id(A)), f) == f
+@test compose(f, coerce(subob_id(B))) == f
 
 # Constructors
 @test dom(construct(A)) == I

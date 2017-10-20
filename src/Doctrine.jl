@@ -1,6 +1,7 @@
 module Doctrine
-export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom, dom, codom,
-  compose, id, subid, otimes, munit, opow, braid, mcopy, delete, pair,
+export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom,
+  dom, codom, subob_dom, subob_codom, subob_id, subhom_id,
+  compose, id, otimes, munit, opow, braid, mcopy, delete, pair,
   hom, ev, curry, coerce, construct, to_wiring_diagram
 
 using Catlab
@@ -65,16 +66,13 @@ categories with implicit conversion of types.
   there is a natural transformation, whose components are subobject morphisms,
   having as (co)domain the functor on the interval category determined by the
   (co)domain morphism.
-  """
-  SubHom(dom::Hom, codom::Hom)::TYPE
   
-  # Category of subobject morphisms.
-  # TODO: Support internal homs.
-  # XXX: Cannot reuse `id` for subobjects because cannot dispatch on return type.
-  subid(A::Ob)::SubOb(A,A)
-  compose(f::SubOb(A,B), g::SubOb(B,C))::SubOb(A,C) <= (A::Ob, B::Ob, C::Ob)
-  otimes(f::SubOb(A,B), g::SubOb(C,D))::SubOb(otimes(A,C),otimes(B,D)) <=
-    (A::Ob, B::Ob, C::Ob, D::Ob)
+  Alternatively, in PLT jargon, the domain function is a specialization of the
+  codomain function, a form of ad-hoc polymorphism.
+  """
+  SubHom(dom::Hom(A0,B0), codom::Hom(A,B),
+         subob_dom::SubOb(A0,A), subob_codom::SubOb(B0,B))::TYPE <=
+    (A0::Ob, B0::Ob, A::Ob, B::Ob)
 
   """ Coercion morphism of type A to type B.
   """
@@ -87,6 +85,22 @@ categories with implicit conversion of types.
   """
   construct(f::Hom(A,B))::Hom(B,A) <= (A::Ob, B::Ob)
   construct(A::Ob) = construct(delete(A))
+  
+  # Category of subobject morphisms.
+  # TODO: Support internal homs.
+  # XXX: Cannot reuse `id` for subobjects because cannot dispatch on return type.
+  subob_id(A::Ob)::SubOb(A,A)
+  compose(f::SubOb(A,B), g::SubOb(B,C))::SubOb(A,C) <= (A::Ob, B::Ob, C::Ob)
+  otimes(f::SubOb(A,B), g::SubOb(C,D))::SubOb(otimes(A,C),otimes(B,D)) <=
+    (A::Ob, B::Ob, C::Ob, D::Ob)
+  
+  # Category of submorphism natural transformations.
+  subhom_id(f::Hom(A,B))::SubHom(f,f,subob_id(dom(f)),subob_id(codom(f))) <=
+    (A::Ob, B::Ob)
+  compose(α::SubHom(f,g,i,j), β::SubHom(g,h,k,l))::SubHom(f,h,compose(i,k),compose(j,l)) <=
+    (A0::Ob, B0::Ob, A::Ob, B::Ob, A1::Ob, B1::Ob,
+     f::Hom(A0,B0), g::Hom(A,B), h::Hom(A1,B1),
+     i::SubOb(A0,A), j::SubOb(B0,B), k::SubOb(A,A1), l::SubOb(B,B1))
 end
 
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
@@ -103,9 +117,11 @@ end
 
   # TODO: Implicit conversion is not yet implemented, so we have disabled
   # domain checks when composing morphisms!
+  # TODO: Domain checks when composing submorphisms need only check domain
+  # and codomain of subobjects because subobjects form a pre-order.
   compose(f::Hom, g::Hom) = associate_unit(Super.compose(f,g; strict=false), id)
-  
-  compose(f::SubOb, g::SubOb) = associate_unit(Super.compose(f,g; strict=true), subid)
+  compose(f::SubOb, g::SubOb) = associate_unit(Super.compose(f,g; strict=true), subob_id)
+  compose(f::SubHom, g::SubHom) = associate_unit(Super.compose(f,g; strict=false), subhom_id)
   
   otimes(A::Ob, B::Ob) = associate_unit(Super.otimes(A,B), munit)
   otimes(f::Hom, g::Hom) = associate(Super.otimes(f,g))
@@ -116,7 +132,9 @@ end
 end
 
 SubOb(dom::Monocl.Ob, codom::Monocl.Ob) = SubOb(nothing, dom, codom)
-SubHom(dom::Monocl.Hom, codom::Monocl.Hom) = SubHom(nothing, dom, codom)
+SubHom(dom::Monocl.Hom, codom::Monocl.Hom,
+       subob_dom::Monocl.SubOb, subob_codom::Monocl.SubOb) =
+  SubHom(nothing, dom, codom, subob_dom, subob_codom)
 
 """ Pairing of two (or more) morphisms.
 
