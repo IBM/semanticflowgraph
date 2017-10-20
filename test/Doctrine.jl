@@ -10,11 +10,10 @@ using OpenDiscCore.Doctrine
 #################
 
 A, B, C = Ob(Monocl, :A, :B, :C)
-A0, B0, A1, B1 = Ob(Monocl, :A0, :B0, :A1, :B1)
+A0, B0, C0, A1, B1, C1 = Ob(Monocl, :A0, :B0, :C0, :A1, :B1, :C1)
 I = munit(Monocl.Ob)
 f = Hom(:f, A, B)
 f0, f1 = Hom(:f0, A0, B0), Hom(:f1, A1, B1)
-g = Hom(:f, A, C)
 
 # Subobjects
 subA = SubOb(A0, A)
@@ -42,8 +41,8 @@ subf = SubHom(f0, f, subA, subB)
 @test subob_dom(subf) == subA
 @test subob_codom(subf) == subB
 
-subg = SubHom(f, f1, SubOb(A, A1), SubOb(B, B1))
-sub = compose(subf, subg)
+subf1 = SubHom(f, f1, SubOb(A, A1), SubOb(B, B1))
+sub = compose(subf, subf1)
 @test dom(sub) == f0
 @test codom(sub) == f1
 @test subob_dom(sub) == compose(SubOb(A0,A), SubOb(A,A1))
@@ -52,6 +51,14 @@ sub = compose(subf, subg)
 @test codom(subhom_id(f)) == f
 @test subob_dom(subhom_id(f)) == subob_id(A)
 @test subob_codom(subhom_id(f)) == subob_id(B)
+
+g, g0 = Hom(:g, B, C), Hom(:g0, B0, C0)
+subg = SubHom(g0, g, SubOb(B0, B), SubOb(C0, C))
+sub = compose2(subf, subg)
+@test dom(sub) == compose(f0,g0)
+@test codom(sub) == compose(f,g)
+@test subob_dom(sub) == SubOb(A0, A)
+@test subob_codom(sub) == SubOb(C0, C)
 
 # Explicit coercions
 @test dom(coerce(subA)) == A0
@@ -67,6 +74,7 @@ sub = compose(subf, subg)
 @test codom(construct(f)) == A
 
 # Pairs
+f, g = Hom(:f, A, B), Hom(:g, A, C)
 @test dom(pair(f,g)) == A
 @test codom(pair(f,g)) == otimes(B,C)
 @test pair(f,g) == compose(mcopy(A), otimes(f,g))

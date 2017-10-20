@@ -1,7 +1,7 @@
 module Doctrine
 export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom,
   dom, codom, subob_dom, subob_codom, subob_id, subhom_id,
-  compose, id, otimes, munit, opow, braid, mcopy, delete, pair,
+  compose, compose2, id, otimes, munit, opow, braid, mcopy, delete, pair,
   hom, ev, curry, coerce, construct, to_wiring_diagram
 
 using Catlab
@@ -94,13 +94,17 @@ categories with implicit conversion of types.
   otimes(f::SubOb(A,B), g::SubOb(C,D))::SubOb(otimes(A,C),otimes(B,D)) <=
     (A::Ob, B::Ob, C::Ob, D::Ob)
   
-  # Category of submorphism natural transformations.
+  # 2-category of submorphism natural transformations.
   subhom_id(f::Hom(A,B))::SubHom(f,f,subob_id(dom(f)),subob_id(codom(f))) <=
     (A::Ob, B::Ob)
-  compose(α::SubHom(f,g,i,j), β::SubHom(g,h,k,l))::SubHom(f,h,compose(i,k),compose(j,l)) <=
+  compose(α::SubHom(f,g,α0,α1), β::SubHom(g,h,β0,β1))::SubHom(f,h,compose(α0,β0),compose(α1,β1)) <=
     (A0::Ob, B0::Ob, A::Ob, B::Ob, A1::Ob, B1::Ob,
      f::Hom(A0,B0), g::Hom(A,B), h::Hom(A1,B1),
-     i::SubOb(A0,A), j::SubOb(B0,B), k::SubOb(A,A1), l::SubOb(B,B1))
+     α0::SubOb(A0,A), α1::SubOb(B0,B), β0::SubOb(A,A1), β1::SubOb(B,B1))
+  compose2(α::SubHom(f,g,α0,α1), β::SubHom(h,k,β0,β1))::SubHom(compose(f,h),compose(g,k),α0,β1) <=
+    (A0::Ob, B0::Ob, C0::Ob, A::Ob, B::Ob, C::Ob,
+     f::Hom(A0,B0), g::Hom(A,B), h::Hom(B0,C0), k::Hom(B,C),
+     α0::SubOb(A0,A), α1::SubOb(B0,B), β0::SubOb(B0,B), β1::SubOb(C0,C))
 end
 
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
@@ -122,6 +126,7 @@ end
   compose(f::Hom, g::Hom) = associate_unit(Super.compose(f,g; strict=false), id)
   compose(f::SubOb, g::SubOb) = associate_unit(Super.compose(f,g; strict=true), subob_id)
   compose(f::SubHom, g::SubHom) = associate_unit(Super.compose(f,g; strict=false), subhom_id)
+  compose2(f::SubHom, g::SubHom) = associate_unit(Super.compose2(f,g; strict=false), subhom_id)
   
   otimes(A::Ob, B::Ob) = associate_unit(Super.otimes(A,B), munit)
   otimes(f::Hom, g::Hom) = associate(Super.otimes(f,g))
