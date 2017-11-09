@@ -5,6 +5,7 @@ from networkx.readwrite import json_graph
 from traitlets import Bool, Instance, Type, default
 
 from ..core.annotator import Annotator
+from ..core.flow_graph import flow_graph_to_graphml
 from ..core.flow_graph_builder import FlowGraphBuilder
 from ..core.graphml import write_graphml_str
 from ..trace.tracer import Tracer
@@ -53,7 +54,9 @@ class OpenDiscIPythonKernel(IPythonKernel):
         
         # Add flow graph as a payload.
         if self._trace_flag and reply_content['status'] == 'ok':
-            data = write_graphml_str(self._builder.graph, prettyprint=False)
+            graph = self._builder.graph
+            data = write_graphml_str(flow_graph_to_graphml(graph),
+                                     prettyprint=False)
             payload = {
                 'source': 'flow_graph',
                 'mimetype': 'application/graphml+xml',
