@@ -5,7 +5,6 @@ export MonoclElem, RawNode, RawPort, RawWire, RawNodeAnnotationKind,
 using Base.Iterators: product
 
 using AutoHashEquals, Parameters
-import JSON
 import LightXML
 using LightGraphs
 
@@ -74,10 +73,6 @@ function GraphML.convert_from_graphml_data(::Type{RawWire}, data::Dict)
   value = pop!(data, "value", Nullable())
   RawWire(data, id, value)
 end
-
-# Support JSON data in GraphML.
-# FIXME: Should this functionality be in Catlab?
-GraphML.read_graphml_data_value(::Type{Val{:json}}, x::String) = JSON.parse(x)
 
 # Semantic flow graph
 #####################
