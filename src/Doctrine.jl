@@ -187,6 +187,20 @@ function to_wiring_diagram(sub::Monocl.SubOb)
   return f
 end
 
+# GraphML support.
+function GraphML.convert_from_graphml_data(::Type{Monocl.Ob}, data::Dict)
+  parse_json_sexpr(Monocl, data["expr"])
+end
+function GraphML.convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
+  parse_json_sexpr(Monocl, data["expr"])
+end
+function GraphML.convert_to_graphml_data(expr::Monocl.Ob)
+  Dict("expr" => to_json_sexpr(expr))
+end
+function GraphML.convert_to_graphml_data(expr::Monocl.Hom)
+  Dict("expr" => to_json_sexpr(expr))
+end
+
 # Graphviz support.
 GraphvizWiring.label(box::Box{Monocl.Hom{:coerce}}) = "to"
 GraphvizWiring.node_id(box::Box{Monocl.Hom{:coerce}}) = ":coerce"

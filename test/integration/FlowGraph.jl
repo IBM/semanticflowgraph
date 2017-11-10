@@ -31,7 +31,9 @@ b1, b2 = boxes(diagram)
 # Semantic flow graph
 #####################
 
+# Load all concepts in the ontology at the outset.
 db = OntologyDB()
+load_concepts(db)
 
 # Read SQL table using pandas and SQLAlchemy.
 raw = read_py_raw_graph("pandas_read_sql")
