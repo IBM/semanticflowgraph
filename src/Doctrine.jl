@@ -188,11 +188,19 @@ function to_wiring_diagram(sub::Monocl.SubOb)
 end
 
 # GraphML support.
-function GraphML.convert_from_graphml_data(::Type{Monocl.Ob}, data::Dict)
-  parse_json_sexpr(Monocl, data["expr"])
+function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Ob,Void}}, data::Dict)
+  if haskey(data, "expr")
+    parse_json_sexpr(Monocl, data["expr"]; symbols=false)
+  else
+    nothing
+  end
 end
-function GraphML.convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
-  parse_json_sexpr(Monocl, data["expr"])
+function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Hom,Void}}, data::Dict)
+  if haskey(data, "expr")
+    parse_json_sexpr(Monocl, data["expr"]; symbols=false)
+  else
+    nothing
+  end
 end
 function GraphML.convert_to_graphml_data(expr::Monocl.Ob)
   Dict("expr" => to_json_sexpr(expr))

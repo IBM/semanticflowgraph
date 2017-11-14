@@ -1,6 +1,7 @@
 module FlowGraph
 export MonoclElem, RawNode, RawPort, RawWire, RawNodeAnnotationKind,
-  read_raw_graph, read_raw_graph_file, to_semantic_graph
+  read_raw_graph, read_raw_graph_file,
+  read_semantic_graph, read_semantic_graph_file, to_semantic_graph
 
 using Base.Iterators: product
 
@@ -84,6 +85,21 @@ end
   value::Nullable
 end
 MonoclElem(; id=Nullable{String}(), value=Nullable()) = MonoclElem(id, value)
+
+""" Read semantic flow graph from GraphML.
+"""
+function read_semantic_graph(xdoc::LightXML.XMLDocument; elements::Bool=true)
+  GraphML.read_graphml(Union{Monocl.Hom,Void},
+                       Union{Monocl.Ob,Void},
+                       elements ? MonoclElem : Void,
+                       xdoc)
+end
+function read_semantic_graph(xml::String; kw...)
+  read_semantic_graph(LightXML.parse_string(xml); kw...)
+end
+function read_semantic_graph_file(args...; kw...)
+  read_semantic_graph(LightXML.parse_file(args...); kw...)
+end
 
 """ Convert a raw flow graph into a semantic flow graph.
 """
