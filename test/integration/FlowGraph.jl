@@ -2,17 +2,19 @@ module TestFlowGraph
 using Base.Test
 
 using Catlab.Diagram
+import Catlab.Diagram: GraphML
 using OpenDiscCore
 
 const pkg_dir = abspath(joinpath(@__DIR__, "..", ".."))
-const py_data_dir = joinpath(pkg_dir,
+const py_raw_graph_dir = joinpath(pkg_dir,
   "lang", "python", "opendisc", "integration_tests", "data")
+const semantic_graph_dir = joinpath(@__DIR__, "data")
 
 # Raw flow graph
 ################
 
 function read_py_raw_graph(name::String)
-  read_raw_graph_file(joinpath(py_data_dir, "$name.xml"))
+  read_raw_graph_file(joinpath(py_raw_graph_dir, "$name.xml"))
 end
 
 # Deserialize raw flow graph from GraphML.
@@ -31,13 +33,21 @@ b1, b2 = boxes(diagram)
 # Semantic flow graph
 #####################
 
+function create_py_semantic_graph(db::OntologyDB, name::String; kw...)
+  raw_graph = read_py_raw_graph(name)
+  semantic_graph = to_semantic_graph(db, raw_graph; kw...)
+  open(joinpath(semantic_graph_dir, "$name.xml"), "w") do io
+    print(io, write_graphml(semantic_graph))
+  end
+  semantic_graph
+end
+
 # Load all concepts in the ontology at the outset.
 db = OntologyDB()
 load_concepts(db)
 
 # Read SQL table using pandas and SQLAlchemy.
-raw = read_py_raw_graph("pandas_read_sql")
-semantic = to_semantic_graph(db, raw; elements=false)
+semantic = create_py_semantic_graph(db, "pandas_read_sql"; elements=false)
 d = WiringDiagram([], concepts(db, ["table"]))
 engine = add_box!(d, Box([], concepts(db, ["sql-database"])))
 cons = add_box!(d, construct(pair(concept(db, "sql-table-database"),
@@ -51,8 +61,7 @@ add_wires!(d, [
 @test semantic == d
 
 # K-means clustering on the Iris dataset using sklearn.
-raw = read_py_raw_graph("sklearn_clustering_kmeans")
-semantic = to_semantic_graph(db, raw; elements=false)
+semantic = create_py_semantic_graph(db, "sklearn_clustering_kmeans"; elements=false)
 d = WiringDiagram([], concepts(db, ["array"]))
 filename = add_box!(d, construct(concept(db, "filename")))
 read = add_box!(d, concept(db, "read-tabular-file"))
@@ -73,8 +82,7 @@ add_wires!(d, [
 # Compare sklearn clustering models using a cluster similarity metric.
 # FIXME: The boxes are added to `d` in the exact order of `semantic`. That
 # won't be necessary when we implement graph isomorphism for wiring diagrams.
-raw = read_py_raw_graph("sklearn_clustering_metrics")
-semantic = to_semantic_graph(db, raw; elements=false)
+semantic = create_py_semantic_graph(db, "sklearn_clustering_metrics"; elements=false)
 clustering_fit = Hom("fit",
   otimes(concept(db, "clustering-model"), concept(db, "data")),
   concept(db, "clustering-model"))
@@ -103,8 +111,7 @@ add_wires!(d, [
 @test semantic == d
 
 # Errors metrics for linear regression using sklearn.
-raw = read_py_raw_graph("sklearn_regression_metrics")
-semantic = to_semantic_graph(db, raw; elements=false)
+semantic = create_py_semantic_graph(db, "sklearn_regression_metrics"; elements=false)
 d = WiringDiagram([], [])
 filename = add_box!(d, construct(concept(db, "filename")))
 data_x = add_box!(d, Box(concepts(db, ["table"]), concepts(db, ["table"])))
@@ -132,8 +139,7 @@ add_wires!(d, [
 @test semantic == d
 
 # Linear regression on an R dataset using statsmodels.
-raw = read_py_raw_graph("statsmodels_regression")
-semantic = to_semantic_graph(db, raw; elements=false)
+semantic = create_py_semantic_graph(db, "statsmodels_regression"; elements=false)
 d = WiringDiagram([], concepts(db, ["linear-regression"]))
 ols = add_box!(d, construct(concept(db, "least-squares")))
 read_get = add_box!(d, Box(concepts(db, ["data"]), concepts(db, ["table"])))
