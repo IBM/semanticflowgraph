@@ -188,19 +188,11 @@ function to_wiring_diagram(sub::Monocl.SubOb)
 end
 
 # GraphML support.
-function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Ob,Void}}, data::Dict)
-  if haskey(data, "expr")
-    parse_json_sexpr(Monocl, data["expr"]; symbols=false)
-  else
-    nothing
-  end
+function GraphML.convert_from_graphml_data(::Type{Monocl.Ob}, data::Dict)
+  parse_json_sexpr(Monocl, data["expr"]; symbols=false)
 end
-function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Hom,Void}}, data::Dict)
-  if haskey(data, "expr")
-    parse_json_sexpr(Monocl, data["expr"]; symbols=false)
-  else
-    nothing
-  end
+function GraphML.convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
+  parse_json_sexpr(Monocl, data["expr"]; symbols=false)
 end
 function GraphML.convert_to_graphml_data(expr::Monocl.Ob)
   Dict("expr" => to_json_sexpr(expr))
@@ -210,11 +202,21 @@ function GraphML.convert_to_graphml_data(expr::Monocl.Hom)
 end
 
 # Graphviz support.
-GraphvizWiring.label(box::Box{Monocl.Hom{:coerce}}) = "to"
-GraphvizWiring.node_id(box::Box{Monocl.Hom{:coerce}}) = ":coerce"
+GraphvizWiring.node_label(f::Monocl.Hom{:coerce}) = "to"
+GraphvizWiring.node_id(f::Monocl.Hom{:coerce}) = ":coerce"
 
-GraphvizWiring.label(box::Box{Monocl.Hom{:construct}}) = string(codom(box.value))
-GraphvizWiring.node_id(box::Box{Monocl.Hom{:construct}}) = ":construct"
+GraphvizWiring.node_label(f::Monocl.Hom{:construct}) = string(codom(f))
+GraphvizWiring.node_id(f::Monocl.Hom{:construct}) = ":construct"
+
+function GraphvizWiring.node_label(f::Nullable{Monocl.Hom})
+  isnull(f) ? "?" : GraphvizWiring.node_label(get(f))
+end
+function GraphvizWiring.node_id(f::Nullable{Monocl.Hom})
+  isnull(f) ? "" : GraphvizWiring.node_id(get(f))
+end
+function GraphvizWiring.edge_label(A::Nullable{Monocl.Ob})
+  isnull(A) ? "" : GraphvizWiring.edge_label(get(A))
+end
 
 # TikZ support.
 function TikZWiring.box(name::String, f::Monocl.Hom{:generator})

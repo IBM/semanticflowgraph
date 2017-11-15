@@ -89,10 +89,8 @@ MonoclElem(; id=Nullable{String}(), value=Nullable()) = MonoclElem(id, value)
 """ Read semantic flow graph from GraphML.
 """
 function read_semantic_graph(xdoc::LightXML.XMLDocument; elements::Bool=true)
-  GraphML.read_graphml(Union{Monocl.Hom,Void},
-                       Union{Monocl.Ob,Void},
-                       elements ? MonoclElem : Void,
-                       xdoc)
+  Wire = elements ? MonoclElem : Void
+  GraphML.read_graphml(Nullable{Monocl.Hom}, Nullable{Monocl.Ob}, Wire, xdoc)
 end
 function read_semantic_graph(xml::String; kw...)
   read_semantic_graph(LightXML.parse_string(xml); kw...)
