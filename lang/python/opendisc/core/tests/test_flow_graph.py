@@ -360,6 +360,7 @@ class TestFlowGraph(unittest.TestCase):
             'module': 'opendisc.core.tests.objects',
             'qual_name': 'create_foo',
             'annotation': 'python/opendisc/create-foo',
+            'annotation_kind': 'function',
         }
         self.assertEqual(actual, desired)
         
@@ -371,6 +372,7 @@ class TestFlowGraph(unittest.TestCase):
             'module': 'opendisc.core.tests.objects',
             'qual_name': 'bar_from_foo',
             'annotation': 'python/opendisc/bar-from-foo',
+            'annotation_kind': 'function',
         }
         self.assertEqual(actual, desired)
     
@@ -420,8 +422,8 @@ class TestFlowGraph(unittest.TestCase):
         desired = {
             'module': 'opendisc.core.tests.objects',
             'qual_name': 'Foo.__init__',
-            'construct': True,
-            'construct_annotation': 'python/opendisc/foo',
+            'annotation': 'python/opendisc/foo',
+            'annotation_kind': 'construct',
         }
         self.assertEqual(actual, desired)
     
@@ -620,9 +622,13 @@ class TestFlowGraph(unittest.TestCase):
         self.assert_isomorphic(actual, target)
         
         node = find_node(graph, lambda n: n.get('slot') == 'x')
-        self.assertEqual(graph.node[node]['slot_annotation'], 'foo-x')
+        data = graph.node[node]
+        self.assertEqual(data['annotation'], 'foo-x')
+        self.assertEqual(data['annotation_kind'], 'slot')
         node = find_node(graph, lambda n: n.get('slot') == 'y')
-        self.assertEqual(graph.node[node]['slot_annotation'], 'foo-y')
+        data = graph.node[node]
+        self.assertEqual(data['annotation'], 'foo-y')
+        self.assertEqual(data['annotation_kind'], 'slot')
     
     def test_object_slots_primitive(self):
         """ Test that annotated object slots with primitive values are captured.

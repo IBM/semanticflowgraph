@@ -209,7 +209,10 @@ class FlowGraphBuilder(HasTraits):
             ),
         }
         if annotation:
-            data['annotation'] = self._annotation_key(annotation)
+            data.update({
+                'annotation': self._annotation_key(annotation),
+                'annotation_kind': 'function',
+            })
         graph.add_node(node, attr_dict=data)
         return node
     
@@ -269,9 +272,14 @@ class FlowGraphBuilder(HasTraits):
         note = self.annotator.notate_object(obj) or {}
         for slot_annotation, slot in note.get('slots', {}).items():
             if slot == name:
-                data['slot_annotation'] = slot_annotation
+                data.update({
+                    'slot': slot,
+                    'annotation': slot_annotation,
+                    'annotation_kind': 'slot',
+                })
                 break
-        data['slot'] = name
+        else:
+            data['slot'] = name
     
     def _update_init_node_for_return(self, event, node):
         """ Update an `__init__` call node for a return event.
@@ -282,8 +290,12 @@ class FlowGraphBuilder(HasTraits):
         obj = list(event.arguments.values())[0]
         note = self.annotator.notate_object(obj)
         if note:
-            data['construct_annotation'] = self._annotation_key(note)
-        data['construct'] = True
+            data.update({
+                'annotation': self._annotation_key(note),
+                'annotation_kind': 'construct',
+            })
+        else:
+            data['construct'] = True
     
     def _add_call_in_edge(self, event, node, arg_name, arg):
         """ Add an incoming edge to a call node.
@@ -381,7 +393,8 @@ class FlowGraphBuilder(HasTraits):
             slot_node = node_name(graph, 'slot')
             slot_node_data = {
                 'slot': slot,
-                'slot_annotation': name,
+                'annotation': name,
+                'annotation_kind': 'slot',
                 'ports': OrderedDict([
                     ('self', self._get_port_data(obj,
                         portkind='input',

@@ -21,6 +21,13 @@ using ..Ontology
   ConstructAnnotation = 1,
   SlotAnnotation = 2)
 
+function Base.convert(::Type{RawNodeAnnotationKind}, s::String)
+  if (s == "function") FunctionAnnotation
+  elseif (s == "construct") ConstructAnnotation
+  elseif (s == "slot") SlotAnnotation
+  else error("Unknown annotation kind \"$s\"") end
+end
+
 @with_kw struct RawNode
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Nullable{String} = Nullable{String}()
@@ -50,15 +57,10 @@ read_raw_graph_file(args...) = read_raw_graph(LightXML.parse_file(args...))
 
 function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
-  construct = Nullable{String}(pop!(data, "construct_annotation", nothing))
-  slot = Nullable{String}(pop!(data, "slot_annotation", nothing))
-  if !isnull(construct)
-    RawNode(data, construct, ConstructAnnotation)
-  elseif !isnull(slot)
-    RawNode(data, slot, SlotAnnotation)
-  else
-    RawNode(data, annotation, FunctionAnnotation)
-  end
+  annotation_kind_str = Nullable{String}(pop!(data, "annotation_kind", nothing))
+  annotation_kind = isnull(annotation_kind_str) ? FunctionAnnotation :
+    convert(RawNodeAnnotationKind, get(annotation_kind_str))
+  RawNode(data, annotation, annotation_kind)
 end
 
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)

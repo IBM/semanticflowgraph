@@ -119,11 +119,12 @@ class IntegrationTestFlowGraph(unittest.TestCase):
                         sourceport='__return__', targetport='self')
         target.add_edge('drop', 'values', annotation='python/pandas/data-frame',
                         sourceport='__return__', targetport='self')
-        target.add_node('kmeans', qual_name='KMeans.__init__')
+        target.add_node('kmeans', qual_name='KMeans.__init__',
+                        annotation='python/sklearn/k-means')
         target.add_node('fit', qual_name='KMeans.fit',
                         annotation='python/sklearn/fit')
         target.add_node('clusters', qual_name='KMeans.__getattribute__',
-                        slot='labels_')
+                        annotation='clustering-model-clusters', slot='labels_')
         target.add_edge('kmeans', 'fit', annotation='python/sklearn/k-means',
                         sourceport='self!', targetport='self')
         target.add_edge('values', 'fit', annotation='python/numpy/ndarray',
@@ -141,10 +142,12 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         target = new_flow_graph()
         target.remove_node(target.graph['output_node'])
         target.add_node('make_blobs', qual_name='make_blobs')
-        target.add_node('kmeans', qual_name='KMeans.__init__')
+        target.add_node('kmeans', qual_name='KMeans.__init__',
+                        annotation='python/sklearn/k-means')
         target.add_node('fit_kmeans', qual_name='KMeans.fit_predict',
                         annotation='python/sklearn/fit-predict-clustering')
-        target.add_node('agglom', qual_name='AgglomerativeClustering.__init__')
+        target.add_node('agglom', qual_name='AgglomerativeClustering.__init__',
+                        annotation='python/sklearn/agglomerative')
         target.add_node('fit_agglom', qual_name='ClusterMixin.fit_predict',
                         annotation='python/sklearn/fit-predict-clustering')
         target.add_node('score', qual_name='mutual_info_score')
@@ -180,7 +183,8 @@ class IntegrationTestFlowGraph(unittest.TestCase):
                         annotation='python/pandas/read-table')
         target.add_node('X', qual_name='NDFrame.drop')
         target.add_node('y', qual_name='DataFrame.__getitem__')
-        target.add_node('lm', qual_name='LinearRegression.__init__')
+        target.add_node('lm', qual_name='LinearRegression.__init__',
+                        annotation='python/sklearn/linear-regression')
         target.add_node('fit', qual_name='LinearRegression.fit',
                         annotation='python/sklearn/fit-regression')
         target.add_node('predict', qual_name='LinearModel.predict',
