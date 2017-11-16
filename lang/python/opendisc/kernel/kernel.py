@@ -56,8 +56,8 @@ class OpenDiscIPythonKernel(IPythonKernel):
         # Add flow graph as a payload.
         if self._trace_flag and reply_content['status'] == 'ok':
             graph = self._builder.graph
-            data = write_graphml_str(flow_graph_to_graphml(graph),
-                                     prettyprint=False)
+            graphml = flow_graph_to_graphml(graph, simplify_outputs=True)
+            data = write_graphml_str(graphml, prettyprint=False)
             payload = {
                 'source': 'flow_graph',
                 'mimetype': 'application/graphml+xml',
