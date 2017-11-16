@@ -16,8 +16,16 @@ from .slots import get_slots
 
 
 class OpenDiscIPythonKernel(IPythonKernel):
-    """ IPython kernel with support for execution events and object inspection.
+    """ IPython kernel with support for program analysis and object inspection.
     """
+    
+    # Whether to simplify the flow graph by removing certain outputs.
+    # See `flow_graph.flow_graph_to_graphml`.
+    simplify_flow_graph_outputs = Bool(True).tag(config=True)
+    
+    # Whether to store annotated slots of objects in the flow graph.
+    # See `flow_graph_builder.FlowGraphBuilder`.
+    store_flow_graph_slots = Bool(True).tag(config=True)
     
     # Annotator for objects and functions.
     annotator = Instance(Annotator)
@@ -56,7 +64,10 @@ class OpenDiscIPythonKernel(IPythonKernel):
         # Add flow graph as a payload.
         if self._trace_flag and reply_content['status'] == 'ok':
             graph = self._builder.graph
-            graphml = flow_graph_to_graphml(graph, simplify_outputs=True)
+            graphml = flow_graph_to_graphml(
+                graph,
+                simplify_outputs=self.simplify_flow_graph_outputs,
+            )
             data = write_graphml_str(graphml, prettyprint=False)
             payload = {
                 'source': 'flow_graph',
@@ -109,8 +120,11 @@ class OpenDiscIPythonKernel(IPythonKernel):
     
     @default('_builder')
     def _builder_default(self):
-        builder = FlowGraphBuilder(annotator=self.annotator)
-        
+        builder = FlowGraphBuilder(
+            annotator=self.annotator,
+            store_slots=self.store_flow_graph_slots,
+        )
+
         def handler(changed):
             event = changed['new']
             if event:
