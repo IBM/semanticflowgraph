@@ -8,6 +8,7 @@ from ..core.annotator import Annotator
 from ..core.flow_graph import flow_graph_to_graphml
 from ..core.flow_graph_builder import FlowGraphBuilder
 from ..core.graphml import write_graphml_str
+from ..core.remote_annotation_db import RemoteAnnotationDB
 from ..trace.tracer import Tracer
 from .serialize import object_to_json
 from .shell import OpenDiscIPythonShell
@@ -19,7 +20,7 @@ class OpenDiscIPythonKernel(IPythonKernel):
     """
     
     # Annotator for objects and functions.
-    annotator = Instance(Annotator, args=())
+    annotator = Instance(Annotator)
     
     # `IPythonKernel` traits.
     shell_class = Type(OpenDiscIPythonShell)
@@ -99,6 +100,12 @@ class OpenDiscIPythonKernel(IPythonKernel):
         self.log.debug("%s", msg)
     
     # Trait initializers
+    
+    @default('annotator')
+    def _annotator_default(self):
+        # Inherit database config from kernel.
+        db = RemoteAnnotationDB(parent=self)
+        return Annotator(db=db)
     
     @default('_builder')
     def _builder_default(self):

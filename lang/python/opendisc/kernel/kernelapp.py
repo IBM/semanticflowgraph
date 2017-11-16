@@ -4,12 +4,10 @@ from traitlets import Type
 
 class OpenDiscIPKernelApp(IPKernelApp):
     
-    # `IPKernelApp` traits
+    name = 'opendisc-ipython-kernel'
     
     kernel_class = Type('opendisc.kernel.kernel.OpenDiscIPythonKernel',
                         klass='ipykernel.kernelbase.Kernel')
-    
-    # `IPKernelApp` class variables
     
     subcommands = {
         'install': (
