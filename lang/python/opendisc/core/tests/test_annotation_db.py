@@ -51,19 +51,6 @@ class TestAnnotationDB(unittest.TestCase):
         query = {'id': {'$in': ['foo', 'bar']}}
         notes = list(self.db.filter(query))
         self.assertEqual(len(notes), 2)
-        
-    def test_nested_query(self):
-        """ Does a nested query work?
-        """
-        query = {
-            'kind': 'object',
-            'slots': {
-                'foo-sum': 'do_sum'
-            }
-        }
-        notes = list(self.db.filter(query))
-        self.assertEqual(len(notes), 1)
-        self.assertEqual(notes[0]['id'], 'foo-slots')
 
 
 if __name__ == '__main__':

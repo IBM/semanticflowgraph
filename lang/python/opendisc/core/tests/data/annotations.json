@@ -17,12 +17,21 @@
     "id": "foo-slots",
     "kind": "object",
     "class": "opendisc.core.tests.objects.FooSlots",
-    "slots": {
-      "foo-x": "x",
-      "foo-y": "y",
-      "foo-sum": "do_sum"
-    },
-    "definition": "foo"
+    "definition": "foo",
+    "slots": [
+      {
+        "slot": "x",
+        "definition": "foo-x"
+      },
+      {
+        "slot": "y",
+        "definition": "foo-y"
+      },
+      {
+        "slot": "do_sum",
+        "definition": "foo-sum"
+      }
+    ]
   },
   {
     "_id": "annotation/python/opendisc/bar",
@@ -65,9 +74,12 @@
     "id": "foo-container",
     "kind": "object",
     "class": "opendisc.core.tests.objects.FooContainer",
-    "slots": {
-      "foo": "foo"
-    }
+    "slots": [
+      {
+        "slot": "foo",
+        "definition": "foo"
+      }
+    ]
   },
   {
     "_id": "annotation/python/opendisc/create-foo",

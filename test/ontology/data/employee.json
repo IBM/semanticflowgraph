@@ -179,7 +179,21 @@
     "package": "employee",
     "id": "emplyee",
     "kind": "object",
-    "definition": "employee"
+    "definition": "employee",
+    "slots": [
+      {
+        "slot": "first_name",
+        "definition": "person-first-name"
+      },
+      {
+        "slot": "last_name",
+        "definition": "person-last-name"
+      },
+      {
+        "slot": "salary",
+        "definition": "employee-salary"
+      }
+    ]
   },
   {
     "_id": "annotation/opendisc/employee/department",

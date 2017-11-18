@@ -31,13 +31,14 @@ end
 @with_kw struct RawNode
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Nullable{String} = Nullable{String}()
+  annotation_index::Nullable{Int} = Nullable()
   annotation_kind::RawNodeAnnotationKind = FunctionAnnotation
 end
 
 @with_kw struct RawPort
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Nullable{String} = Nullable{String}()
-  index::Nullable{Int} = Nullable()
+  annotation_index::Nullable{Int} = Nullable()
   value::Nullable = Nullable()
 end
 
@@ -57,10 +58,11 @@ read_raw_graph_file(args...) = read_raw_graph(LightXML.parse_file(args...))
 
 function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
+  annotation_index = Nullable{Int}(pop!(data, "annotation_index", nothing))
   annotation_kind_str = Nullable{String}(pop!(data, "annotation_kind", nothing))
   annotation_kind = isnull(annotation_kind_str) ? FunctionAnnotation :
     convert(RawNodeAnnotationKind, get(annotation_kind_str))
-  RawNode(data, annotation, annotation_kind)
+  RawNode(data, annotation, annotation_index, annotation_kind)
 end
 
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
@@ -166,10 +168,12 @@ function expand_annotated_box(db::OntologyDB, raw_box::Box{RawNode},
   note = load_annotation(db, get(raw_box.value.annotation))::HomAnnotation
   f = WiringDiagram(inputs, outputs)
   v = add_box!(f, to_wiring_diagram(note.definition))
-  add_wires!(f, ((input_id(f), i) => (v, get(port.index))
-                 for (i, port) in enumerate(inputs) if !isnull(port.index)))
-  add_wires!(f, ((v, get(port.index)) => (output_id(f), i)
-                 for (i, port) in enumerate(outputs) if !isnull(port.index)))
+  add_wires!(f, ((input_id(f), i) => (v, get(port.annotation_index))
+                 for (i, port) in enumerate(inputs)
+                 if !isnull(port.annotation_index)))
+  add_wires!(f, ((v, get(port.annotation_index)) => (output_id(f), i)
+                 for (i, port) in enumerate(outputs)
+                 if !isnull(port.annotation_index)))
   substitute!(f, v)
   return f
 end
@@ -182,8 +186,9 @@ end
 
 function expand_annotated_box(db::OntologyDB, raw_box::Box{RawNode},
                               ::Type{Val{SlotAnnotation}})
-  definition = load_concept(db, get(raw_box.value.annotation))::Monocl.Hom
-  to_wiring_diagram(definition)
+  note = load_annotation(db, get(raw_box.value.annotation))::ObAnnotation
+  index = get(raw_box.value.annotation_index)
+  to_wiring_diagram(note.slots[index])
 end
 
 """ Expand a single annotated port from a raw flow graph.

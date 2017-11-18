@@ -58,14 +58,16 @@ const language_keys = [ "class", "function", "method", "domain", "codomain" ]
 """ Load annotation from JSON document.
 """
 function annotation_from_json(doc::Associative, load_ref::Function)::Annotation
+  parse_def = sexpr ->
+    parse_json_sexpr(Monocl, sexpr; symbols=false, parse_reference=load_ref)
   name = AnnotationID(doc["language"], doc["package"], doc["id"])
   lang = Dict{Symbol,Any}(
     Symbol(key) => doc[key] for key in language_keys if haskey(doc, key)
   )
-  definition = parse_json_sexpr(Monocl, doc["definition"];
-                                symbols=false, parse_reference=load_ref)
+  definition = parse_def(doc["definition"])
   if doc["kind"] == "object"
-    ObAnnotation(name, lang, definition)
+    slots = [ parse_def(slot["definition"]) for slot in get(doc, "slots", []) ]
+    ObAnnotation(name, lang, definition, slots)
   elseif doc["kind"] == "morphism"
     HomAnnotation(name, lang, definition)
   else

@@ -28,6 +28,7 @@ struct ObAnnotation <: Annotation
   name::AnnotationID
   language::Dict{Symbol,Any}
   definition::Monocl.Ob
+  slots::Vector{Monocl.Hom}
 end
 
 struct HomAnnotation <: Annotation

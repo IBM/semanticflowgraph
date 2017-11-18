@@ -270,11 +270,13 @@ class FlowGraphBuilder(HasTraits):
         args = list(event.arguments.values())
         obj, name = args[0], args[1]
         note = self.annotator.notate_object(obj) or {}
-        for slot_annotation, slot in note.get('slots', {}).items():
+        for slot_index, slot_def in enumerate(note.get('slots', [])):
+            slot = slot_def['slot']
             if slot == name:
                 data.update({
                     'slot': slot,
-                    'annotation': slot_annotation,
+                    'annotation': self._annotation_key(note),
+                    'annotation_index': slot_index+1,
                     'annotation_kind': 'slot',
                 })
                 break
@@ -384,8 +386,8 @@ class FlowGraphBuilder(HasTraits):
         context = self._stack[-1]
         graph = context.graph
         note = self.annotator.notate_object(obj) or {}
-        slots = note.get('slots', {})
-        for name, slot in slots.items():
+        for slot_index, slot_def in enumerate(note.get('slots', [])):
+            slot = slot_def['slot']
             try:
                 slot_value = get_slot(obj, slot)
             except AttributeError:
@@ -393,7 +395,8 @@ class FlowGraphBuilder(HasTraits):
             slot_node = node_name(graph, 'slot')
             slot_node_data = {
                 'slot': slot,
-                'annotation': name,
+                'annotation': self._annotation_key(note),
+                'annotation_index': slot_index+1,
                 'annotation_kind': 'slot',
                 'ports': OrderedDict([
                     ('self', self._get_port_data(obj,

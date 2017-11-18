@@ -622,13 +622,22 @@ class TestFlowGraph(unittest.TestCase):
         self.assert_isomorphic(actual, target)
         
         node = find_node(graph, lambda n: n.get('slot') == 'x')
-        data = graph.node[node]
-        self.assertEqual(data['annotation'], 'foo-x')
-        self.assertEqual(data['annotation_kind'], 'slot')
+        data = { k:v for k,v in graph.node[node].items()
+                 if k.startswith('annotation') }
+        self.assertEqual(data, {
+            'annotation': 'python/opendisc/foo-slots',
+            'annotation_index': 1,
+            'annotation_kind': 'slot',
+        })
+        
         node = find_node(graph, lambda n: n.get('slot') == 'y')
-        data = graph.node[node]
-        self.assertEqual(data['annotation'], 'foo-y')
-        self.assertEqual(data['annotation_kind'], 'slot')
+        data = { k:v for k,v in graph.node[node].items()
+                 if k.startswith('annotation') }
+        self.assertEqual(data, {
+            'annotation': 'python/opendisc/foo-slots',
+            'annotation_index': 2,
+            'annotation_kind': 'slot',
+        })
     
     def test_object_slots_primitive(self):
         """ Test that annotated object slots with primitive values are captured.

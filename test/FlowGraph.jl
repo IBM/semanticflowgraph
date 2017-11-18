@@ -27,7 +27,7 @@ raw_ports(n::Int) = [ RawPort() for i in 1:n ]
 raw_ports(xs::Vector) = [ raw_port(x) for x in xs ]
 raw_port(name::String) = RawPort(annotation="$prefix/$name")
 raw_port(name::String, index::Int) =
-  RawPort(annotation="$prefix/$name", index=index)
+  RawPort(annotation="$prefix/$name", annotation_index=index)
 raw_port(args::Tuple) = raw_port(args...)
 
 # Expand single annotated node.
@@ -51,10 +51,12 @@ f = WiringDiagram(raw_ports(["employee"]), raw_ports(["department","str","str"])
 manager = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
 dept = add_raw_box!(f, "employee-department", [("employee",1)], [("department",1)])
 first_name = add_raw_box!(f, [("employee",1)], [("str",1)],
-                          annotation="person-first-name",
+                          annotation="$prefix/employee",
+                          annotation_index=1,
                           annotation_kind=FlowGraph.SlotAnnotation)
 last_name = add_raw_box!(f, [("employee",1)], [("str",1)],
-                         annotation="person-last-name",
+                         annotation="$prefix/employee",
+                         annotation_index=2,
                          annotation_kind=FlowGraph.SlotAnnotation)
 add_wires!(f, [
   Wire(RawWire(id="1"), (input_id(f), 1), (manager, 1)),

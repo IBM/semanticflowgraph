@@ -124,7 +124,7 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         target.add_node('fit', qual_name='KMeans.fit',
                         annotation='python/sklearn/fit')
         target.add_node('clusters', qual_name='KMeans.__getattribute__',
-                        annotation='clustering-model-clusters', slot='labels_')
+                        annotation='python/sklearn/k-means', slot='labels_')
         target.add_edge('kmeans', 'fit', annotation='python/sklearn/k-means',
                         sourceport='self!', targetport='self')
         target.add_edge('values', 'fit', annotation='python/numpy/ndarray',
