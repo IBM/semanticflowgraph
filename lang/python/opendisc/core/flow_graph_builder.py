@@ -332,7 +332,10 @@ class FlowGraphBuilder(HasTraits):
         """
         context = self._stack[-1]
         graph = context.graph
-        data = self._get_object_data(obj, obj_id)
+        note = self.annotator.notate_object(obj)
+        data = { 'id': obj_id }
+        if note:
+            data['annotation'] = self._annotation_key(note)
         if sourceport is not None:
             data['sourceport'] = sourceport
         if targetport is not None:
@@ -399,11 +402,11 @@ class FlowGraphBuilder(HasTraits):
                 'annotation_index': slot_index+1,
                 'annotation_kind': 'slot',
                 'ports': OrderedDict([
-                    ('self', self._get_port_data(obj,
+                    ('self', self._get_port_data(event, obj,
                         portkind='input',
                         annotation_index=1,
                     )),
-                    ('__return__', self._get_port_data(slot_value,
+                    ('__return__', self._get_port_data(event, slot_value,
                         portkind='output',
                         annotation_index=1,
                     )),
@@ -418,35 +421,6 @@ class FlowGraphBuilder(HasTraits):
                 slot_id = event.tracer.track_object(slot_value)
                 self._set_object_output_node(
                     event, slot_value, slot_id, slot_node, '__return__')
-    
-    def _get_object_data(self, obj, obj_id=None):
-        """ Get data to store for an object.
-        """
-        data = {}
-        if obj is None:
-            return data
-        
-        # Add object ID if available.
-        if obj_id is not None:
-            data['id'] = obj_id
-        
-        # Add value if the object is primitive.
-        if self.is_primitive(obj):
-            data['value'] = deepcopy(obj)
-        
-        # Add type information if type is not built-in.
-        obj_type = obj.__class__
-        module = get_class_module(obj_type)
-        if not module == 'builtins':
-            data['module'] = module
-            data['qual_name'] = get_class_qual_name(obj_type)
-        
-        # Add object annotation, if it exists.
-        note = self.annotator.notate_object(obj)
-        if note:
-            data['annotation'] = self._annotation_key(note)
-        
-        return data
     
     def _get_ports_data(self, event, names, annotation=[], extra_data={}):
         """ Get data for the ports (input or output) of a node.
@@ -463,29 +437,40 @@ class FlowGraphBuilder(HasTraits):
                 obj = get_slot(slots, name)
             except AttributeError:
                 obj = None
-                
-            data = self._get_port_data(obj, argname=name, **extra_data)
+            
+            data = self._get_port_data(event, obj, argname=name, **extra_data)
             if name in annotation_table:
                 data['annotation_index'] = annotation_table[name]
             ports[portname] = data
         return ports
     
-    def _get_port_data(self, obj, **extra_data):
+    def _get_port_data(self, event, obj, **extra_data):
         """ Get data for a single port on a node.
         """
         data = extra_data
+        if obj is None:
+            return data
         
+        # Add object ID if available.
+        obj_id = event.tracer.object_tracker.get_id(obj)
+        if obj_id is not None:
+            data['id'] = obj_id
+        
+        # Add value if the object is primitive.
+        if self.is_primitive(obj):
+            data['value'] = deepcopy(obj)
+        
+        # Add type information if type is not built-in.
+        obj_type = obj.__class__
+        module = get_class_module(obj_type)
+        if not module == 'builtins':
+            data['module'] = module
+            data['qual_name'] = get_class_qual_name(obj_type)
+
         # Add object annotation, if it exists.
         note = self.annotator.notate_object(obj)
         if note:
             data['annotation'] = self._annotation_key(note)
-        
-        # Store primitive, non-trackable values on the port. Logically, the
-        # values should be stored on the edges, but for now edges only carry
-        # trackable objects (via their IDs).
-        if obj is not None and not ObjectTracker.is_trackable(obj) and \
-                self.is_primitive(obj):
-            data['value'] = deepcopy(obj)
         
         return data
     
