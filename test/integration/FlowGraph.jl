@@ -141,17 +141,15 @@ add_wires!(d, [
 # Linear regression on an R dataset using statsmodels.
 semantic = create_py_semantic_graph(db, "statsmodels_regression"; elements=false)
 d = WiringDiagram([], concepts(db, ["linear-regression"]))
+r_data = add_box!(d, construct(pair(concept(db, "r-dataset-name"),
+                                    concept(db, "r-dataset-package"))))
 ols = add_box!(d, construct(concept(db, "least-squares")))
-read_get = add_box!(d, Box(concepts(db, ["data"]), concepts(db, ["table"])))
 eval_formula = add_box!(d, concept(db, "evaluate-formula-supervised"))
 fit = add_box!(d, concept(db, "fit-supervised"))
 read = add_box!(d, concept(db, "read-table"))
-r_data = add_box!(d, construct(pair(concept(db, "r-dataset-name"),
-                                    concept(db, "r-dataset-package"))))
 add_wires!(d, [
   (r_data, 1) => (read, 1),
-  (read, 1) => (read_get, 1),
-  (read_get, 1) => (eval_formula, 2),
+  (read, 1) => (eval_formula, 2),
   (ols, 1) => (fit, 1),
   (eval_formula, 1) => (fit, 2),
   (eval_formula, 2) => (fit, 3),

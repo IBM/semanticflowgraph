@@ -226,7 +226,7 @@ class IntegrationTestFlowGraph(unittest.TestCase):
         target.add_node('read', qual_name='get_rdataset',
                         annotation='python/statsmodels/get-r-dataset')
         target.add_node('read-get', qual_name='Dataset.__getattribute__',
-                        slot='data')
+                        annotation='python/statsmodels/dataset', slot='data')
         target.add_node('ols', qual_name='Model.from_formula',
                         annotation='python/statsmodels/ols-from-formula')
         target.add_node('fit', qual_name='RegressionModel.fit',
