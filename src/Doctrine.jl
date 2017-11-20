@@ -189,16 +189,16 @@ end
 
 # GraphML support.
 function GraphML.convert_from_graphml_data(::Type{Monocl.Ob}, data::Dict)
-  parse_json_sexpr(Monocl, data["expr"]; symbols=false)
+  parse_json_sexpr(Monocl, data["ob"]; symbols=false)
 end
 function GraphML.convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
-  parse_json_sexpr(Monocl, data["expr"]; symbols=false)
+  parse_json_sexpr(Monocl, data["hom"]; symbols=false)
 end
 function GraphML.convert_to_graphml_data(expr::Monocl.Ob)
-  Dict("expr" => to_json_sexpr(expr))
+  Dict("ob" => to_json_sexpr(expr))
 end
 function GraphML.convert_to_graphml_data(expr::Monocl.Hom)
-  Dict("expr" => to_json_sexpr(expr))
+  Dict("hom" => to_json_sexpr(expr))
 end
 
 # Graphviz support.

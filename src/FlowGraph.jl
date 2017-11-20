@@ -1,5 +1,5 @@
 module FlowGraph
-export MonoclElem, RawNode, RawPort, RawWire, RawNodeAnnotationKind,
+export MonoclElem, RawNode, RawPort, RawNodeAnnotationKind,
   read_raw_graph, read_raw_graph_file,
   read_semantic_graph, read_semantic_graph_file, to_semantic_graph
 
@@ -39,11 +39,6 @@ end
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Nullable{String} = Nullable{String}()
   annotation_index::Nullable{Int} = Nullable()
-  value::Nullable = Nullable()
-end
-
-@with_kw struct RawWire
-  language::Dict{String,Any} = Dict{String,Any}()
   id::Nullable{String} = Nullable{String}()
   value::Nullable = Nullable()
 end
@@ -51,7 +46,7 @@ end
 """ Read raw flow graph from GraphML.
 """
 function read_raw_graph(xdoc::LightXML.XMLDocument)
-  GraphML.read_graphml(RawNode, RawPort, RawWire, xdoc)
+  GraphML.read_graphml(RawNode, RawPort, Void, xdoc)
 end
 read_raw_graph(xml::String) = read_raw_graph(LightXML.parse_string(xml))
 read_raw_graph_file(args...) = read_raw_graph(LightXML.parse_file(args...))
@@ -68,15 +63,9 @@ end
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
   annotation_index = Nullable{Int}(pop!(data, "annotation_index", nothing))
-  value = pop!(data, "value", Nullable())
-  RawPort(data, annotation, annotation_index, value)
-end
-
-function GraphML.convert_from_graphml_data(::Type{RawWire}, data::Dict)
-  pop!(data, "annotation", nothing) # Get object annotation from port, not wire.
   id = Nullable{String}(pop!(data, "id", nothing))
   value = pop!(data, "value", Nullable())
-  RawWire(data, id, value)
+  RawPort(data, annotation, annotation_index, id, value)
 end
 
 # Semantic flow graph
@@ -85,16 +74,35 @@ end
 """ Object in the Monocl category of elements.
 """
 @auto_hash_equals struct MonoclElem
+  ob::Nullable{Monocl.Ob}
   id::Nullable{String}
   value::Nullable
 end
-MonoclElem(; id=Nullable{String}(), value=Nullable()) = MonoclElem(id, value)
+MonoclElem(ob; id=Nullable{String}(), value=Nullable()) = MonoclElem(ob, id, value)
+
+function GraphML.convert_from_graphml_data(::Type{MonoclElem}, data::Dict)
+  ob = haskey(data, "ob") ?
+    parse_json_sexpr(Monocl, data["ob"]; symbols=false) : nothing
+  id = get(data, "id", nothing)
+  value = get(data, "value", Nullable())
+  MonoclElem(ob, id, value)
+end
+
+function GraphML.convert_to_graphml_data(elem::MonoclElem)
+  data = Dict{String,Any}()
+  if (!isnull(elem.ob)) data["ob"] = to_json_sexpr(get(elem.ob)) end
+  if (!isnull(elem.id)) data["id"] = get(elem.id) end
+  if (!isnull(elem.value)) data["value"] = get(elem.value) end
+  return data
+end
 
 """ Read semantic flow graph from GraphML.
 """
 function read_semantic_graph(xdoc::LightXML.XMLDocument; elements::Bool=true)
-  Wire = elements ? MonoclElem : Void
-  GraphML.read_graphml(Nullable{Monocl.Hom}, Nullable{Monocl.Ob}, Wire, xdoc)
+  GraphML.read_graphml(
+    Nullable{Monocl.Hom},
+    !elements ? Nullable{Monocl.Ob} : MonoclElem,
+    Void, xdoc)
 end
 function read_semantic_graph(xml::String; kw...)
   read_semantic_graph(LightXML.parse_string(xml); kw...)
@@ -125,11 +133,11 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram;
   end
   
   # Add wires.
-  for wire in wires(raw)
-    raw_wire = wire.value::RawWire
-    elem = elements ? MonoclElem(raw_wire.id, raw_wire.value) : nothing
-    add_wire!(sem, Wire(elem, wire.source, wire.target))
-  end
+  # FIXME: If a raw box expands to a semantic box that is missing a port with
+  # incoming or outoging wires in the raw graph (e.g., when an unannotated
+  # keyword argument is passed), this logic will fail. We should detect this
+  # situation and either raise an informative error or discard the wire.
+  add_wires!(sem, wires(raw))
   
   # Perform deferred substitutions (see above).
   substitute!(sem, to_substitute)
