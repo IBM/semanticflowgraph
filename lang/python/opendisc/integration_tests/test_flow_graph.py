@@ -102,6 +102,25 @@ class IntegrationTestFlowGraph(unittest.TestCase):
                         annotation='python/pandas/data-frame')
         self.assert_isomorphic(graph, target)
     
+    def test_scipy_clustering_kmeans(self):
+        """ K-means clustering on the Iris data using NumPy and SciPy.
+        """
+        graph = self.trace_script("scipy_clustering_kmeans")
+        graph.remove_node(graph.graph['output_node'])
+
+        target = new_flow_graph()
+        target.remove_node(target.graph['output_node'])
+        target.add_node('read', qual_name='genfromtxt',
+                        annotation='python/numpy/genfromtxt')
+        target.add_node('delete', qual_name='delete')
+        target.add_node('kmeans', qual_name='kmeans2',
+                        annotation='python/scipy/kmeans2')
+        target.add_edge('read', 'delete', annotation='python/numpy/ndarray',
+                        sourceport='__return__', targetport='arr')
+        target.add_edge('delete', 'kmeans', annotation='python/numpy/ndarray',
+                        sourceport='__return__', targetport='data')
+        self.assert_isomorphic(graph, target)
+    
     def test_sklearn_clustering_kmeans(self):
         """ K-means clustering on the Iris dataset using sklearn.
         """
