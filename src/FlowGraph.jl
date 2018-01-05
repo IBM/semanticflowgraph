@@ -43,6 +43,8 @@ end
   value::Nullable = Nullable()
 end
 
+# GraphML support.
+
 """ Read raw flow graph from GraphML.
 """
 function read_raw_graph(xdoc::LightXML.XMLDocument)
@@ -68,6 +70,19 @@ function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
   RawPort(data, annotation, annotation_index, id, value)
 end
 
+# Graphviz support.
+
+function GraphvizWiring.node_label(node::RawNode)
+  # FIXME: "qual_name" is Python-specific. Standarize some of these attributes?
+  lang = node.language
+  get(lang, "qual_name", get(lang, "name", "?"))
+end
+
+function GraphvizWiring.edge_label(port::RawPort)
+  lang = port.language
+  get(lang, "qual_name", get(lang, "name", ""))
+end
+
 # Semantic flow graph
 #####################
 
@@ -79,6 +94,23 @@ end
   value::Nullable
 end
 MonoclElem(ob; id=Nullable{String}(), value=Nullable()) = MonoclElem(ob, id, value)
+
+# GraphML support.
+
+""" Read semantic flow graph from GraphML.
+"""
+function read_semantic_graph(xdoc::LightXML.XMLDocument; elements::Bool=true)
+  GraphML.read_graphml(
+    Nullable{Monocl.Hom},
+    !elements ? Nullable{Monocl.Ob} : MonoclElem,
+    Void, xdoc)
+end
+function read_semantic_graph(xml::String; kw...)
+  read_semantic_graph(LightXML.parse_string(xml); kw...)
+end
+function read_semantic_graph_file(args...; kw...)
+  read_semantic_graph(LightXML.parse_file(args...); kw...)
+end
 
 function GraphML.convert_from_graphml_data(::Type{MonoclElem}, data::Dict)
   ob = haskey(data, "ob") ?
@@ -96,20 +128,7 @@ function GraphML.convert_to_graphml_data(elem::MonoclElem)
   return data
 end
 
-""" Read semantic flow graph from GraphML.
-"""
-function read_semantic_graph(xdoc::LightXML.XMLDocument; elements::Bool=true)
-  GraphML.read_graphml(
-    Nullable{Monocl.Hom},
-    !elements ? Nullable{Monocl.Ob} : MonoclElem,
-    Void, xdoc)
-end
-function read_semantic_graph(xml::String; kw...)
-  read_semantic_graph(LightXML.parse_string(xml); kw...)
-end
-function read_semantic_graph_file(args...; kw...)
-  read_semantic_graph(LightXML.parse_file(args...); kw...)
-end
+# Semantic enrichment algorithm.
 
 """ Convert a raw flow graph into a semantic flow graph.
 """
