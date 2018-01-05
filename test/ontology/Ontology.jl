@@ -1,8 +1,11 @@
 module TestOntology
 using Base.Test
 
-@testset "Ontology" begin
+@testset "JSON" begin
   include("OntologyJSON.jl")
+end
+
+@testset "Database" begin
   include("OntologyDBs.jl")
 end
 

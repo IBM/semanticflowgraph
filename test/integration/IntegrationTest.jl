@@ -1,8 +1,11 @@
 module IntegrationTest
 using Base.Test
 
-@testset "Integration.FlowGraph" begin
-  include("FlowGraph.jl")
+@testset "FlowGraphs" begin
+  include("FlowGraphs.jl")
+end
+@testset "SemanticEnrichment" begin
+  include("SemanticEnrichment.jl")
 end
 
 end

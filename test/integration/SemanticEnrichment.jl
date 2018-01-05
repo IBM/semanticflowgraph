@@ -1,8 +1,7 @@
-module TestFlowGraph
+module TestSemanticEnrichment
 using Base.Test
 
 using Catlab.Diagram
-import Catlab.Diagram: GraphML
 using OpenDiscCore
 
 const pkg_dir = abspath(joinpath(@__DIR__, "..", ".."))
@@ -10,31 +9,8 @@ const py_raw_graph_dir = joinpath(pkg_dir,
   "lang", "python", "opendisc", "integration_tests", "data")
 const semantic_graph_dir = joinpath(@__DIR__, "data")
 
-# Raw flow graph
-################
-
-function read_py_raw_graph(name::String)
-  read_raw_graph_file(joinpath(py_raw_graph_dir, "$name.xml"))
-end
-
-# Deserialize raw flow graph from GraphML.
-diagram = read_py_raw_graph("pandas_read_sql")
-@test nboxes(diagram) == 2
-b1, b2 = boxes(diagram)
-@test isnull(b1.value.annotation)
-@test get(b2.value.annotation) == "python/pandas/read-sql-table"
-@test [ get(p.annotation) for p in output_ports(b1) ] ==
-  [ "python/sqlalchemy/engine" ]
-@test [ get(p.annotation) for p in input_ports(b2)[1:2] ] ==
-  [ "python/builtins/str", "python/sqlalchemy/engine" ]
-@test [ get(p.annotation) for p in output_ports(b2) ] ==
-  [ "python/pandas/data-frame" ]
-
-# Semantic flow graph
-#####################
-
 function create_py_semantic_graph(db::OntologyDB, name::String; kw...)
-  raw_graph = read_py_raw_graph(name)
+  raw_graph = read_raw_graph_file(joinpath(py_raw_graph_dir, "$name.xml"))
   semantic_graph = to_semantic_graph(db, raw_graph; kw...)
   open(joinpath(semantic_graph_dir, "$name.xml"), "w") do io
     print(io, write_graphml(semantic_graph))
@@ -56,7 +32,7 @@ read = add_box!(d, concept(db, "read-table"))
 add_wires!(d, [
   (engine, 1) => (cons, 1),
   (cons, 1) => (read, 1),
-  (read, 1) => (output_id(diagram), 1),
+  (read, 1) => (output_id(d), 1),
 ])
 @test semantic == d
 

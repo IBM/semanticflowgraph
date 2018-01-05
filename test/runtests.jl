@@ -4,10 +4,14 @@ using Base.Test
   include("Doctrine.jl")
 end
 
-include("ontology/Ontology.jl")
-
-@testset "FlowGraph" begin
-  include("FlowGraph.jl")
+@testset "Ontology" begin
+  include("ontology/Ontology.jl")
 end
 
-include("integration/IntegrationTest.jl")
+@testset "SemanticEnrichment" begin
+  include("SemanticEnrichment.jl")
+end
+
+@testset "IntegrationTest" begin
+  include("integration/IntegrationTest.jl")
+end

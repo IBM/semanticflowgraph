@@ -1,11 +1,8 @@
-module TestFlowGraph
+module TestSemanticEnrichment
 using Base.Test
 
 using Catlab.Diagram
 using OpenDiscCore
-
-# Semantic flow graph
-#####################
 
 const db_filename = joinpath(@__DIR__, "ontology", "data", "employee.json")
 db = OntologyDB()
@@ -48,12 +45,10 @@ manager = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
 dept = add_raw_box!(f, "employee-department", [("employee",1)], [("department",1)])
 first_name = add_raw_box!(f, [("employee",1)], [("str",1)],
                           annotation="$prefix/employee",
-                          annotation_index=1,
-                          annotation_kind=FlowGraph.SlotAnnotation)
+                          annotation_index=1, annotation_kind=SlotAnnotation)
 last_name = add_raw_box!(f, [("employee",1)], [("str",1)],
                          annotation="$prefix/employee",
-                         annotation_index=2,
-                         annotation_kind=FlowGraph.SlotAnnotation)
+                         annotation_index=2, annotation_kind=SlotAnnotation)
 add_wires!(f, [
   (input_id(f), 1) => (manager, 1),
   (manager, 1) => (dept, 1),

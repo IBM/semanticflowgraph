@@ -5,10 +5,12 @@ using Reexport
 
 include("Doctrine.jl")
 include("ontology/Ontology.jl")
-include("FlowGraph.jl")
+include("FlowGraphs.jl")
+include("SemanticEnrichment.jl")
 
 @reexport using .Doctrine
 @reexport using .Ontology
-@reexport using .FlowGraph
+@reexport using .FlowGraphs
+@reexport using .SemanticEnrichment
 
 end
