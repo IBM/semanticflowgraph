@@ -176,7 +176,7 @@ module CouchDB
   """ CouchDB endpoint: /{db}/{docid}
   """
   function get(url::String, db::String, doc_id::String)
-    response = HTTP.get("$url/$db/$(HTTP.escape(doc_id))")
+    response = HTTP.get("$url/$db/$(HTTP.escapeuri(doc_id))")
     JSON.parse(response.body)
   end
 
