@@ -177,7 +177,7 @@ module CouchDB
   """
   function get(url::String, db::String, doc_id::String)
     response = HTTP.get("$url/$db/$(HTTP.escapeuri(doc_id))")
-    JSON.parse(response.body)
+    JSON.parse(String(response.body))
   end
 
   """ CouchDB endpoint: /{db}/_find
@@ -188,7 +188,7 @@ module CouchDB
     body = JSON.json(request)
     
     response = HTTP.post("$url/$db/_find", body=body)   
-    body = JSON.parse(response.body)
+    body = JSON.parse(String(response.body))
     body["docs"]
   end
   
