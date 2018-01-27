@@ -39,14 +39,14 @@ add_wires!(d, [
 # K-means clustering on the Iris dataset using sklearn.
 semantic = create_py_semantic_graph(db, "sklearn_clustering_kmeans"; elements=false)
 d = WiringDiagram([], concepts(db, ["array"]))
-filename = add_box!(d, construct(concept(db, "filename")))
+file = add_box!(d, construct(pair(concepts(db, ["tabular-file", "filename"])...)))
 read = add_box!(d, concept(db, "read-tabular-file"))
 kmeans = add_box!(d, construct(concept(db, "k-means")))
 transform = add_box!(d, Box(concepts(db, ["table"]), concepts(db, ["array"])))
 fit = add_box!(d, concept(db, "fit"))
 clusters = add_box!(d, concept(db, "clustering-model-clusters"))
 add_wires!(d, [
-  (filename, 1) => (read, 1),
+  (file, 1) => (read, 1),
   (read, 1) => (transform, 1),
   (kmeans, 1) => (fit, 1),
   (transform, 1) => (fit, 2),
@@ -89,7 +89,7 @@ add_wires!(d, [
 # Errors metrics for linear regression using sklearn.
 semantic = create_py_semantic_graph(db, "sklearn_regression_metrics"; elements=false)
 d = WiringDiagram([], [])
-filename = add_box!(d, construct(concept(db, "filename")))
+file = add_box!(d, construct(pair(concepts(db, ["tabular-file", "filename"])...)))
 data_x = add_box!(d, Box(concepts(db, ["table"]), concepts(db, ["table"])))
 data_y = add_box!(d, Box(concepts(db, ["table"]), concepts(db, ["column"])))
 ols = add_box!(d, construct(concept(db, "least-squares")))
@@ -99,7 +99,7 @@ error_l1 = add_box!(d, concept(db, "mean-absolute-error"))
 error_l2 = add_box!(d, concept(db, "mean-squared-error"))
 read = add_box!(d, concept(db, "read-tabular-file"))
 add_wires!(d, [
-  (filename, 1) => (read, 1),
+  (file, 1) => (read, 1),
   (read, 1) => (data_x, 1),
   (read, 1) => (data_y, 1),
   (ols, 1) => (fit, 1),
