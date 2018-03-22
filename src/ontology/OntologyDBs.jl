@@ -185,9 +185,10 @@ module CouchDB
   function find(url::String, db::String, selector::Associative; kwargs...)
     request = Dict{Symbol,Any}(:selector => selector)
     merge!(request, Dict(kwargs))
+    headers = Dict("Content-Type" => "application/json")
     body = JSON.json(request)
     
-    response = HTTP.post("$url/$db/_find", body=body)   
+    response = HTTP.post("$url/$db/_find", headers=headers, body=body)
     body = JSON.parse(String(response.body))
     body["docs"]
   end
