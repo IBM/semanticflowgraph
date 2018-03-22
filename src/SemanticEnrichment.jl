@@ -115,12 +115,12 @@ function collapse_unannotated_boxes!(diagram::WiringDiagram)
   nonboxes = (input_id(diagram), output_id(diagram))
   is_annotated(v::Int) = !(v in nonboxes) && box(diagram,v).value != nothing
   is_unannotated(v::Int) = !(v in nonboxes) && box(diagram,v).value == nothing
-  annotated_ancestors(v::Int) = filter(is_annotated, in_neighbors(closure, v))
-  annotated_descendants(v::Int) = filter(is_annotated, out_neighbors(closure, v))
+  annotated_ancestors(v::Int) = filter(is_annotated, inneighbors(closure, v))
+  annotated_descendants(v::Int) = filter(is_annotated, outneighbors(closure, v))
 
   to_collapse = Graph(nv(graph))
   for parent in 1:nv(graph)
-    for child in out_neighbors(graph, parent)
+    for child in outneighbors(graph, parent)
       if (is_unannotated(parent) && is_unannotated(child) &&
           all(has_edge(closure, u, v)
               for (u,v) in product(annotated_ancestors(child),
