@@ -114,7 +114,7 @@ function load_concepts(db::OntologyDB; ids=nothing, ontology=nothing)
   if ids != nothing
     query["id"] = Dict("\$in" => collect(ids))
   end
-  docs = CouchDB.find(db.config[:database_url], db.config[:database_name], query)
+  docs = CouchDB.find(db, query)
   load_documents(db, docs)
 end
 
@@ -129,7 +129,7 @@ function load_concept(db::OntologyDB, id::String; ontology=nothing)
     ontology = db.config[:ontology]
   end
   doc_id = "concept/$ontology/$id"
-  doc = CouchDB.get(db.config[:database_url], db.config[:database_name], doc_id)
+  doc = CouchDB.get(db, doc_id)
   if get(doc, "error", nothing) == "not_found"
     throw(OntologyError("No concept named '$id'"))
   end
@@ -147,7 +147,7 @@ function load_annotations(db::OntologyDB; language=nothing, package=nothing)
   if package != nothing
     query["package"] = package
   end
-  docs = CouchDB.find(db.config[:database_url], db.config[:database_name], query)
+  docs = CouchDB.find(db, query)
   load_documents(db, docs)
 end
 
@@ -159,7 +159,7 @@ function load_annotation(db::OntologyDB, id)::Annotation
   end
   
   doc_id = annotation_document_id(id)
-  doc = CouchDB.get(db.config[:database_url], db.config[:database_name], doc_id)
+  doc = CouchDB.get(db, doc_id)
   if get(doc, "error", nothing) == "not_found"
     throw(OntologyError("No annotation named '$id'"))
   end
@@ -172,6 +172,7 @@ end
 
 module CouchDB
   import JSON, HTTP
+  using ..OntologyDBs: OntologyDB
 
   """ CouchDB endpoint: /{db}/{docid}
   """
@@ -191,6 +192,14 @@ module CouchDB
     response = HTTP.post("$url/$db/_find", headers=headers, body=body)
     body = JSON.parse(String(response.body))
     body["docs"]
+  end
+
+  # Convenience methods to call CouchDB endpoints using ontology DB.
+  function get(db::OntologyDB, doc_id::String)
+    get(db.config[:database_url], db.config[:database_name], doc_id)
+  end
+  function find(db::OntologyDB, selector::Associative; kwargs...)
+    find(db.config[:database_url], db.config[:database_name], selector; kwargs...)
   end
   
 end
