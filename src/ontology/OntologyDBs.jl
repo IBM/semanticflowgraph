@@ -1,6 +1,7 @@
 module OntologyDBs
 export OntologyDB, OntologyError,
-  concept, concepts, has_concept, annotation, annotations, has_annotation,
+  concept, concept_document, concepts, has_concept,
+  annotation, annotation_document, annotations, has_annotation,
   load_concept, load_concepts, load_annotation, load_annotations,
   load_ontology_file
 
@@ -25,13 +26,15 @@ const default_config = Dict(
 mutable struct OntologyDB
   config::Dict{Symbol,Any}
   concepts::Presentation
+  concept_docs::OrderedDict{String,Associative}
   annotations::OrderedDict{String,Annotation}
+  annotation_docs::OrderedDict{String,Associative}
   
-  function OntologyDB(config::Dict{Symbol,Any})
-    new(config, Presentation(String), OrderedDict{String,Annotation}())
+  function OntologyDB(config)
+    new(config, Presentation(String), OrderedDict(), OrderedDict(), OrderedDict())
   end
 end
-OntologyDB(; kw...) = OntologyDB(merge(default_config, Dict{Symbol,Any}(kw)))
+OntologyDB(; kw...) = OntologyDB(merge(default_config, Dict(kw)))
 
 struct OntologyError <: Exception
   message::String
@@ -47,6 +50,7 @@ function concept(db::OntologyDB, id::String)
   generator(db.concepts, id)
 end
 
+concept_document(db::OntologyDB, id::String) = db.concept_docs[id]
 has_concept(db::OntologyDB, id::String) = has_generator(db.concepts, id)
 
 concepts(db::OntologyDB) = db.concepts
@@ -58,6 +62,10 @@ function annotation(db::OntologyDB, id)
     throw(OntologyError("No annotation named '$id'"))
   end
   db.annotations[doc_id]
+end
+
+function annotation_document(db::OntologyDB, id)
+  db.annotation_docs[annotation_document_id(id)]
 end
 
 function has_annotation(db::OntologyDB, id)
@@ -82,11 +90,13 @@ end
 function load_documents(db::OntologyDB, docs)
   concept_docs = filter(doc -> doc["schema"] == "concept", docs)
   merge_presentation!(db.concepts, presentation_from_json(concept_docs))
+  merge!(db.concept_docs, OrderedDict(doc["id"] => doc for doc in concept_docs))
   
   annotation_docs = filter(doc -> doc["schema"] == "annotation", docs)
   load_reference = id -> load_concept(db, id)
   for doc in annotation_docs
     db.annotations[doc["_id"]] = annotation_from_json(doc, load_reference)
+    db.annotation_docs[doc["_id"]] = doc
   end
 end
 
@@ -114,8 +124,7 @@ function load_concepts(db::OntologyDB; ids=nothing, ontology=nothing)
   if ids != nothing
     query["id"] = Dict("\$in" => collect(ids))
   end
-  docs = CouchDB.find(db, query)
-  load_documents(db, docs)
+  load_documents(db, CouchDB.find(db, query))
 end
 
 """ Load single concept from remote database, if it's not already loaded.
@@ -147,8 +156,7 @@ function load_annotations(db::OntologyDB; language=nothing, package=nothing)
   if package != nothing
     query["package"] = package
   end
-  docs = CouchDB.find(db, query)
-  load_documents(db, docs)
+  load_documents(db, CouchDB.find(db, query))
 end
 
 """ Load single annotation from remote database, if it's not already loaded.
@@ -172,7 +180,6 @@ end
 
 module CouchDB
   import JSON, HTTP
-  using ..OntologyDBs: OntologyDB
 
   """ CouchDB endpoint: /{db}/{docid}
   """
@@ -193,15 +200,17 @@ module CouchDB
     body = JSON.parse(String(response.body))
     body["docs"]
   end
+end
 
-  # Convenience methods to call CouchDB endpoints using ontology DB.
-  function get(db::OntologyDB, doc_id::String)
-    get(db.config[:database_url], db.config[:database_name], doc_id)
-  end
-  function find(db::OntologyDB, selector::Associative; kwargs...)
-    find(db.config[:database_url], db.config[:database_name], selector; kwargs...)
-  end
-  
+
+function CouchDB.get(db::OntologyDB, doc_id::String)
+  conf = db.config
+  CouchDB.get(conf[:database_url], conf[:database_name], doc_id)
+end
+
+function CouchDB.find(db::OntologyDB, selector::Associative; kwargs...)
+  conf = db.config
+  CouchDB.find(conf[:database_url], conf[:database_name], selector; kwargs...)
 end
 
 end
