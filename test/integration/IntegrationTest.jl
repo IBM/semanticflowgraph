@@ -1,11 +1,8 @@
 module IntegrationTest
 using Base.Test
 
-@testset "FlowGraphs" begin
-  include("FlowGraphs.jl")
-end
-@testset "SemanticEnrichment" begin
-  include("SemanticEnrichment.jl")
+@testset "PyFlowGraphs" begin
+  include("PyFlowGraphs.jl")
 end
 
 end
