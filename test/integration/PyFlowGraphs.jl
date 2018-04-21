@@ -69,7 +69,35 @@ add_wires!(d, [
 ])
 @test semantic == d
 
-# K-means clustering on the Iris dataset using sklearn.
+# K-means clustering on the Iris dataset using NumPy and SciPy.
+# FIXME: The boxes are added to `d` in the exact order of `semantic`. That
+# won't be necessary when we implement graph isomorphism for wiring diagrams.
+semantic = create_py_semantic_graph(db, "scipy_clustering_kmeans"; elements=false)
+kmeans_fit = Hom("fit",
+  otimes(concept(db, "k-means"), concept(db, "data")),
+  concept(db, "k-means"))
+d = WiringDiagram([], concepts(db, ["array","array"]))
+clusters = add_box!(d, concept(db, "clustering-model-clusters"))
+transform = add_box!(d, Box(concepts(db, ["array"]), concepts(db, ["array"])))
+kmeans = add_box!(d, construct(pair(concepts(db,
+  ["k-means", "clustering-model-n-clusters"])...)))
+read = add_box!(d, concept(db, "read-tabular-file"))
+file = add_box!(d, construct(pair(concepts(db, ["tabular-file", "filename"])...)))
+fit = add_box!(d, kmeans_fit)
+centroids = add_box!(d, concept(db, "k-means-centroids"))
+add_wires!(d, [
+  (file, 1) => (read, 1),
+  (read, 1) => (transform, 1),
+  (kmeans, 1) => (fit, 1),
+  (transform, 1) => (fit, 2),
+  (fit, 1) => (clusters, 1),
+  (fit, 1) => (centroids, 1),
+  (clusters, 1) => (output_id(d), 2),
+  (centroids, 1) => (output_id(d), 1),
+])
+@test semantic == d
+
+# K-means clustering on the Iris dataset using pandas and scikit-learn.
 semantic = create_py_semantic_graph(db, "sklearn_clustering_kmeans"; elements=false)
 d = WiringDiagram([], concepts(db, ["array"]))
 file = add_box!(d, construct(pair(concepts(db, ["tabular-file", "filename"])...)))
@@ -89,8 +117,7 @@ add_wires!(d, [
 @test semantic == d
 
 # Compare sklearn clustering models using a cluster similarity metric.
-# FIXME: The boxes are added to `d` in the exact order of `semantic`. That
-# won't be necessary when we implement graph isomorphism for wiring diagrams.
+# FIXME: Box order, as mentioned above.
 semantic = create_py_semantic_graph(db, "sklearn_clustering_metrics"; elements=false)
 clustering_fit = Hom("fit",
   otimes(concept(db, "clustering-model"), concept(db, "data")),
