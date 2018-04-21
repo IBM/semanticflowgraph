@@ -17,7 +17,7 @@
 module RawFlowGraphs
 export RawNode, RawPort, RawNodeAnnotationKind,
   FunctionAnnotation, ConstructAnnotation, SlotAnnotation,
-  read_raw_graph, read_raw_graph_file
+  read_raw_graph, read_raw_graph_file, rem_unused_ports
 
 using AutoHashEquals, Parameters
 import LightXML
@@ -49,6 +49,31 @@ end
   annotation_index::Nullable{Int} = Nullable()
   id::Nullable{String} = Nullable{String}()
   value::Nullable = Nullable()
+end
+
+# Generic visualization.
+
+""" Remove input and output ports with no connecting wires.
+
+This simplification is practically necessary to visualize raw flow graphs
+because scientific computing functions often have dozens of keyword arguments
+(which manifest as input ports).
+"""
+function rem_unused_ports(diagram::WiringDiagram)
+  # FIXME: Does this function belong here?
+  result = WiringDiagram(input_ports(diagram), output_ports(diagram))
+  for v in box_ids(diagram)
+    # Note: To ensure that port numbers on wires remain valid, we only remove 
+    # unused ports beyond the last used port.
+    b = box(diagram, v)
+    last_used_input = maximum([0; [wire.target.port for wire in in_wires(diagram, v)]])
+    last_used_output = maximum([0; [wire.source.port for wire in out_wires(diagram, v)]])
+    unused_inputs = input_ports(b)[1:last_used_input]
+    unused_outputs = output_ports(b)[1:last_used_output]
+    @assert add_box!(result, Box(b.value, unused_inputs, unused_outputs)) == v
+  end
+  add_wires!(result, wires(diagram))
+  result
 end
 
 # GraphML support.
