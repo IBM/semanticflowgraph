@@ -104,16 +104,21 @@ function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
 end
 
 # Graphviz support.
+# FIXME: These methods use language-specific attributes. Perhaps there should
+# be some standardization across languages.
 
 function GraphvizWiring.node_label(node::RawNode)
-  # FIXME: "qual_name" is Python-specific. Standarize some of these attributes?
   lang = node.language
-  get(lang, "qual_name", get(lang, "name", "?"))
+  get(lang, "qual_name") do # Python
+  get(lang, "function") do  # R
+  "?" end end
 end
 
 function GraphvizWiring.edge_label(port::RawPort)
   lang = port.language
-  get(lang, "qual_name", get(lang, "name", ""))
+  get(lang, "qual_name") do # Python
+  get(lang, "class") do     # R
+  "" end end
 end
 
 end
