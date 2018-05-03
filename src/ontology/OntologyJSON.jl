@@ -38,10 +38,14 @@ end
 """ Add object from JSON document to presentation.
 """
 function add_ob_generator_from_json!(pres::Presentation, doc::Associative)
+  # Add object generator.
   ob = Ob(Monocl, doc["id"])
   add_generator!(pres, ob)
   
-  for super_name in get(doc, "subconcept", [])
+  # Add sub-object generators.
+  names = get(doc, "is-a", [])
+  names = isa(names, AbstractString) ? [ names ] : names
+  for super_name in names
     super_ob = Ob(Monocl, super_name)
     add_generator!(pres, SubOb(ob, super_ob))
   end
@@ -50,10 +54,12 @@ end
 """ Add morphism from JSON document to presentation.
 """
 function add_hom_generator_from_json!(pres::Presentation, doc::Associative)
+  # Add morphism generator.
   dom_ob = domain_ob_from_json(pres, doc["domain"])
   codom_ob = domain_ob_from_json(pres, doc["codomain"])
   hom = Hom(doc["id"], dom_ob, codom_ob)
   add_generator!(pres, hom)
+  # TODO: Add sub-morphism generators.
 end
 
 function domain_ob_from_json(pres::Presentation, docs)::Monocl.Ob

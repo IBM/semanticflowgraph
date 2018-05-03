@@ -47,7 +47,7 @@ const docs = [
   concept(
     "kind" => "object",
     "id" => "A0",
-    "subconcept" => ["A"],
+    "is-a" => "A",
   ),
   concept(
     "kind" => "morphism",

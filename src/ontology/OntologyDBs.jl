@@ -29,7 +29,6 @@ using ..Ontology
 const default_config = Dict(
   :database_url => "https://d393c3b5-9979-4183-98f4-7537a5de15f5-bluemix.cloudant.com",
   :database_name => "data-science-ontology",
-  :ontology => "data-science",
 )
 
 # Data types
@@ -130,11 +129,8 @@ end
 
 """ Load concepts in ontology from remote database.
 """
-function load_concepts(db::OntologyDB; ids=nothing, ontology=nothing)
-  if ontology == nothing
-    ontology = db.config[:ontology]
-  end
-  query = Dict{String,Any}("schema" => "concept", "ontology" => ontology)
+function load_concepts(db::OntologyDB; ids=nothing)
+  query = Dict{String,Any}("schema" => "concept")
   if ids != nothing
     query["id"] = Dict("\$in" => collect(ids))
   end
@@ -143,15 +139,11 @@ end
 
 """ Load single concept from remote database, if it's not already loaded.
 """
-function load_concept(db::OntologyDB, id::String; ontology=nothing)
+function load_concept(db::OntologyDB, id::String)
   if has_concept(db, id)
     return concept(db, id)
   end
-  
-  if ontology == nothing
-    ontology = db.config[:ontology]
-  end
-  doc_id = "concept/$ontology/$id"
+  doc_id = "concept/$id"
   doc = CouchDB.get(db, doc_id)
   if get(doc, "error", nothing) == "not_found"
     throw(OntologyError("No concept named '$id'"))

@@ -2,7 +2,6 @@
   {
     "_id": "concept/person",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "object",
     "id": "person",
     "name": "Person"
@@ -10,31 +9,24 @@
   {
     "_id": "concept/employee",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "object",
     "id": "employee",
     "name": "Employee",
     "description": "Employee of an organization",
-    "subobject": [
-      "person"
-    ]
+    "is-a": "person"
   },
   {
     "_id": "concept/manager",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "object",
     "id": "manager",
     "name": "Manager",
     "description": "Employee who manages other employees",
-    "subobject": [
-      "employee"
-    ]
+    "is-a": "employee"
   },
   {
     "_id": "concept/department",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "object",
     "id": "department",
     "name": "Department",
@@ -43,7 +35,6 @@
   {
     "_id": "concept/string",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "object",
     "id": "string",
     "name": "String",
@@ -52,7 +43,6 @@
   {
     "_id": "concept/number",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "object",
     "id": "number",
     "name": "Number",
@@ -61,7 +51,6 @@
   {
     "_id": "concept/person-first-name",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "morphism",
     "id": "person-first-name",
     "name": "first name",
@@ -80,7 +69,6 @@
   {
     "_id": "concept/person-last-name",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "morphism",
     "id": "person-last-name",
     "name": "last name",
@@ -99,7 +87,6 @@
   {
     "_id": "concept/employee-salary",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "morphism",
     "id": "employee-salary",
     "name": "salary",
@@ -118,7 +105,6 @@
   {
     "_id": "concept/works-in",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "morphism",
     "id": "works-in",
     "name": "works in",
@@ -137,7 +123,6 @@
   {
     "_id": "concept/reports-to",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "morphism",
     "id": "reports-to",
     "name": "reports to",
@@ -156,7 +141,6 @@
   {
     "_id": "concept/department-secretary",
     "schema": "concept",
-    "ontology": "employee",
     "kind": "morphism",
     "id": "department-secretary",
     "name": "secretary",
