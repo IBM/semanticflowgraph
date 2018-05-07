@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module TestSemanticEnrichment
+module TestPyFlowGraphs
 using Base.Test
 
 using Catlab.Diagram
 using OpenDiscCore
+import ..IntegrationTest: db
 
 const py_pkg_dir = dirname(chomp(readstring(
   `python -c "import opendisc; print(opendisc.__file__)"`)))
@@ -45,15 +46,11 @@ b1, b2 = boxes(diagram)
 function create_py_semantic_graph(db::OntologyDB, name::String; kw...)
   raw_graph = read_raw_graph_file(joinpath(py_raw_graph_dir, "$name.xml"))
   semantic_graph = to_semantic_graph(db, raw_graph; kw...)
-  open(joinpath(semantic_graph_dir, "$name.xml"), "w") do io
+  open(joinpath(semantic_graph_dir, "py_$name.xml"), "w") do io
     print(io, write_graphml(semantic_graph))
   end
   semantic_graph
 end
-
-# Load all concepts in the ontology at the outset.
-db = OntologyDB()
-load_concepts(db)
 
 # Read SQL table using pandas and SQLAlchemy.
 semantic = create_py_semantic_graph(db, "pandas_read_sql"; elements=false)

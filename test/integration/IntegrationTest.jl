@@ -15,8 +15,18 @@
 module IntegrationTest
 using Base.Test
 
+using OpenDiscCore
+
+# Load all concepts in the ontology at the outset.
+const db = OntologyDB()
+load_concepts(db)
+
+# Run integration tests.
 @testset "PyFlowGraphs" begin
   include("PyFlowGraphs.jl")
+end
+@testset "RFlowGraphs" begin
+  include("RFlowGraphs.jl")
 end
 
 end
