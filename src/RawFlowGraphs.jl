@@ -17,7 +17,7 @@
 module RawFlowGraphs
 export RawNode, RawPort, RawNodeAnnotationKind,
   FunctionAnnotation, ConstructAnnotation, SlotAnnotation,
-  read_raw_graph, read_raw_graph_file, rem_unused_ports
+  read_raw_graph, read_raw_graph_file, rem_literals!, rem_unused_ports
 
 using AutoHashEquals, Parameters
 import LightXML
@@ -51,7 +51,22 @@ end
   value::Nullable = Nullable()
 end
 
-# Generic visualization.
+# Graph pre-processing.
+# FIXME: Do these functions belong here?
+
+""" Remove literals from raw flow graph.
+
+Removes all nodes that are literal value constructors. (Currently, such nodes
+occur in raw flow graphs for R, but not Python.)
+"""
+function rem_literals!(d::WiringDiagram)
+  literals = filter(box_ids(d)) do v
+    kind = get(box(d,v).value.language, "kind", "function")
+    kind == "literal"
+  end
+  rem_boxes!(d, literals)
+  d
+end
 
 """ Remove input and output ports with no connecting wires.
 
@@ -60,7 +75,6 @@ because scientific computing functions often have dozens of keyword arguments
 (which manifest as input ports).
 """
 function rem_unused_ports(diagram::WiringDiagram)
-  # FIXME: Does this function belong here?
   result = WiringDiagram(input_ports(diagram), output_ports(diagram))
   for v in box_ids(diagram)
     # Note: To ensure that port numbers on wires remain valid, we only remove 
