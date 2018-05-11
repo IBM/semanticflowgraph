@@ -17,10 +17,9 @@
 module RawFlowGraphs
 export RawNode, RawPort, RawNodeAnnotationKind,
   FunctionAnnotation, ConstructAnnotation, SlotAnnotation,
-  read_raw_graph, read_raw_graph_file, rem_literals!, rem_unused_ports
+  read_raw_graph, rem_literals!, rem_unused_ports
 
 using AutoHashEquals, Parameters
-import LightXML
 
 using Catlab.Diagram
 
@@ -94,11 +93,9 @@ end
 
 """ Read raw flow graph from GraphML.
 """
-function read_raw_graph(xdoc::LightXML.XMLDocument)
-  GraphML.read_graphml(RawNode, RawPort, Void, xdoc)
+function read_raw_graph(xml)
+  GraphML.read_graphml(RawNode, RawPort, Void, xml)
 end
-read_raw_graph(xml::String) = read_raw_graph(LightXML.parse_string(xml))
-read_raw_graph_file(args...) = read_raw_graph(LightXML.parse_file(args...))
 
 function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))

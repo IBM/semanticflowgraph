@@ -27,7 +27,7 @@ const semantic_graph_dir = joinpath(@__DIR__, "data")
 ################
 
 function read_r_flow_graph(name::String)
-  raw_graph = read_raw_graph_file(joinpath(r_raw_graph_dir, "$name.xml"))
+  raw_graph = read_raw_graph(joinpath(r_raw_graph_dir, "$name.xml"))
   rem_literals!(raw_graph)
 end
 
@@ -37,9 +37,7 @@ end
 function create_r_semantic_graph(db::OntologyDB, name::String; kw...)
   raw_graph = read_r_flow_graph(name)
   semantic_graph = to_semantic_graph(db, raw_graph; kw...)
-  open(joinpath(semantic_graph_dir, "r_$name.xml"), "w") do io
-    print(io, write_graphml(semantic_graph))
-  end
+  write_graphml(semantic_graph, joinpath(semantic_graph_dir, "r_$name.xml"))
   semantic_graph
 end
 

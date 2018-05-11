@@ -28,7 +28,7 @@ const semantic_graph_dir = joinpath(@__DIR__, "data")
 ################
 
 # Deserialize Python raw flow graph from GraphML.
-diagram = read_raw_graph_file(joinpath(py_raw_graph_dir, "pandas_read_sql.xml"))
+diagram = read_raw_graph(joinpath(py_raw_graph_dir, "pandas_read_sql.xml"))
 @test nboxes(diagram) == 2
 b1, b2 = boxes(diagram)
 @test isnull(b1.value.annotation)
@@ -44,11 +44,9 @@ b1, b2 = boxes(diagram)
 #####################
 
 function create_py_semantic_graph(db::OntologyDB, name::String; kw...)
-  raw_graph = read_raw_graph_file(joinpath(py_raw_graph_dir, "$name.xml"))
+  raw_graph = read_raw_graph(joinpath(py_raw_graph_dir, "$name.xml"))
   semantic_graph = to_semantic_graph(db, raw_graph; kw...)
-  open(joinpath(semantic_graph_dir, "py_$name.xml"), "w") do io
-    print(io, write_graphml(semantic_graph))
-  end
+  write_graphml(semantic_graph, joinpath(semantic_graph_dir, "py_$name.xml"))
   semantic_graph
 end
 

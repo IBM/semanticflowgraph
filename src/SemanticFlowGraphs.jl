@@ -15,10 +15,9 @@
 """ Datatypes and IO for semantic flow graphs.
 """
 module SemanticFlowGraphs
-export MonoclElem, read_semantic_graph, read_semantic_graph_file
+export MonoclElem, read_semantic_graph
 
 using AutoHashEquals
-import LightXML
 
 using Catlab.Diagram
 using ..Doctrine
@@ -36,17 +35,11 @@ MonoclElem(ob; id=Nullable{String}(), value=Nullable()) = MonoclElem(ob, id, val
 
 """ Read semantic flow graph from GraphML.
 """
-function read_semantic_graph(xdoc::LightXML.XMLDocument; elements::Bool=true)
+function read_semantic_graph(xml; elements::Bool=true)
   GraphML.read_graphml(
     Nullable{Monocl.Hom},
     !elements ? Nullable{Monocl.Ob} : MonoclElem,
-    Void, xdoc)
-end
-function read_semantic_graph(xml::String; kw...)
-  read_semantic_graph(LightXML.parse_string(xml); kw...)
-end
-function read_semantic_graph_file(args...; kw...)
-  read_semantic_graph(LightXML.parse_file(args...); kw...)
+    Void, xml)
 end
 
 function GraphML.convert_from_graphml_data(::Type{MonoclElem}, data::Dict)
