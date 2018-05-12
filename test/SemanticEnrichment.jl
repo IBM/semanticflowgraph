@@ -30,8 +30,9 @@ raw_box(inputs, outputs; kw...) =
   Box(RawNode(; kw...), raw_ports(inputs), raw_ports(outputs))
 raw_box(name::String, inputs, outputs) =
   Box(RawNode(annotation="$prefix/$name"), raw_ports(inputs), raw_ports(outputs))
-raw_ports(n::Int) = [ RawPort() for i in 1:n ]
-raw_ports(xs::Vector) = [ raw_port(x) for x in xs ]
+raw_ports(n::Int) = RawPort[ RawPort() for i in 1:n ]
+raw_ports(xs::Vector) = RawPort[ raw_port(x) for x in xs ]
+raw_port(::Void) = RawPort()
 raw_port(name::String) = RawPort(annotation="$prefix/$name")
 raw_port(name::String, index::Int) =
   RawPort(annotation="$prefix/$name", annotation_index=index)
@@ -90,7 +91,7 @@ add_wires!(target, [
 ])
 @test actual == target
 
-# Collapse two unannotated nodes.
+# Collapse adjacent unannotated boxes.
 f = WiringDiagram(raw_ports(1), raw_ports(1))
 u = add_raw_box!(f, 1, 1)
 v = add_raw_box!(f, 1, 1)
@@ -105,6 +106,28 @@ v = add_box!(target, Box(nothing, [nothing], [nothing]))
 add_wires!(target, [
   (input_id(target), 1) => (v,1),
   (v,1) => (output_id(target), 1),
+])
+@test actual == target
+
+# Don't collapse adjacent unannotated boxes with an intermediate annotated box.
+f = WiringDiagram(raw_ports(0), raw_ports(0))
+u = add_raw_box!(f, [], [nothing, "employee"])
+manager = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
+v = add_raw_box!(f, [nothing, "employee"], [])
+add_wires!(f, [
+  (u,1) => (v,1),
+  (u,2) => (manager,1),
+  (manager,1) => (v,2),
+])
+actual = to_semantic_graph(db, f; elements=false)
+target = WiringDiagram([], [])
+u = add_box!(target, Box(nothing, [], [nothing, concept(db,"employee")]))
+manager = add_box!(target, concept(db,"reports-to"))
+v = add_box!(target, Box(nothing, [nothing, concept(db,"employee")], []))
+add_wires!(target, [
+  (u,1) => (v,1),
+  (u,2) => (manager,1),
+  (manager,1) => (v,2),
 ])
 @test actual == target
 
