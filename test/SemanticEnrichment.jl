@@ -38,7 +38,7 @@ raw_port(name::String, index::Int) =
   RawPort(annotation="$prefix/$name", annotation_index=index)
 raw_port(args::Tuple) = raw_port(args...)
 
-# Expand single annotated node.
+# Expand single annotated box.
 f = WiringDiagram(raw_ports(["employee"]), raw_ports(["employee"]))
 v = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
 add_wires!(f, [
@@ -112,8 +112,8 @@ add_wires!(target, [
 # Don't collapse adjacent unannotated boxes with an intermediate annotated box.
 f = WiringDiagram(raw_ports(0), raw_ports(0))
 u = add_raw_box!(f, [], [nothing, "employee"])
-manager = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
 v = add_raw_box!(f, [nothing, "employee"], [])
+manager = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
 add_wires!(f, [
   (u,1) => (v,1),
   (u,2) => (manager,1),
@@ -122,12 +122,36 @@ add_wires!(f, [
 actual = to_semantic_graph(db, f; elements=false)
 target = WiringDiagram([], [])
 u = add_box!(target, Box(nothing, [], [nothing, concept(db,"employee")]))
-manager = add_box!(target, concept(db,"reports-to"))
 v = add_box!(target, Box(nothing, [nothing, concept(db,"employee")], []))
+reports_to = add_box!(target, concept(db,"reports-to"))
 add_wires!(target, [
   (u,1) => (v,1),
+  (u,2) => (reports_to,1),
+  (reports_to,1) => (v,2),
+])
+@test actual == target
+
+# Don't assume that collapsibility is a transitive relation.
+f = WiringDiagram(raw_ports(0), raw_ports(0))
+u = add_raw_box!(f, [], [nothing, "employee"])
+v = add_raw_box!(f, 1, 1)
+w = add_raw_box!(f, [nothing, "employee"], [])
+manager = add_raw_box!(f, "manager", [("employee",1)], [("employee",1)])
+add_wires!(f, [
+  (u,1) => (v,1),
+  (v,1) => (w,1),
   (u,2) => (manager,1),
-  (manager,1) => (v,2),
+  (manager,1) => (w,2),
+])
+actual = to_semantic_graph(db, f; elements=false)
+target = WiringDiagram([], [])
+reports_to = add_box!(target, concept(db,"reports-to"))
+u = add_box!(target, Box(nothing, [], [concept(db,"employee"), nothing]))
+v = add_box!(target, Box(nothing, [nothing, concept(db,"employee")], []))
+add_wires!(target, [
+  (u,2) => (v,1),
+  (u,1) => (reports_to,1),
+  (reports_to,1) => (v,2),
 ])
 @test actual == target
 

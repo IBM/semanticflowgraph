@@ -18,7 +18,7 @@ module SemanticEnrichment
 export to_semantic_graph
 
 using Base.Iterators: product
-using LightGraphs
+using LightGraphs, MetaGraphs
 
 using Catlab.Diagram
 using ..Doctrine
@@ -123,33 +123,100 @@ end
 """ Collapse adjacent unannotated boxes into single boxes.
 """
 function collapse_unannotated_boxes!(diagram::WiringDiagram)
-  graph = Wiring.graph(diagram)
-  closure = transitiveclosure(graph)
-  
-  nonboxes = (input_id(diagram), output_id(diagram))
-  is_annotated(v::Int) = !(v in nonboxes) && box(diagram,v).value != nothing
-  is_unannotated(v::Int) = !(v in nonboxes) && box(diagram,v).value == nothing
-  annotated_ancestors(v::Int) = filter(is_annotated, inneighbors(closure, v))
-  annotated_descendants(v::Int) = filter(is_annotated, outneighbors(closure, v))
+  unannotated = filter(box_ids(diagram)) do v
+    box(diagram,v).value == nothing
+  end
+  groups = group_blank_vertices(graph(diagram), unannotated)
 
-  to_collapse = Graph(nv(graph))
-  for parent in 1:nv(graph)
-    for child in outneighbors(graph, parent)
-      if (is_unannotated(parent) && is_unannotated(child) &&
-          all(has_edge(closure, u, v)
-              for (u,v) in product(annotated_ancestors(child),
-                                   annotated_descendants(parent))))
-        add_edge!(to_collapse, parent, child)
+  # Encapsulate groups of unannotated boxes.
+  # Include groups of size 1 because encapsulation will simplify the ports.
+  encapsulate!(diagram, groups, nothing)
+  return diagram
+end
+
+""" Group adjacent blank vertices of a directed graph.
+"""
+function group_blank_vertices(graph::SimpleDiGraph, blank::Vector{Int})::Vector{Vector{Int}}
+  # Create transitive closure of graph.
+  closure = transitiveclosure(graph)
+  has_path(u::Int, v::Int) = has_edge(closure, u, v)
+  ancestors(v::Int) = inneighbors(closure, v)
+  descendants(v::Int) = outneighbors(closure, v)
+  
+  # Initialize groups as singletons.
+  graph = MetaDiGraph(graph)
+  for v in blank
+    set_prop!(graph, v, :vertices, [v])
+  end
+  get_group(v::Int) = get_prop(graph, v, :vertices)
+  is_blank(v::Int) = has_prop(graph, v, :vertices)
+  not_blank(v::Int) = !is_blank(v)
+
+  # Definition: Two adjacent blank vertices are mergeable if there are paths
+  # from every non-blank ancestor of the child blank vertex to every non-blank
+  # descendant of the parent blank vertex.
+  function is_mergable(u::Int, v::Int)
+    if !(is_blank(u) && is_blank(v))
+      return false
+    end
+    if has_edge(graph, u, v)
+      parent, child = u, v
+    elseif has_edge(graph, v, u)
+      parent, child = v, u
+    else
+      return false
+    end
+    all(has_path(u,v) for (u,v) in
+        product(filter(not_blank, ancestors(child)),
+                filter(not_blank, descendants(parent))))
+  end
+  function merge_blank!(u::Int, v::Int)
+    append!(get_group(min(u,v)), get_group(max(u,v)))
+    merge_vertices_directed!(graph, [u,v])
+    merge_vertices_directed!(closure, [u,v])
+  end
+
+  # Merge pairs of mergable vertices until there are no more mergable pairs.
+  # The loop maintains the invariant that no two vertices less than the current
+  # one are mergable.
+  v = 1
+  while v <= nv(graph)
+    merged = false
+    for u in all_neighbors(graph, v)
+      if u > v && is_mergable(u, v)
+        merge_blank!(u, v)
+        merged = true
+        break
       end
     end
+    v += !merged
   end
-  
-  # Encapsulate connected sub-diagrams of unannotated boxes. Include even
-  # components of size 1 because encapsulation will simplify the ports.
-  components = [ c for c in connected_components(to_collapse)
-                 if length(c) > 1 || is_unannotated(first(c)) ]
-  encapsulate!(diagram, components, nothing)
-  return diagram
+
+  Vector{Int}[ get_group(v) for v in vertices(graph) if is_blank(v) ]
+end
+
+""" Merge the vertices into a single vertex, preserving edges.
+
+Note: LightGraphs.merge_vertices! only supports undirected graphs.
+"""
+function merge_vertices_directed!(graph::AbstractGraph, vs::Vector{Int})
+  @assert is_directed(graph)
+  vs = sort(vs, rev=true)
+  v0 = vs[end]
+  for v in vs[1:end-1]
+    for u in inneighbors(graph, v)
+      if !(u in vs)
+        add_edge!(graph, u, v0)
+      end
+    end
+    for u in outneighbors(graph, v)
+      if !(u in vs)
+        add_edge!(graph, v0, u)
+      end
+    end
+    rem_vertex!(graph, v)
+  end
+  v0
 end
 
 end
