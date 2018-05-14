@@ -55,11 +55,10 @@ clusters = add_box!(d, concept(db, "clustering-model-clusters"))
 fit = add_box!(d, Hom("fit",
   otimes(concept(db, "k-means"), concept(db, "data")),
   concept(db, "k-means")))
-transform = add_box!(d, Box(concepts(db, ["table","table"]), concepts(db, ["table"])))
+transform = add_box!(d, Box(concepts(db, ["table"]), concepts(db, ["table"])))
 add_wires!(d, [
   (file, 1) => (read, 1),
   (read, 1) => (transform, 1),
-  (read, 1) => (transform, 2),
   (kmeans, 1) => (fit, 1),
   (transform, 1) => (fit, 2),
   (fit, 1) => (clusters, 1),
