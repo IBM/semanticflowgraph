@@ -123,13 +123,14 @@ end
 """ Collapse adjacent unannotated boxes into single boxes.
 """
 function collapse_unannotated_boxes!(diagram::WiringDiagram)
+  # Find maximal groups of unannotated boxes.
   unannotated = filter(box_ids(diagram)) do v
     box(diagram,v).value == nothing
   end
   groups = group_blank_vertices(graph(diagram), unannotated)
 
-  # Encapsulate groups of unannotated boxes.
-  # Include groups of size 1 because encapsulation will simplify the ports.
+  # Encapsulate the groups, including groups of size 1 because encapsulation
+  # will simplify the ports.
   encapsulate!(diagram, groups, nothing)
   return diagram
 end
@@ -152,23 +153,25 @@ function group_blank_vertices(graph::SimpleDiGraph, blank::Vector{Int})::Vector{
   is_blank(v::Int) = has_prop(graph, v, :vertices)
   not_blank(v::Int) = !is_blank(v)
 
-  # Definition: Two adjacent blank vertices are mergeable if there are paths
-  # from every non-blank ancestor of the child blank vertex to every non-blank
-  # descendant of the parent blank vertex.
+  # Definition: Two adjacent blank vertices are mergeable if their merger
+  # does not introduce any new dependencies between non-blank vertices.
+  # That is, if there is no directed path from non-blank vertex `v1` to
+  # non-blank vertex `v2` before merging, there will not be one afterwards.
+  #
+  # This criterion holds iff it's *not* the case that
+  #   there exists a non-blank ancestor of the child that isn't an ancestor of
+  #   the parent and a non-blank descendant of the parent isn't a descendant of
+  #   the child
+  # (because if there was, merging would create a new dependency) iff
+  #   each non-blank ancestor of the child is also an ancestor of the parent, or
+  #   each non-blank descendant of the parent is also a descendent of the child.
   function is_mergable(u::Int, v::Int)
-    if !(is_blank(u) && is_blank(v))
-      return false
-    end
-    if has_edge(graph, u, v)
-      parent, child = u, v
-    elseif has_edge(graph, v, u)
-      parent, child = v, u
-    else
-      return false
-    end
-    all(has_path(u,v) for (u,v) in
-        product(filter(not_blank, ancestors(child)),
-                filter(not_blank, descendants(parent))))
+    (is_blank(u) && is_blank(v)) || return false
+    parent, child = if has_edge(graph, u, v); (u, v)
+      elseif has_edge(graph, v, u); (v, u)
+      else return false end
+    all(has_path(v, parent) for v in filter(not_blank, ancestors(child))) ||
+      all(has_path(child, v) for v in filter(not_blank, descendants(parent)))
   end
   function merge_blank!(u::Int, v::Int)
     append!(get_group(min(u,v)), get_group(max(u,v)))
