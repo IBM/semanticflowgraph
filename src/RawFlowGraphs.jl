@@ -120,16 +120,19 @@ end
 
 function GraphvizWiring.node_label(node::RawNode)
   lang = node.language
-  get(lang, "qual_name") do # Python
-  get(lang, "function") do  # R
-  "?" end end
+  get_first(lang, ["qual_name", "function"], "?")
 end
 
 function GraphvizWiring.edge_label(port::RawPort)
   lang = port.language
-  get(lang, "qual_name") do # Python
-  get(lang, "class") do     # R
-  "" end end
+  get_first(lang, ["qual_name", "class"], "")
+end
+
+function get_first(collection, keys, default)
+  if isempty(keys); return default end
+  get(collection, splice!(keys, 1)) do
+    get_first(collection, keys, default)
+  end
 end
 
 end
