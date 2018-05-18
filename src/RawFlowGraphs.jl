@@ -120,7 +120,7 @@ end
 
 function GraphvizWiring.node_label(node::RawNode)
   lang = node.language
-  get_first(lang, ["qual_name", "function"], "?")
+  get_first(lang, ["qual_name", "function", "kind"], "?")
 end
 
 function GraphvizWiring.edge_label(port::RawPort)
