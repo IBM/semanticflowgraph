@@ -42,12 +42,27 @@ end
   annotation_kind::RawNodeAnnotationKind = FunctionAnnotation
 end
 
+function Base.:(==)(n1::RawNode, n2::RawNode)
+  n1.language == n2.language &&
+  isequal(n1.annotation, n2.annotation) &&
+  isequal(n1.annotation_index, n2.annotation_index) &&
+  n1.annotation_kind == n2.annotation_kind
+end
+
 @with_kw struct RawPort
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Nullable{String} = Nullable{String}()
   annotation_index::Nullable{Int} = Nullable()
   id::Nullable{String} = Nullable{String}()
   value::Nullable = Nullable()
+end
+
+function Base.:(==)(p1::RawPort, p2::RawPort)
+  p1.language == p2.language &&
+  isequal(p1.annotation, p2.annotation) &&
+  isequal(p1.annotation_index, p2.annotation_index) &&
+  isequal(p1.id, p2.id) &&
+  isequal(p1.value, p2.value)
 end
 
 # Graph pre-processing.
