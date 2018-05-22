@@ -53,7 +53,6 @@ end
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Nullable{String} = Nullable{String}()
   annotation_index::Nullable{Int} = Nullable()
-  id::Nullable{String} = Nullable{String}()
   value::Nullable = Nullable()
 end
 
@@ -61,7 +60,6 @@ function Base.:(==)(p1::RawPort, p2::RawPort)
   p1.language == p2.language &&
   isequal(p1.annotation, p2.annotation) &&
   isequal(p1.annotation_index, p2.annotation_index) &&
-  isequal(p1.id, p2.id) &&
   isequal(p1.value, p2.value)
 end
 
@@ -124,9 +122,8 @@ end
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
   annotation = Nullable{String}(pop!(data, "annotation", nothing))
   annotation_index = Nullable{Int}(pop!(data, "annotation_index", nothing))
-  id = Nullable{String}(pop!(data, "id", nothing))
   value = pop!(data, "value", Nullable())
-  RawPort(data, annotation, annotation_index, id, value)
+  RawPort(data, annotation, annotation_index, value)
 end
 
 # Graphviz support.

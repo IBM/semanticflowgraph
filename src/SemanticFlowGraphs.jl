@@ -22,14 +22,13 @@ using AutoHashEquals
 using Catlab.Diagram
 using ..Doctrine
 
-""" Object in the Monocl category of elements.
+""" Object in Monocl's category of elements.
 """
 @auto_hash_equals struct MonoclElem
   ob::Nullable{Monocl.Ob}
-  id::Nullable{String}
   value::Nullable
+  MonoclElem(ob, value=Nullable()) = new(ob, value)
 end
-MonoclElem(ob; id=Nullable{String}(), value=Nullable()) = MonoclElem(ob, id, value)
 
 # GraphML support.
 
@@ -45,15 +44,13 @@ end
 function GraphML.convert_from_graphml_data(::Type{MonoclElem}, data::Dict)
   ob = haskey(data, "ob") ?
     parse_json_sexpr(Monocl, data["ob"]; symbols=false) : nothing
-  id = get(data, "id", nothing)
   value = get(data, "value", Nullable())
-  MonoclElem(ob, id, value)
+  MonoclElem(ob, value)
 end
 
 function GraphML.convert_to_graphml_data(elem::MonoclElem)
   data = Dict{String,Any}()
   if (!isnull(elem.ob)) data["ob"] = to_json_sexpr(get(elem.ob)) end
-  if (!isnull(elem.id)) data["id"] = get(elem.id) end
   if (!isnull(elem.value)) data["value"] = get(elem.value) end
   return data
 end
