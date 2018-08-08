@@ -22,7 +22,7 @@ using OpenDiscCore
 ############
 
 # Load concepts.
-db = OntologyDB(; ontology="foobar")
+db = OntologyDB()
 @test !has_concept(db, "foo")
 @test_throws OntologyError concept(db, "foo")
 load_ontology_file(db, joinpath(@__DIR__, "data", "foobar.json"))
@@ -46,6 +46,7 @@ db = OntologyDB()
 @test isa(load_concept(db, "fit"), Monocl.Hom)
 @test isa(concept(db, "fit"), Monocl.Hom)
 @test isa(concept_document(db, "model"), Associative)
+@test_throws OntologyError load_concept(db, "xxx")
 
 # Load many concepts.
 @test !has_concept(db, "data-source")
@@ -66,6 +67,9 @@ df_id = AnnotationID("python", "pandas", "data-frame")
 @test has_annotation(db, df_id)
 @test annotation(db, df_id) == annotation(db, "python/pandas/data-frame")
 @test annotation(db, df_id) == annotation(db, "annotation/python/pandas/data-frame")
+
+bad_id = AnnotationID("python", "pandas", "xxx")
+@test_throws OntologyError load_annotation(db, bad_id)
 
 # Load all annotations in a package.
 series_id = AnnotationID("python", "pandas", "series")

@@ -20,16 +20,12 @@ export OntologyDB, OntologyError,
   load_ontology_file
 
 using DataStructures: OrderedDict
-import JSON
+import JSON, HTTP
 
 using Catlab
 using ..Ontology
 
-# FIXME: This default configuration should not be hard-coded here.
-const default_config = Dict(
-  :database_url => "https://d393c3b5-9979-4183-98f4-7537a5de15f5-bluemix.cloudant.com",
-  :database_name => "data-science-ontology",
-)
+const api_url_default = "https://api.datascienceontology.org"
 
 # Data types
 ############
@@ -37,17 +33,17 @@ const default_config = Dict(
 """ Ontology database, containing concepts and annotations.
 """
 mutable struct OntologyDB
-  config::Dict{Symbol,Any}
+  api_url::String
   concepts::Presentation
   concept_docs::OrderedDict{String,Associative}
   annotations::OrderedDict{String,Annotation}
   annotation_docs::OrderedDict{String,Associative}
   
-  function OntologyDB(config)
-    new(config, Presentation(String), OrderedDict(), OrderedDict(), OrderedDict())
+  function OntologyDB(api_url)
+    new(api_url, Presentation(String), OrderedDict(), OrderedDict(), OrderedDict())
   end
 end
-OntologyDB(; kw...) = OntologyDB(merge(default_config, Dict(kw)))
+OntologyDB() = OntologyDB(api_url_default)
 
 struct OntologyError <: Exception
   message::String
@@ -130,11 +126,13 @@ end
 """ Load concepts in ontology from remote database.
 """
 function load_concepts(db::OntologyDB; ids=nothing)
-  query = Dict{String,Any}("schema" => "concept")
+  # XXX: This loads all the concepts, then filters them on the client-side.
+  # It would be better to extend the REST API with server-side filtering.
+  docs = api_get(db, "/concepts")
   if ids != nothing
-    query["id"] = Dict("\$in" => collect(ids))
+    docs = filter(doc -> doc["id"] in ids, docs)
   end
-  load_documents(db, CouchDB.find(db, query))
+  load_documents(db, docs)
 end
 
 """ Load single concept from remote database, if it's not already loaded.
@@ -143,10 +141,13 @@ function load_concept(db::OntologyDB, id::String)
   if has_concept(db, id)
     return concept(db, id)
   end
-  doc_id = "concept/$id"
-  doc = CouchDB.get(db, doc_id)
-  if get(doc, "error", nothing) == "not_found"
-    throw(OntologyError("No concept named '$id'"))
+  doc = try
+    api_get(db, "/concept/$id")
+  catch err
+    if isa(err, HTTP.StatusError) && err.status == 404
+      throw(OntologyError("No concept named '$id'"))
+    end
+    rethrow()
   end
   load_documents(db, [doc])
   concept(db, id)
@@ -155,14 +156,14 @@ end
 """ Load annotations in ontology from remote database.
 """
 function load_annotations(db::OntologyDB; language=nothing, package=nothing)
-  query = Dict{String,Any}("schema" => "annotation")
-  if language != nothing
-    query["language"] = language
+  endpoint = if language == nothing
+    "/annotations"
+  elseif package == nothing
+    "/annotations/$language"
+  else
+    "/annotations/$language/$package"
   end
-  if package != nothing
-    query["package"] = package
-  end
-  load_documents(db, CouchDB.find(db, query))
+  load_documents(db, api_get(db, endpoint))
 end
 
 """ Load single annotation from remote database, if it's not already loaded.
@@ -171,52 +172,26 @@ function load_annotation(db::OntologyDB, id)::Annotation
   if has_annotation(db, id)
     return annotation(db, id)
   end
-  
-  doc_id = annotation_document_id(id)
-  doc = CouchDB.get(db, doc_id)
-  if get(doc, "error", nothing) == "not_found"
-    throw(OntologyError("No annotation named '$id'"))
+  doc = try
+    api_get(db, "/$(annotation_document_id(id))")
+  catch err
+    if isa(err, HTTP.StatusError) && err.status == 404
+      throw(OntologyError("No annotation named '$id'"))
+    end
+    rethrow()
   end
   load_documents(db, [doc])
   annotation(db, id)
 end
 
-# CouchDB client
-################
+# REST API client
+#################
 
-module CouchDB
-  import JSON, HTTP
-
-  """ CouchDB endpoint: /{db}/{docid}
-  """
-  function get(url::String, db::String, doc_id::String)
-    response = HTTP.get("$url/$db/$(HTTP.escapeuri(doc_id))")
-    JSON.parse(String(response.body))
-  end
-
-  """ CouchDB endpoint: /{db}/_find
-  """
-  function find(url::String, db::String, selector::Associative; kwargs...)
-    request = Dict{Symbol,Any}(:selector => selector)
-    merge!(request, Dict(kwargs))
-    headers = Dict("Content-Type" => "application/json")
-    body = JSON.json(request)
-    
-    response = HTTP.post("$url/$db/_find", headers=headers, body=body)
-    body = JSON.parse(String(response.body))
-    body["docs"]
-  end
+function api_get(api_url::String, endpoint::String)
+  response = HTTP.get(string(api_url, endpoint))
+  JSON.parse(String(response.body))
 end
 
-
-function CouchDB.get(db::OntologyDB, doc_id::String)
-  conf = db.config
-  CouchDB.get(conf[:database_url], conf[:database_name], doc_id)
-end
-
-function CouchDB.find(db::OntologyDB, selector::Associative; kwargs...)
-  conf = db.config
-  CouchDB.find(conf[:database_url], conf[:database_name], selector; kwargs...)
-end
+api_get(db::OntologyDB, endpoint::String) = api_get(db.api_url, endpoint)
 
 end
