@@ -16,7 +16,7 @@ module TestOntologyDBs
 using Base.Test
 
 using Catlab
-using OpenDiscCore
+using SemanticFlowGraphs
 
 # Local file
 ############

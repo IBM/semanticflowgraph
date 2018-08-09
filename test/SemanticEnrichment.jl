@@ -16,7 +16,7 @@ module TestSemanticEnrichment
 using Base.Test
 
 using Catlab.Diagram
-using OpenDiscCore
+using SemanticFlowGraphs
 
 const db_filename = joinpath(@__DIR__, "ontology", "data", "employee.json")
 db = OntologyDB()

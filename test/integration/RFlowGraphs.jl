@@ -16,10 +16,10 @@ module TestRFlowGraphs
 using Base.Test
 
 using Catlab.Diagram
-using OpenDiscCore
+using SemanticFlowGraphs
 import ..IntegrationTest: db
 
-const r_pkg_dir = readstring(`Rscript -e 'cat(find.package("opendisc"))'`)
+const r_pkg_dir = readstring(`Rscript -e 'cat(find.package("flowgraph"))'`)
 const r_raw_graph_dir = joinpath(r_pkg_dir, "tests", "testthat", "data")
 const semantic_graph_dir = joinpath(@__DIR__, "data")
 

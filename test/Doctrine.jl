@@ -18,7 +18,7 @@ using Base.Test
 using Catlab
 using Catlab.Diagram
 import Catlab.Diagram: Graphviz
-using OpenDiscCore.Doctrine
+using SemanticFlowGraphs.Doctrine
 
 # Monocl category
 #################

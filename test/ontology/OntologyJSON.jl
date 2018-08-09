@@ -16,7 +16,7 @@ module TestOntologyJSON
 using Base.Test
 
 using Catlab
-using OpenDiscCore
+using SemanticFlowGraphs
 
 # Concepts
 ##########

@@ -15,7 +15,7 @@
 module IntegrationTest
 using Base.Test
 
-using OpenDiscCore
+using SemanticFlowGraphs
 
 # Load all concepts in the ontology at the outset.
 const db = OntologyDB()

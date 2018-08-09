@@ -16,11 +16,11 @@ module TestPyFlowGraphs
 using Base.Test
 
 using Catlab.Diagram
-using OpenDiscCore
+using SemanticFlowGraphs
 import ..IntegrationTest: db
 
 const py_pkg_dir = dirname(chomp(readstring(
-  `python -c "import opendisc; print(opendisc.__file__)"`)))
+  `python -c "import flowgraph; print(flowgraph.__file__)"`)))
 const py_raw_graph_dir = joinpath(py_pkg_dir, "integration_tests", "data")
 const semantic_graph_dir = joinpath(@__DIR__, "data")
 
