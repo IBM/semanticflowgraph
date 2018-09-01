@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module TestOntologyDBs
-using Base.Test
+using Test
 
 using Catlab
 using SemanticFlowGraphs
@@ -45,7 +45,7 @@ db = OntologyDB()
 @test isa(concept(db, "model"), Monocl.Ob)
 @test isa(load_concept(db, "fit"), Monocl.Hom)
 @test isa(concept(db, "fit"), Monocl.Hom)
-@test isa(concept_document(db, "model"), Associative)
+@test isa(concept_document(db, "model"), AbstractDict)
 @test_throws OntologyError load_concept(db, "xxx")
 
 # Load many concepts.
@@ -63,7 +63,7 @@ df_id = AnnotationID("python", "pandas", "data-frame")
 @test_throws OntologyError annotation(db, df_id)
 @test isa(load_annotation(db, df_id), ObAnnotation)
 @test isa(annotation(db, df_id), ObAnnotation)
-@test isa(annotation_document(db, df_id), Associative)
+@test isa(annotation_document(db, df_id), AbstractDict)
 @test has_annotation(db, df_id)
 @test annotation(db, df_id) == annotation(db, "python/pandas/data-frame")
 @test annotation(db, df_id) == annotation(db, "annotation/python/pandas/data-frame")

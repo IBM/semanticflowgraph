@@ -18,6 +18,8 @@ module SemanticEnrichment
 export to_semantic_graph
 
 using Base.Iterators: product
+using Nullables
+
 using LightGraphs, MetaGraphs
 
 using Catlab.Diagram

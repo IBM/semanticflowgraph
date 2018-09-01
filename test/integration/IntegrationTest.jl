@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module IntegrationTest
-using Base.Test
+using Test
 
 using SemanticFlowGraphs
 

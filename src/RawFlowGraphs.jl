@@ -20,6 +20,7 @@ export RawNode, RawPort, RawNodeAnnotationKind,
   read_raw_graph, rem_literals!, rem_unused_ports
 
 using AutoHashEquals, Parameters
+using Nullables
 
 using Catlab.Diagram
 
@@ -107,24 +108,26 @@ end
 """ Read raw flow graph from GraphML.
 """
 function read_raw_graph(xml)
-  GraphML.read_graphml(RawNode, RawPort, Void, xml)
+  GraphML.read_graphml(RawNode, RawPort, Nothing, xml)
 end
 
 function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
-  annotation = Nullable{String}(pop!(data, "annotation", nothing))
-  annotation_index = Nullable{Int}(pop!(data, "annotation_index", nothing))
-  annotation_kind_str = Nullable{String}(pop!(data, "annotation_kind", nothing))
+  annotation = to_nullable(String, pop!(data, "annotation", nothing))
+  annotation_index = to_nullable(Int, pop!(data, "annotation_index", nothing))
+  annotation_kind_str = to_nullable(String, pop!(data, "annotation_kind", nothing))
   annotation_kind = isnull(annotation_kind_str) ? FunctionAnnotation :
     convert(RawNodeAnnotationKind, get(annotation_kind_str))
   RawNode(data, annotation, annotation_index, annotation_kind)
 end
 
 function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
-  annotation = Nullable{String}(pop!(data, "annotation", nothing))
-  annotation_index = Nullable{Int}(pop!(data, "annotation_index", nothing))
-  value = pop!(data, "value", Nullable())
+  annotation = to_nullable(String, pop!(data, "annotation", nothing))
+  annotation_index = to_nullable(Int, pop!(data, "annotation_index", nothing))
+  value = to_nullable(Any, pop!(data, "value", nothing))
   RawPort(data, annotation, annotation_index, value)
 end
+
+to_nullable(T::Type, x) = x == nothing ? Nullable{T}() : Nullable{T}(x)
 
 # Graphviz support.
 # FIXME: These methods use language-specific attributes. Perhaps there should

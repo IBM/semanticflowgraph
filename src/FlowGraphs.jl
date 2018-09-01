@@ -18,6 +18,7 @@ module FlowGraphs
 export MonoclElem, read_semantic_graph
 
 using AutoHashEquals
+using Nullables
 
 using Catlab.Diagram
 using ..Doctrine
@@ -38,7 +39,7 @@ function read_semantic_graph(xml; elements::Bool=true)
   GraphML.read_graphml(
     Nullable{Monocl.Hom},
     !elements ? Nullable{Monocl.Ob} : MonoclElem,
-    Void, xml)
+    Nothing, xml)
 end
 
 function GraphML.convert_from_graphml_data(::Type{MonoclElem}, data::Dict)

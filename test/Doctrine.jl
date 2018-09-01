@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module TestDoctrine
-using Base.Test
+using Test
 
 using Catlab
 using Catlab.Diagram

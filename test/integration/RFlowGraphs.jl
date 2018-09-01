@@ -13,13 +13,13 @@
 # limitations under the License.
 
 module TestRFlowGraphs
-using Base.Test
+using Test
 
 using Catlab.Diagram
 using SemanticFlowGraphs
 import ..IntegrationTest: db
 
-const r_pkg_dir = readstring(`Rscript -e 'cat(find.package("flowgraph"))'`)
+const r_pkg_dir = read(`Rscript -e 'cat(find.package("flowgraph"))'`, String)
 const r_raw_graph_dir = joinpath(r_pkg_dir, "tests", "testthat", "data")
 const semantic_graph_dir = joinpath(@__DIR__, "data")
 
@@ -48,7 +48,7 @@ semantic = create_r_semantic_graph(db, "clustering_kmeans"; elements=false)
 d = WiringDiagram([], [])
 kmeans = add_box!(d, construct(pair(concepts(db,
   ["k-means", "clustering-model-n-clusters"])...)))
-read = add_box!(d, concept(db, "read-tabular-file"))
+read_file = add_box!(d, concept(db, "read-tabular-file"))
 file = add_box!(d, construct(pair(concepts(db, ["tabular-file", "filename"])...)))
 centroids = add_box!(d, concept(db, "k-means-centroids"))
 clusters = add_box!(d, concept(db, "clustering-model-clusters"))
@@ -57,8 +57,8 @@ fit = add_box!(d, Hom("fit",
   concept(db, "k-means")))
 transform = add_box!(d, Box(concepts(db, ["table"]), concepts(db, ["table"])))
 add_wires!(d, [
-  (file, 1) => (read, 1),
-  (read, 1) => (transform, 1),
+  (file, 1) => (read_file, 1),
+  (read_file, 1) => (transform, 1),
   (kmeans, 1) => (fit, 1),
   (transform, 1) => (fit, 2),
   (fit, 1) => (clusters, 1),

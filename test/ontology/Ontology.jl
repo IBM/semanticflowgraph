@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module TestOntology
-using Base.Test
+using Test
 
 @testset "JSON" begin
   include("OntologyJSON.jl")

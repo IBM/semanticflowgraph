@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module TestOntologyJSON
-using Base.Test
+using Test
 
 using Catlab
 using SemanticFlowGraphs

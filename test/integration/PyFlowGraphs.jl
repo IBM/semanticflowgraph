@@ -13,14 +13,15 @@
 # limitations under the License.
 
 module TestPyFlowGraphs
-using Base.Test
+using Test
+using Nullables
 
 using Catlab.Diagram
 using SemanticFlowGraphs
 import ..IntegrationTest: db
 
-const py_pkg_dir = dirname(chomp(readstring(
-  `python -c "import flowgraph; print(flowgraph.__file__)"`)))
+const py_pkg_dir = dirname(chomp(read(
+  `python -c "import flowgraph; print(flowgraph.__file__)"`, String)))
 const py_raw_graph_dir = joinpath(py_pkg_dir, "integration_tests", "data")
 const semantic_graph_dir = joinpath(@__DIR__, "data")
 
@@ -56,11 +57,11 @@ d = WiringDiagram([], concepts(db, ["table"]))
 engine = add_box!(d, Box([], concepts(db, ["sql-database"])))
 cons = add_box!(d, construct(pair(concept(db, "sql-table-database"),
                                   concept(db, "sql-table-name"))))
-read = add_box!(d, concept(db, "read-table"))
+read_table = add_box!(d, concept(db, "read-table"))
 add_wires!(d, [
   (engine, 1) => (cons, 1),
-  (cons, 1) => (read, 1),
-  (read, 1) => (output_id(d), 1),
+  (cons, 1) => (read_table, 1),
+  (read_table, 1) => (output_id(d), 1),
 ])
 @test semantic == d
 
@@ -76,13 +77,13 @@ clusters = add_box!(d, concept(db, "clustering-model-clusters"))
 transform = add_box!(d, Box(concepts(db, ["array"]), concepts(db, ["array"])))
 kmeans = add_box!(d, construct(pair(concepts(db,
   ["k-means", "clustering-model-n-clusters"])...)))
-read = add_box!(d, concept(db, "read-tabular-file"))
+read_file = add_box!(d, concept(db, "read-tabular-file"))
 file = add_box!(d, construct(pair(concepts(db, ["tabular-file", "filename"])...)))
 fit = add_box!(d, kmeans_fit)
 centroids = add_box!(d, concept(db, "k-means-centroids"))
 add_wires!(d, [
-  (file, 1) => (read, 1),
-  (read, 1) => (transform, 1),
+  (file, 1) => (read_file, 1),
+  (read_file, 1) => (transform, 1),
   (kmeans, 1) => (fit, 1),
   (transform, 1) => (fit, 2),
   (fit, 1) => (clusters, 1),
@@ -96,14 +97,14 @@ add_wires!(d, [
 semantic = create_py_semantic_graph(db, "sklearn_clustering_kmeans"; elements=false)
 d = WiringDiagram([], concepts(db, ["array"]))
 file = add_box!(d, construct(pair(concepts(db, ["tabular-file", "filename"])...)))
-read = add_box!(d, concept(db, "read-tabular-file"))
+read_file = add_box!(d, concept(db, "read-tabular-file"))
 kmeans = add_box!(d, construct(concept(db, "k-means")))
 transform = add_box!(d, Box(concepts(db, ["table"]), concepts(db, ["array"])))
 fit = add_box!(d, concept(db, "fit"))
 clusters = add_box!(d, concept(db, "clustering-model-clusters"))
 add_wires!(d, [
-  (file, 1) => (read, 1),
-  (read, 1) => (transform, 1),
+  (file, 1) => (read_file, 1),
+  (read_file, 1) => (transform, 1),
   (kmeans, 1) => (fit, 1),
   (transform, 1) => (fit, 2),
   (fit, 1) => (clusters, 1),
@@ -152,11 +153,11 @@ fit = add_box!(d, concept(db, "fit-supervised"))
 predict = add_box!(d, concept(db, "predict"))
 error_l1 = add_box!(d, concept(db, "mean-absolute-error"))
 error_l2 = add_box!(d, concept(db, "mean-squared-error"))
-read = add_box!(d, concept(db, "read-tabular-file"))
+read_file = add_box!(d, concept(db, "read-tabular-file"))
 add_wires!(d, [
-  (file, 1) => (read, 1),
-  (read, 1) => (data_x, 1),
-  (read, 1) => (data_y, 1),
+  (file, 1) => (read_file, 1),
+  (read_file, 1) => (data_x, 1),
+  (read_file, 1) => (data_y, 1),
   (ols, 1) => (fit, 1),
   (data_x, 1) => (fit, 2),
   (data_y, 1) => (fit, 3),
@@ -177,10 +178,10 @@ r_data = add_box!(d, construct(pair(concept(db, "r-dataset-name"),
 ols = add_box!(d, construct(concept(db, "least-squares")))
 eval_formula = add_box!(d, concept(db, "evaluate-formula-supervised"))
 fit = add_box!(d, concept(db, "fit-supervised"))
-read = add_box!(d, concept(db, "read-table"))
+read_table = add_box!(d, concept(db, "read-table"))
 add_wires!(d, [
-  (r_data, 1) => (read, 1),
-  (read, 1) => (eval_formula, 2),
+  (r_data, 1) => (read_table, 1),
+  (read_table, 1) => (eval_formula, 2),
   (ols, 1) => (fit, 1),
   (eval_formula, 1) => (fit, 2),
   (eval_formula, 2) => (fit, 3),

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module TestSemanticEnrichment
-using Base.Test
+using Test
 
 using Catlab.Diagram
 using SemanticFlowGraphs
@@ -32,7 +32,7 @@ raw_box(name::String, inputs, outputs) =
   Box(RawNode(annotation="$prefix/$name"), raw_ports(inputs), raw_ports(outputs))
 raw_ports(n::Int) = RawPort[ RawPort() for i in 1:n ]
 raw_ports(xs::Vector) = RawPort[ raw_port(x) for x in xs ]
-raw_port(::Void) = RawPort()
+raw_port(::Nothing) = RawPort()
 raw_port(name::String) = RawPort(annotation="$prefix/$name")
 raw_port(name::String, index::Int) =
   RawPort(annotation="$prefix/$name", annotation_index=index)

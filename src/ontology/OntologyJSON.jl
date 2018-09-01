@@ -37,7 +37,7 @@ end
 
 """ Add object from JSON document to presentation.
 """
-function add_ob_generator_from_json!(pres::Presentation, doc::Associative)
+function add_ob_generator_from_json!(pres::Presentation, doc::AbstractDict)
   # Add object generator.
   ob = Ob(Monocl, doc["id"])
   add_generator!(pres, ob)
@@ -53,7 +53,7 @@ end
 
 """ Add morphism from JSON document to presentation.
 """
-function add_hom_generator_from_json!(pres::Presentation, doc::Associative)
+function add_hom_generator_from_json!(pres::Presentation, doc::AbstractDict)
   # Add morphism generator.
   dom_ob = domain_ob_from_json(pres, doc["domain"])
   codom_ob = domain_ob_from_json(pres, doc["codomain"])
@@ -77,7 +77,7 @@ const language_keys = [ "class", "function", "method", "domain", "codomain" ]
 
 """ Load annotation from JSON document.
 """
-function annotation_from_json(doc::Associative, load_ref::Function)::Annotation
+function annotation_from_json(doc::AbstractDict, load_ref::Function)::Annotation
   parse_def = sexpr ->
     parse_json_sexpr(Monocl, sexpr; symbols=false, parse_reference=load_ref)
   name = AnnotationID(doc["language"], doc["package"], doc["id"])
@@ -94,7 +94,7 @@ function annotation_from_json(doc::Associative, load_ref::Function)::Annotation
     error("Invalid kind of annotation: $(doc["kind"])")
   end
 end
-function annotation_from_json(doc::Associative, pres::Presentation)
+function annotation_from_json(doc::AbstractDict, pres::Presentation)
   annotation_from_json(doc, name -> generator(pres, name))
 end
 

@@ -18,6 +18,8 @@ export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom,
   compose, compose2, id, otimes, munit, opow, braid, mcopy, delete, pair,
   hom, ev, curry, coerce, construct, to_wiring_diagram
 
+using Nullables
+
 using Catlab
 using Catlab.Doctrine: CategoryExpr, ObExpr, HomExpr, SymmetricMonoidalCategory
 import Catlab.Doctrine: Ob, Hom, dom, codom, compose, id, otimes, munit,
@@ -35,12 +37,12 @@ This signature differs from the official Catlab doctrine by allowing `mcopy`
 terms of size greater than 2.
 """
 @signature SymmetricMonoidalCategory(Ob,Hom) => CartesianCategory(Ob,Hom) begin
+  opow(A::Ob, n::Int)::Ob
+
   mcopy(A::Ob, n::Int)::Hom(A,opow(A,n))
   delete(A::Ob)::Hom(A,munit())
   
   mcopy(A::Ob) = mcopy(A,2)
-  opow(A::Ob, n::Int) = otimes([A for i=1:n])
-  opow(f::Hom, n::Int) = otimes([f for i=1:n])
 end
 
 """ Doctrine of *cartesian closed category*
@@ -145,6 +147,7 @@ end
   otimes(A::Ob, B::Ob) = associate_unit(Super.otimes(A,B), munit)
   otimes(f::Hom, g::Hom) = associate(Super.otimes(f,g))
   otimes(f::SubOb, g::SubOb) = associate(Super.otimes(f,g))
+  opow(A::Ob, n::Int) = otimes([A for i=1:n])
   
   # TODO: Enforce pre-order, not just reflexivity.
   coerce(sub::SubOb) = dom(sub) == codom(sub) ? id(dom(sub)) : Super.coerce(sub)

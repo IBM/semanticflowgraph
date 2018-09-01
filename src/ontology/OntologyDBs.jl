@@ -35,9 +35,9 @@ const api_url_default = "https://api.datascienceontology.org"
 mutable struct OntologyDB
   api_url::String
   concepts::Presentation
-  concept_docs::OrderedDict{String,Associative}
+  concept_docs::OrderedDict{String,AbstractDict}
   annotations::OrderedDict{String,Annotation}
-  annotation_docs::OrderedDict{String,Associative}
+  annotation_docs::OrderedDict{String,AbstractDict}
   
   function OntologyDB(api_url)
     new(api_url, Presentation(String), OrderedDict(), OrderedDict(), OrderedDict())
