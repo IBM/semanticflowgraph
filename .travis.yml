@@ -1,0 +1,5 @@
+# Julia for Travis: http://docs.travis-ci.com/user/languages/julia/
+
+language: julia
+julia:
+  - 0.7
