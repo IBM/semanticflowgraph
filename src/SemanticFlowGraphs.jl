@@ -17,14 +17,16 @@ using Reexport
 
 include("Doctrine.jl")
 include("ontology/Ontology.jl")
-include("FlowGraphs.jl")
 include("RawFlowGraphs.jl")
+include("Serialization.jl")
+include("Visualization.jl")
 include("SemanticEnrichment.jl")
 
 @reexport using .Doctrine
 @reexport using .Ontology
-@reexport using .FlowGraphs
 @reexport using .RawFlowGraphs
+@reexport using .Serialization
+@reexport using .Visualization
 @reexport using .SemanticEnrichment
 
 end

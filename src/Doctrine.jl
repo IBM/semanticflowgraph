@@ -16,8 +16,9 @@ module Doctrine
 export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom,
   dom, codom, subob_dom, subob_codom, subob_id, subhom_id,
   compose, compose2, id, otimes, munit, opow, braid, mcopy, delete, pair,
-  hom, ev, curry, coerce, construct, to_wiring_diagram
+  hom, ev, curry, coerce, construct, MonoclElem, to_wiring_diagram
 
+using AutoHashEquals
 using Nullables
 
 using Catlab
@@ -174,6 +175,17 @@ end
 pair(A::Monocl.Ob, fs::Vararg{Monocl.Hom}) = pair(A, collect(Monocl.Hom,fs))
 pair(fs::Vararg{Monocl.Hom}) = pair(collect(Monocl.Hom,fs))
 
+# Monocl category of elements
+#############################
+
+""" Object in Monocl's category of elements.
+"""
+@auto_hash_equals struct MonoclElem
+  ob::Nullable{Monocl.Ob}
+  value::Nullable
+  MonoclElem(ob, value=Nullable()) = new(ob, value)
+end
+
 # Monocl wiring diagrams
 ########################
 
@@ -202,64 +214,6 @@ function to_wiring_diagram(sub::Monocl.SubOb)
   f = WiringDiagram(A, B)
   add_wires!(f, ((input_id(f),i) => (output_id(f),i) for i in eachindex(A)))
   return f
-end
-
-# GraphML support.
-function GraphML.convert_from_graphml_data(::Type{Monocl.Ob}, data::Dict)
-  parse_json_sexpr(Monocl, data["ob"]; symbols=false)
-end
-function GraphML.convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
-  parse_json_sexpr(Monocl, data["hom"]; symbols=false)
-end
-function GraphML.convert_to_graphml_data(expr::Monocl.Ob)
-  Dict("ob" => to_json_sexpr(expr))
-end
-function GraphML.convert_to_graphml_data(expr::Monocl.Hom)
-  Dict("hom" => to_json_sexpr(expr))
-end
-
-# Graphviz support.
-GraphvizWiring.node_label(f::Monocl.Hom{:coerce}) = "to"
-GraphvizWiring.node_id(f::Monocl.Hom{:coerce}) = ":coerce"
-
-GraphvizWiring.node_label(f::Monocl.Hom{:construct}) = string(codom(f))
-GraphvizWiring.node_id(f::Monocl.Hom{:construct}) = ":construct"
-
-function GraphvizWiring.node_label(f::Nullable{Monocl.Hom})
-  isnull(f) ? "?" : GraphvizWiring.node_label(get(f))
-end
-function GraphvizWiring.node_id(f::Nullable{Monocl.Hom})
-  isnull(f) ? "" : GraphvizWiring.node_id(get(f))
-end
-function GraphvizWiring.edge_label(A::Nullable{Monocl.Ob})
-  isnull(A) ? "" : GraphvizWiring.edge_label(get(A))
-end
-
-# TikZ support.
-function TikZWiring.box(name::String, f::Monocl.Hom{:generator})
-  TikZWiring.rect(name, f)
-end
-function TikZWiring.box(name::String, f::Monocl.Hom{:mcopy})
-  TikZWiring.junction_circle(name, f)
-end
-function TikZWiring.box(name::String, f::Monocl.Hom{:delete})
-  TikZWiring.junction_circle(name, f)
-end
-function TikZWiring.box(name::String, f::Monocl.Hom{:coerce})
-  TikZWiring.trapezium(
-    name,
-    "to",
-    TikZWiring.wires(dom(f)),
-    TikZWiring.wires(codom(f))
-  )
-end
-function TikZWiring.box(name::String, f::Monocl.Hom{:construct})
-  TikZWiring.rect(
-    name,
-    string(codom(f)),
-    TikZWiring.wires(dom(f)),
-    TikZWiring.wires(codom(f))
-  )
 end
 
 end

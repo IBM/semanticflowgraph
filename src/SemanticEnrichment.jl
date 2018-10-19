@@ -25,7 +25,7 @@ using LightGraphs, MetaGraphs
 using Catlab.Diagram
 using ..Doctrine
 using ..Ontology
-using ..RawFlowGraphs, ..SemanticFlowGraphs
+using ..RawFlowGraphs
 
 """ Convert a raw flow graph into a semantic flow graph.
 """
