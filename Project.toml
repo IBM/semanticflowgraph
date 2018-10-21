@@ -5,6 +5,7 @@ authors = ["Evan Patterson <epatters@stanford.edu>"]
 version = "0.1.0"
 
 [deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
 Catlab = "fe5c7674-9d0d-11e8-2f75-77422a24ba09"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
