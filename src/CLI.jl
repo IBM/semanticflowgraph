@@ -1,4 +1,21 @@
+#!/usr/bin/env julia
+
+# Copyright 2018 IBM Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 using ArgParse
+import DefaultApplication
 
 using Catlab.Diagram
 import Catlab.Diagram: Graphviz
@@ -41,13 +58,16 @@ end
   "path"
     help = "input file or directory"
     required = true
-  "--raw"
-    help = "read input as raw flow graph (default: semantic flow graph)"
-    action = :store_true
   "-o", "--out"
     help = "output file or directory"
   "-t", "--to"
     help = "Graphviz output format (default: Graphviz input only)"
+  "--raw"
+    help = "read input as raw flow graph (default: semantic flow graph)"
+    action = :store_true
+  "--open"
+    help = "open output using OS default application"
+    action = :store_true
 end
 
 """ Map CLI input/output arguments to pairs of input/output files.
@@ -118,11 +138,14 @@ function visualize(args)
     ".xml" => ".$format",
   ))
   for (inpath, outpath) in paths
+    # Read flow graph and convert to Graphviz AST.
     graphviz = if args["raw"]
       raw_graph_to_graphviz(read_raw_graph(inpath))
     else
       semantic_graph_to_graphviz(read_semantic_graph(inpath; elements=false))
     end
+
+    # Pretty-print Graphviz AST to output file.
     if args["to"] == nothing
       # Default: no output format, yield Graphviz dot input.
       open(outpath, "w") do f
@@ -130,9 +153,12 @@ function visualize(args)
       end
     else
       # Run Graphviz with given output format.
-      open(`dot -T$format -ofile $outpath`, "w", stdout) do f
+      open(`dot -T$format -o $outpath`, "w", stdout) do f
         Graphviz.pprint(f, graphviz)
       end
+    end
+    if args["open"]
+      DefaultApplication.open(outpath)
     end
   end
 end
