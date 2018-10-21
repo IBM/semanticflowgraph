@@ -1,3 +1,5 @@
+#!/usr/bin/env julia
+
 # Copyright 2018 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,22 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module SemanticFlowGraphs
-using Reexport
+import SemanticFlowGraphs: CLI
 
-include("Doctrine.jl")
-include("ontology/Ontology.jl")
-include("RawFlowGraphs.jl")
-include("Serialization.jl")
-include("Visualization.jl")
-include("SemanticEnrichment.jl")
-include("CLI.jl")
-
-@reexport using .Doctrine
-@reexport using .Ontology
-@reexport using .RawFlowGraphs
-@reexport using .Serialization
-@reexport using .Visualization
-@reexport using .SemanticEnrichment
-
+# Reduce load time by only importing PyCall and/or RCall if the "record"
+# command is being invoked.
+if length(ARGS) >= 1 && ARGS[1] == "record"
+  try
+    import PyCall
+  catch
+  end
+  try
+    import RCall
+  catch
+  end
 end
+
+CLI.main(ARGS)

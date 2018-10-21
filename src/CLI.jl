@@ -1,5 +1,3 @@
-#!/usr/bin/env julia
-
 # Copyright 2018 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,33 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+""" Command-line interface for raw and semantic flow graphs.
+"""
 module CLI
 export main
 
 using ArgParse
 import DefaultApplication
+using Requires
 
 using Catlab.Diagram
 import Catlab.Diagram: Graphviz
-using SemanticFlowGraphs
-
-# Language interop
-##################
-
-try import PyCall; catch; PyCall = nothing end
-try import RCall; catch; RCall = nothing end
-
-if PyCall != nothing
-  PyCall.@pyimport flowgraph.core.record as PyFlowGraph
-else
-  PyFlowGraph = nothing
-end
-
-if RCall != nothing
-  RCall.@rimport flowgraph as RFlowGraph
-else
-  RFlowGraph = nothing
-end
+using ..RawFlowGraphs
+using ..SemanticEnrichment
+using ..Serialization
 
 # CLI arguments
 ###############
@@ -126,39 +111,31 @@ end
 ########
 
 function record(args::Dict)
+  langs = Dict(
+    ".py" => :python,
+    ".R" => :r,
+  )
   paths = parse_io_args(args["path"], args["out"], Dict(
     ".py" => ".py.graphml",
     ".R" => ".R.graphml",
   ))
   for (inpath, outpath) in paths
-    if endswith(inpath, ".py")
-      record_python(inpath, outpath)
-    elseif endswith(inpath, ".R")
-      record_r(inpath, outpath)
-    else
-      throw(ArgParseError("Unsupported extension $(last(splitext(inpath)))"))
+    ext = last(splitext(inpath))
+    lang = get(langs, ext) do
+      throw(ArgParseError("Unsupported file extension: $ext"))
     end
+    record_file(inpath, outpath, Val(lang))
   end
 end
 
-function record_python(inpath::String, outpath::String)
-  if PyCall == nothing
-    throw(ArgParseError("PyCall.jl not installed"))
+function record_file(inpath::String, outpath::String, ::Val{lang}) where lang
+  if lang == :python
+    error("PyCall.jl has not been imported")
+  elseif lang == :r
+    error("RCall.jl has not been imported")
+  else
+    error("Unsupported language: $lang")
   end
-  if PyFlowGraph == nothing
-    throw(ArgParseError("Python package `flowgraph` not installed"))
-  end
-  PyFlowGraph.record_script(inpath, out=outpath)
-end
-
-function record_r(inpath::String, outpath::String)
-  if RCall == nothing
-    throw(ArgParseError("RCall.jl not installed"))
-  end
-  if RFlowGraph == nothing
-    throw(ArgParseError("R package `flowgraph` not installed"))
-  end
-  RFlowGraph.record_file(inpath, out=outpath, annotate=true)
 end
 
 # Enrich
@@ -267,8 +244,12 @@ function main(args)
   command_table[command](parsed_args[command])
 end
 
+# CLI extras
+############
+
+function __init__()
+  @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" include("extras/CLI-Python.jl")
+  @require RCall="6f49c342-dc21-5d91-9882-a32aef131414" include("extras/CLI-R.jl")
 end
 
-if @__MODULE__() == Main
-  CLI.main(ARGS)
 end
