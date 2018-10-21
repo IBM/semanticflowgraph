@@ -21,6 +21,18 @@ using Catlab.Diagram
 import Catlab.Diagram: Graphviz
 using SemanticFlowGraphs
 
+# Language interop
+##################
+
+try import PyCall; catch; PyCall = nothing end
+try import RCall; catch; RCall = nothing end
+
+if PyCall != nothing
+  PyCall.@pyimport flowgraph.core.record as PyFlowGraph
+else
+  PyFlowGraph = nothing
+end
+
 # CLI arguments
 ###############
 
@@ -104,17 +116,43 @@ end
 # Record
 ########
 
-function record(args)
+function record(args::Dict)
   paths = parse_io_args(args["path"], args["out"], Dict(
     ".py" => ".py.graphml",
     ".R" => ".R.graphml",
   ))
+  for (inpath, outpath) in paths
+    if endswith(inpath, ".py")
+      record_python(inpath, outpath)
+    elseif endswith(inpath, ".R")
+      record_r(inpath, outpath)
+    else
+      throw(ArgParseError("Unsupported extension $(last(splitext(inpath)))"))
+    end
+  end
+end
+
+function record_python(inpath::String, outpath::String)
+  if PyCall == nothing
+    throw(ArgParseError("PyCall.jl not installed"))
+  end
+  if PyFlowGraph == nothing
+    throw(ArgParseError("Python package pyflowgraph not installed"))
+  end
+  PyFlowGraph.record_script(inpath, out=outpath)
+end
+
+function record_r(inpath::String, outpath::String)
+  if RCall == nothing
+    throw(ArgParseError("RCall.jl not installed"))
+  end
+  # TODO
 end
 
 # Enrich
 ########
 
-function enrich(args)
+function enrich(args::Dict)
   paths = parse_io_args(args["path"], args["out"], Dict(
     ".py.graphml" => ".graphml",
     ".R.graphml" => ".graphml",
@@ -131,7 +169,7 @@ end
 # Visualize
 ###########
 
-function visualize(args)
+function visualize(args::Dict)
   format = args["to"] == nothing ? "dot" : args["to"]
   paths = parse_io_args(args["path"], args["out"], Dict(
     ".graphml" => ".$format",
