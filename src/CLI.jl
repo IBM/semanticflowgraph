@@ -169,6 +169,9 @@ function semantic_graph_to_graphviz(diagram::WiringDiagram)
     edge_attrs=Graphviz.Attributes(
       :fontname => "Helvetica",
       :arrowsize => "0.5",
+    ),
+    cell_attrs=Graphviz.Attributes(
+      :style => "rounded",
     )
   )
 end
