@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+module CLI
+export main
+
 using ArgParse
 import DefaultApplication
 
@@ -31,6 +34,12 @@ if PyCall != nothing
   PyCall.@pyimport flowgraph.core.record as PyFlowGraph
 else
   PyFlowGraph = nothing
+end
+
+if RCall != nothing
+  RCall.@rimport flowgraph as RFlowGraph
+else
+  RFlowGraph = nothing
 end
 
 # CLI arguments
@@ -137,7 +146,7 @@ function record_python(inpath::String, outpath::String)
     throw(ArgParseError("PyCall.jl not installed"))
   end
   if PyFlowGraph == nothing
-    throw(ArgParseError("Python package pyflowgraph not installed"))
+    throw(ArgParseError("Python package `flowgraph` not installed"))
   end
   PyFlowGraph.record_script(inpath, out=outpath)
 end
@@ -146,7 +155,10 @@ function record_r(inpath::String, outpath::String)
   if RCall == nothing
     throw(ArgParseError("RCall.jl not installed"))
   end
-  # TODO
+  if RFlowGraph == nothing
+    throw(ArgParseError("R package `flowgraph` not installed"))
+  end
+  RFlowGraph.record_file(inpath, out=outpath, annotate=true)
 end
 
 # Enrich
@@ -255,6 +267,8 @@ function main(args)
   command_table[command](parsed_args[command])
 end
 
+end
+
 if @__MODULE__() == Main
-  main(ARGS)
+  CLI.main(ARGS)
 end
