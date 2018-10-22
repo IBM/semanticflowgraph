@@ -17,9 +17,13 @@ using Test
 
 import SemanticFlowGraphs: CLI
 
+const data_dir = joinpath(@__DIR__, "data")
+const test_py = false
+const test_r = false
+
 mktempdir() do dir
   # Visualize raw flow graph.
-  inpath = joinpath("data", "clustering_kmeans.R.graphml")
+  inpath = joinpath(data_dir, "clustering_kmeans.R.graphml")
   outpath = joinpath(dir, "clustering_kmeans.R.dot")
   CLI.main(["visualize", "--raw", inpath, "--out", outpath])
   @test isfile(outpath)
@@ -34,6 +38,30 @@ mktempdir() do dir
   outpath = joinpath(dir, "clustering_kmeans.dot")
   CLI.main(["visualize", inpath, "--out", outpath])
   @test isfile(outpath)
+end
+
+if test_py
+  import PyCall
+
+  mktempdir() do dir
+    # Record Python raw flow graph.
+    inpath = joinpath(data_dir, "sklearn_clustering_kmeans.py")
+    outpath = joinpath(dir, "sklearn_clustering_kmeans.py.graphml")
+    CLI.main(["record", inpath, "--out", outpath])
+    @test isfile(outpath)
+  end
+end
+
+if test_r
+  import RCall
+
+  mktempdir() do dir
+    # Record R raw flow graph.
+    inpath = joinpath(data_dir, "clustering_kmeans.R")
+    outpath = joinpath(dir, "clustering_kmeans.R.graphml")
+    CLI.main(["record", inpath, "--out", outpath])
+    @test isfile(outpath)
+  end
 end
 
 end
