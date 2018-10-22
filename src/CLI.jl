@@ -46,30 +46,30 @@ end
 
 @add_arg_table settings["record"] begin
   "path"
-    help = "input file or directory"
+    help = "input script (Python or R file) or directory"
     required = true
   "-o", "--out"
-    help = "output file or directory"
+    help = "output raw flow graph (GraphML file) or directory"
 end
 
 @add_arg_table settings["enrich"] begin
   "path"
-    help = "input file or directory"
+    help = "input raw flow graph (GraphML file) or directory"
     required = true
   "-o", "--out"
-    help = "output file or directory"
+    help = "output semantic flow graph (GraphML file) or directory"
 end
 
 @add_arg_table settings["visualize"] begin
   "path"
-    help = "input file or directory"
+    help = "input flow graph (GraphML file) or directory"
     required = true
   "-o", "--out"
     help = "output file or directory"
   "-t", "--to"
     help = "Graphviz output format (default: Graphviz input only)"
   "--raw"
-    help = "read input as raw flow graph (default: semantic flow graph)"
+    help = "read input as raw flow graph (default: as semantic flow graph)"
     action = :store_true
   "--open"
     help = "open output using OS default application"
