@@ -5,9 +5,11 @@ authors = ["Evan Patterson <epatters@stanford.edu>"]
 version = "0.1.0"
 
 [deps]
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
 Catlab = "fe5c7674-9d0d-11e8-2f75-77422a24ba09"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+DefaultApplication = "3f0dd361-4fe0-5fc6-8523-80b14ec94d85"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 LightGraphs = "093fc24a-ae57-5d10-9952-331d41423f4d"
@@ -16,5 +18,6 @@ MetaGraphs = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
 Nullables = "4d1e1d77-625e-5b40-9113-a560ec7a8ecd"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 UnionFind = "8c74da80-9c34-11e8-3e46-f3719fd9c73c"

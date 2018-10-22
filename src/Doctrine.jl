@@ -22,8 +22,8 @@ using AutoHashEquals
 using Nullables
 
 using Catlab
-using Catlab.Doctrine: CategoryExpr, ObExpr, HomExpr, SymmetricMonoidalCategory
-import Catlab.Doctrine: Ob, Hom, dom, codom, compose, id, otimes, munit,
+import Catlab.Doctrine: CategoryExpr, ObExpr, HomExpr, SymmetricMonoidalCategory,
+  Ob, Hom, dom, codom, compose, id, otimes, munit,
   braid, mcopy, delete, pair, hom, ev, curry
 
 using Catlab.Diagram
