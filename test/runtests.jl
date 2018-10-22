@@ -26,6 +26,10 @@ end
   include("SemanticEnrichment.jl")
 end
 
+@testset "CLI" begin
+  include("CLI.jl")
+end
+
 if !haskey(ENV, "CI")
   @testset "IntegrationTest" begin
     include("integration/IntegrationTest.jl")

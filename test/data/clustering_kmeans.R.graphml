@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="d1" for="node" attr.name="kind" attr.type="string"/>
+  <key id="d2" for="node" attr.name="value" attr.type="string"/>
+  <key id="d3" for="node" attr.name="annotation" attr.type="string"/>
+  <key id="d4" for="node" attr.name="annotation_kind" attr.type="string"/>
+  <key id="d5" for="port" attr.name="portkind" attr.type="string"/>
+  <key id="d6" for="port" attr.name="class" attr.type="string"/>
+  <key id="d7" for="port" attr.name="system" attr.type="string"/>
+  <key id="d8" for="port" attr.name="annotation" attr.type="string"/>
+  <key id="d9" for="port" attr.name="annotation_index" attr.type="int"/>
+  <key id="d10" for="node" attr.name="function" attr.type="string"/>
+  <key id="d11" for="node" attr.name="package" attr.type="string"/>
+  <key id="d12" for="node" attr.name="slot" attr.type="string"/>
+  <key id="d13" for="node" attr.name="annotation_index" attr.type="int"/>
+  <graph edgedefault="directed">
+    <node id="__root__">
+      <graph>
+        <node id="character:1">
+          <data key="d1">literal</data>
+          <data key="d2">datasets/iris.csv</data>
+          <data key="d3">r/base/character</data>
+          <data key="d4">construct</data>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="logical:1">
+          <data key="d1">literal</data>
+          <data key="d2">false</data>
+          <data key="d3">r/base/logical</data>
+          <data key="d4">construct</data>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">logical</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/logical</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="read.csv:1">
+          <data key="d10">read.csv</data>
+          <data key="d11">utils</data>
+          <data key="d3">r/utils/read-csv</data>
+          <port name="file">
+            <data key="d5">input</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+            <data key="d9">1</data>
+          </port>
+          <port name="stringsAsFactors">
+            <data key="d5">input</data>
+            <data key="d6">logical</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/logical</data>
+          </port>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">data.frame</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/data-frame</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="names:1">
+          <data key="d10">names</data>
+          <data key="d11">base</data>
+          <port name="x">
+            <data key="d5">input</data>
+            <data key="d6">data.frame</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/data-frame</data>
+          </port>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+          </port>
+        </node>
+        <node id="character:2">
+          <data key="d1">literal</data>
+          <data key="d2">Species</data>
+          <data key="d3">r/base/character</data>
+          <data key="d4">construct</data>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="!=:1">
+          <data key="d10">!=</data>
+          <data key="d11">base</data>
+          <port name="e1">
+            <data key="d5">input</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+          </port>
+          <port name="e2">
+            <data key="d5">input</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+          </port>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">logical</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/logical</data>
+          </port>
+        </node>
+        <node id="[:1">
+          <data key="d10">[</data>
+          <data key="d11">base</data>
+          <port name="1">
+            <data key="d5">input</data>
+            <data key="d6">data.frame</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/data-frame</data>
+          </port>
+          <port name="3">
+            <data key="d5">input</data>
+            <data key="d6">logical</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/logical</data>
+          </port>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">data.frame</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/data-frame</data>
+          </port>
+        </node>
+        <node id="numeric:1">
+          <data key="d1">literal</data>
+          <data key="d2">3</data>
+          <data key="d3">r/base/numeric</data>
+          <data key="d4">construct</data>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">numeric</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/numeric</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="kmeans:1">
+          <data key="d10">kmeans</data>
+          <data key="d11">stats</data>
+          <data key="d3">r/stats/fit-k-means</data>
+          <port name="x">
+            <data key="d5">input</data>
+            <data key="d6">data.frame</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/data-frame</data>
+            <data key="d9">2</data>
+          </port>
+          <port name="centers">
+            <data key="d5">input</data>
+            <data key="d6">numeric</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/numeric</data>
+            <data key="d9">1</data>
+          </port>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">kmeans</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/stats/k-means</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="character:3">
+          <data key="d1">literal</data>
+          <data key="d2">centers</data>
+          <data key="d3">r/base/character</data>
+          <data key="d4">construct</data>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="$:1">
+          <data key="d10">$</data>
+          <data key="d11">base</data>
+          <data key="d12">centers</data>
+          <data key="d3">r/stats/k-means</data>
+          <data key="d4">slot</data>
+          <data key="d13">2</data>
+          <port name="1">
+            <data key="d5">input</data>
+            <data key="d6">kmeans</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/stats/k-means</data>
+          </port>
+          <port name="2">
+            <data key="d5">input</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+          </port>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">matrix</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/matrix</data>
+          </port>
+        </node>
+        <node id="character:4">
+          <data key="d1">literal</data>
+          <data key="d2">cluster</data>
+          <data key="d3">r/base/character</data>
+          <data key="d4">construct</data>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+            <data key="d9">1</data>
+          </port>
+        </node>
+        <node id="$:2">
+          <data key="d10">$</data>
+          <data key="d11">base</data>
+          <data key="d12">cluster</data>
+          <data key="d3">r/stats/k-means</data>
+          <data key="d4">slot</data>
+          <data key="d13">1</data>
+          <port name="1">
+            <data key="d5">input</data>
+            <data key="d6">kmeans</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/stats/k-means</data>
+          </port>
+          <port name="2">
+            <data key="d5">input</data>
+            <data key="d6">character</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/character</data>
+          </port>
+          <port name="__return__">
+            <data key="d5">output</data>
+            <data key="d6">integer</data>
+            <data key="d7">S3</data>
+            <data key="d8">r/base/integer</data>
+          </port>
+        </node>
+        <edge source="character:1" target="read.csv:1" sourceport="__return__" targetport="file"/>
+        <edge source="logical:1" target="read.csv:1" sourceport="__return__" targetport="stringsAsFactors"/>
+        <edge source="read.csv:1" target="names:1" sourceport="__return__" targetport="x"/>
+        <edge source="read.csv:1" target="[:1" sourceport="__return__" targetport="1"/>
+        <edge source="names:1" target="!=:1" sourceport="__return__" targetport="e1"/>
+        <edge source="character:2" target="!=:1" sourceport="__return__" targetport="e2"/>
+        <edge source="!=:1" target="[:1" sourceport="__return__" targetport="3"/>
+        <edge source="[:1" target="kmeans:1" sourceport="__return__" targetport="x"/>
+        <edge source="numeric:1" target="kmeans:1" sourceport="__return__" targetport="centers"/>
+        <edge source="kmeans:1" target="$:1" sourceport="__return__" targetport="1"/>
+        <edge source="kmeans:1" target="$:2" sourceport="__return__" targetport="1"/>
+        <edge source="character:3" target="$:1" sourceport="__return__" targetport="2"/>
+        <edge source="character:4" target="$:2" sourceport="__return__" targetport="2"/>
+      </graph>
+    </node>
+  </graph>
+</graphml>

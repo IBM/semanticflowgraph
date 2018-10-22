@@ -24,7 +24,7 @@ using Requires
 using Catlab.Diagram
 import Catlab.Diagram: Graphviz
 using ..RawFlowGraphs
-using ..SemanticEnrichment
+using ..Ontology, ..SemanticEnrichment
 using ..Serialization
 
 # CLI arguments
@@ -149,7 +149,7 @@ function enrich(args::Dict)
   db = OntologyDB()
   load_concepts(db)
   for (inpath, outpath) in paths
-    raw = read_raw_graph(inpath)
+    raw = rem_literals!(read_raw_graph(inpath))
     semantic = to_semantic_graph(db, raw)
     GraphML.write_graphml(semantic, outpath)
   end
