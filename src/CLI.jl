@@ -85,7 +85,7 @@ function parse_io_args(input::String, output::Union{String,Nothing}, exts::Dict)
     inputs = [ joinpath(input, name) for name in names ]
     outdir = if output == nothing; input
       elseif isdir(output); output
-      else; throw(ArgParseSettings(
+      else; throw(ArgParseError(
         "Output must be directory when input is directory"))
       end
     outputs = [ map_ext(joinpath(outdir, name), exts) for name in names ]
@@ -105,6 +105,8 @@ function map_ext(name::String, ext::Dict)
       return string(name[1:end-length(inext)], outext)
     end
   end
+  throw(ArgParseError(
+    "Cannot replace extension in filename: \"$name\". Supply name explicitly."))
 end
 
 # Record
@@ -122,7 +124,7 @@ function record(args::Dict)
   for (inpath, outpath) in paths
     ext = last(splitext(inpath))
     lang = get(langs, ext) do
-      throw(ArgParseError("Unsupported file extension: $ext"))
+      error("Unsupported file extension: $ext")
     end
     record_file(inpath, outpath, Val(lang))
   end
@@ -240,8 +242,14 @@ const command_table = Dict(
 
 function main(args)
   parsed_args = parse_args(args, settings)
-  command = parsed_args["%COMMAND%"]
-  command_table[command](parsed_args[command])
+  try
+    command = parsed_args["%COMMAND%"]
+    command_table[command](parsed_args[command])
+  catch err
+    # Handle further "parsing" errors ala ArgParse.jl.
+    isa(err, ArgParseError) || rethrow()
+    settings.exc_handler(settings, err)
+  end
 end
 
 # CLI extras
