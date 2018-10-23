@@ -43,8 +43,8 @@ to_nullable(T::Type, x) = x == nothing ? Nullable{T}() : Nullable{T}(x)
 """
 function read_semantic_graph(xml; elements::Bool=true)
   GraphML.read_graphml(
-    Nullable{Monocl.Hom},
-    !elements ? Nullable{Monocl.Ob} : MonoclElem,
+    Union{Monocl.Hom,Nothing},
+    !elements ? Union{Monocl.Ob,Nothing} : MonoclElem,
     Nothing, xml)
 end
 
@@ -54,6 +54,13 @@ end
 function GraphML.convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
   parse_json_sexpr(Monocl, data["hom"]; symbols=false)
 end
+function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Ob,Nothing}}, data::Dict)
+  isempty(data) ? nothing : GraphML.convert_from_graphml_data(Monocl.Ob, data)
+end
+function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Hom,Nothing}}, data::Dict)
+  isempty(data) ? nothing : GraphML.convert_from_graphml_data(Monocl.Hom, data)
+end
+
 function GraphML.convert_to_graphml_data(expr::Monocl.Ob)
   Dict("ob" => to_json_sexpr(expr))
 end
@@ -70,7 +77,7 @@ end
 
 function GraphML.convert_to_graphml_data(elem::MonoclElem)
   data = Dict{String,Any}()
-  if (!isnull(elem.ob)) data["ob"] = to_json_sexpr(get(elem.ob)) end
+  if (elem.ob != nothing) data["ob"] = to_json_sexpr(elem.ob) end
   if (!isnull(elem.value)) data["value"] = get(elem.value) end
   return data
 end

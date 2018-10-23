@@ -181,7 +181,7 @@ pair(fs::Vararg{Monocl.Hom}) = pair(collect(Monocl.Hom,fs))
 """ Object in Monocl's category of elements.
 """
 @auto_hash_equals struct MonoclElem
-  ob::Nullable{Monocl.Ob}
+  ob::Union{Monocl.Ob,Nothing}
   value::Nullable
   MonoclElem(ob, value=Nullable()) = new(ob, value)
 end
