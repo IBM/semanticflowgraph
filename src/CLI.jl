@@ -126,7 +126,7 @@ function record(args::Dict)
     lang = get(langs, ext) do
       error("Unsupported file extension: $ext")
     end
-    record_file(inpath, outpath, Val(lang))
+    record_file(abspath(inpath), abspath(outpath), Val(lang))
   end
 end
 
