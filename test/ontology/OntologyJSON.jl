@@ -33,39 +33,39 @@ concept(pairs...) = Dict("schema" => "concept", pairs...)
 
 const docs = [
   concept(
-    "kind" => "object",
+    "kind" => "type",
     "id" => "A",
   ),
   concept(
-    "kind" => "object",
+    "kind" => "type",
     "id" => "B",
   ),
   concept(
-    "kind" => "object",
+    "kind" => "type",
     "id" => "C",
   ),
   concept(
-    "kind" => "object",
+    "kind" => "type",
     "id" => "A0",
     "is-a" => "A",
   ),
   concept(
-    "kind" => "morphism",
+    "kind" => "function",
     "id" => "f",
-    "domain" => [
-      Dict("object" => "A"),
+    "inputs" => [
+      Dict("type" => "A"),
     ],
-    "codomain" => [
-      Dict("object" => "B"),
+    "outputs" => [
+      Dict("type" => "B"),
     ]
   ),
   concept(
-    "kind" => "morphism",
+    "kind" => "function",
     "id" => "g",
-    "domain" => [],
-    "codomain" => [
-      Dict("object" => "A"),
-      Dict("object" => "B"),
+    "inputs" => [],
+    "outputs" => [
+      Dict("type" => "A"),
+      Dict("type" => "B"),
     ]
   )
 ]
@@ -87,7 +87,7 @@ add_generators!(pres, [A, B, C, D, f, g])
 
 note = annotation_from_json(Dict(
   "schema" => "annotation",
-  "kind" => "object",
+  "kind" => "type",
   "language" => "python",
   "package" => "mypkg",
   "id" => "a",
@@ -100,7 +100,7 @@ note = annotation_from_json(Dict(
 
 note = annotation_from_json(Dict(
   "schema" => "annotation",
-  "kind" => "morphism",
+  "kind" => "function",
   "language" => "python",
   "package" => "mypkg",
   "id" => "a-do-composition",

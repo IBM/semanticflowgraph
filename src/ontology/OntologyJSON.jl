@@ -26,10 +26,10 @@ using ..Ontology
 """
 function presentation_from_json(docs)::Presentation
   presentation = Presentation(String)
-  for doc in filter(doc -> doc["kind"] == "object", docs)
+  for doc in filter(doc -> doc["kind"] == "type", docs)
     add_ob_generator_from_json!(presentation, doc)
   end
-  for doc in filter(doc -> doc["kind"] == "morphism", docs)
+  for doc in filter(doc -> doc["kind"] == "function", docs)
     add_hom_generator_from_json!(presentation, doc)
   end
   presentation
@@ -55,8 +55,8 @@ end
 """
 function add_hom_generator_from_json!(pres::Presentation, doc::AbstractDict)
   # Add morphism generator.
-  dom_ob = domain_ob_from_json(pres, doc["domain"])
-  codom_ob = domain_ob_from_json(pres, doc["codomain"])
+  dom_ob = domain_ob_from_json(pres, doc["inputs"])
+  codom_ob = domain_ob_from_json(pres, doc["outputs"])
   hom = Hom(doc["id"], dom_ob, codom_ob)
   add_generator!(pres, hom)
   # TODO: Add sub-morphism generators.
@@ -66,7 +66,7 @@ function domain_ob_from_json(pres::Presentation, docs)::Monocl.Ob
   if isempty(docs)
     munit(Monocl.Ob)
   else
-    otimes([ Ob(Monocl, doc["object"]) for doc in docs ])
+    otimes([ Ob(Monocl, doc["type"]) for doc in docs ])
   end
 end
 
@@ -85,10 +85,10 @@ function annotation_from_json(doc::AbstractDict, load_ref::Function)::Annotation
     Symbol(key) => doc[key] for key in language_keys if haskey(doc, key)
   )
   definition = parse_def(doc["definition"])
-  if doc["kind"] == "object"
+  if doc["kind"] == "type"
     slots = [ parse_def(slot["definition"]) for slot in get(doc, "slots", []) ]
     ObAnnotation(name, lang, definition, slots)
-  elseif doc["kind"] == "morphism"
+  elseif doc["kind"] == "function"
     HomAnnotation(name, lang, definition)
   else
     error("Invalid kind of annotation: $(doc["kind"])")
