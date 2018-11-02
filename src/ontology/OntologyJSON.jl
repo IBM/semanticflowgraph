@@ -78,8 +78,8 @@ const language_keys = [ "class", "function", "method", "domain", "codomain" ]
 """ Load annotation from JSON document.
 """
 function annotation_from_json(doc::AbstractDict, load_ref::Function)::Annotation
-  parse_def = sexpr ->
-    parse_json_sexpr(Monocl, sexpr; symbols=false, parse_reference=load_ref)
+  parse_def = sexpr -> parse_json_sexpr(Monocl, sexpr;
+    symbols=false, parse_head=parse_json_sexpr_term, parse_reference=load_ref)
   name = AnnotationID(doc["language"], doc["package"], doc["id"])
   lang = Dict{Symbol,Any}(
     Symbol(key) => doc[key] for key in language_keys if haskey(doc, key)
@@ -97,5 +97,25 @@ end
 function annotation_from_json(doc::AbstractDict, pres::Presentation)
   annotation_from_json(doc, name -> generator(pres, name))
 end
+
+""" Replace term names (S-exp head) in JSON S-expression.
+
+Translates PLT terminology into category theory terminology.
+"""
+function parse_json_sexpr_term(x::String)
+  get(json_sexpr_term_table, x, x)
+end
+
+const json_sexpr_term_table = Dict(
+  "Type" => "Ob",
+  "Function" => "Hom",
+  "Subtype" => "SubOb",
+  "Subfunction" => "SubHom",
+  "product" => "otimes",
+  "unit" => "munit",
+  "swap" => "braid",
+  "copy" => "mcopy",
+  "apply" => "pair",
+)
 
 end
