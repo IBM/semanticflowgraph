@@ -2,14 +2,14 @@
   {
     "_id": "concept/person",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "person",
     "name": "Person"
   },
   {
     "_id": "concept/employee",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "employee",
     "name": "Employee",
     "description": "Employee of an organization",
@@ -18,7 +18,7 @@
   {
     "_id": "concept/manager",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "manager",
     "name": "Manager",
     "description": "Employee who manages other employees",
@@ -27,7 +27,7 @@
   {
     "_id": "concept/department",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "department",
     "name": "Department",
     "description": "Department in an organization"
@@ -35,7 +35,7 @@
   {
     "_id": "concept/string",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "string",
     "name": "String",
     "description": "primitive string type"
@@ -43,7 +43,7 @@
   {
     "_id": "concept/number",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "number",
     "name": "Number",
     "description": "primitive number type"
@@ -51,108 +51,108 @@
   {
     "_id": "concept/person-first-name",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "person-first-name",
     "name": "first name",
     "description": "first name (given name) of person",
-    "domain": [
+    "inputs": [
       {
-        "object": "person"
+        "type": "person"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "string"
+        "type": "string"
       }
     ]
   },
   {
     "_id": "concept/person-last-name",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "person-last-name",
     "name": "last name",
     "description": "last name (family name) of person",
-    "domain": [
+    "inputs": [
       {
-        "object": "person"
+        "type": "person"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "string"
+        "type": "string"
       }
     ]
   },
   {
     "_id": "concept/employee-salary",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "employee-salary",
     "name": "salary",
     "description": "salary of an employee (in USD)",
-    "domain": [
+    "inputs": [
       {
-        "object": "employee"
+        "type": "employee"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "number"
+        "type": "number"
       }
     ]
   },
   {
     "_id": "concept/works-in",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "works-in",
     "name": "works in",
     "description": "department that employee works in",
-    "domain": [
+    "inputs": [
       {
-        "object": "employee"
+        "type": "employee"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "department"
+        "type": "department"
       }
     ]
   },
   {
     "_id": "concept/reports-to",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "reports-to",
     "name": "reports to",
     "description": "manager that employee reports to",
-    "domain": [
+    "inputs": [
       {
-        "object": "employee"
+        "type": "employee"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "manager"
+        "type": "manager"
       }
     ]
   },
   {
     "_id": "concept/department-secretary",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "department-secretary",
     "name": "secretary",
     "description": "secretary of a department",
-    "domain": [
+    "inputs": [
       {
-        "object": "department"
+        "type": "department"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "employee"
+        "type": "employee"
       }
     ]
   },
@@ -162,7 +162,7 @@
     "language": "opendisc",
     "package": "employee",
     "id": "emplyee",
-    "kind": "object",
+    "kind": "type",
     "definition": "employee",
     "slots": [
       {
@@ -185,7 +185,7 @@
     "language": "opendisc",
     "package": "employee",
     "id": "department",
-    "kind": "object",
+    "kind": "type",
     "definition": "department"
   },
   {
@@ -194,7 +194,7 @@
     "language": "opendisc",
     "package": "employee",
     "id": "department",
-    "kind": "object",
+    "kind": "type",
     "definition": "string"
   },
   {
@@ -203,7 +203,7 @@
     "language": "opendisc",
     "package": "employee",
     "id": "manager",
-    "kind": "morphism",
+    "kind": "function",
     "definition": "works-in"
   },
   {
@@ -212,7 +212,7 @@
     "language": "opendisc",
     "package": "employee",
     "id": "manager",
-    "kind": "morphism",
+    "kind": "function",
     "definition": [
       "compose",
       "reports-to",
@@ -232,7 +232,7 @@
     "language": "opendisc",
     "package": "employee",
     "id": "second-level-manager",
-    "kind": "morphism",
+    "kind": "function",
     "definition": [
       "compose",
       "reports-to",
@@ -253,7 +253,7 @@
     "language": "opendisc",
     "package": "employee",
     "id": "third-level-manager",
-    "kind": "morphism",
+    "kind": "function",
     "definition": [
       "compose",
       "reports-to",

@@ -2,7 +2,7 @@
   {
     "_id": "concept/number",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "number",
     "name": "number",
     "description": "a number, integer or decimal"
@@ -10,7 +10,7 @@
   {
     "_id": "concept/string",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "string",
     "name": "string",
     "description": "a string of characters"
@@ -18,14 +18,14 @@
   {
     "_id": "concept/foo",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "foo",
     "name": "Foo"
   },
   {
     "_id": "concept/bar",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "bar",
     "name": "Bar",
     "is-a": "foo"
@@ -33,7 +33,7 @@
   {
     "_id": "concept/baz",
     "schema": "concept",
-    "kind": "object",
+    "kind": "type",
     "id": "baz",
     "name": "Baz",
     "is-a": "bar"
@@ -41,34 +41,34 @@
   {
     "_id": "concept/bar-from-foo",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "bar-from-foo",
     "name": "transform foo to bar",
-    "domain": [
+    "inputs": [
       {
-        "object": "foo"
+        "type": "foo"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "bar"
+        "type": "bar"
       }
     ]
   },
   {
     "_id": "concept/foo-x",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "foo-x",
     "name": "slot x of foo",
-    "domain": [
+    "inputs": [
       {
-        "object": "foo"
+        "type": "foo"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "number",
+        "type": "number",
         "name": "x"
       }
     ]
@@ -76,17 +76,17 @@
   {
     "_id": "concept/foo-y",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "foo-y",
     "name": "slot y of foo",
-    "domain": [
+    "inputs": [
       {
-        "object": "foo"
+        "type": "foo"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "number",
+        "type": "number",
         "name": "y"
       }
     ]
@@ -94,17 +94,17 @@
   {
     "_id": "concept/foo-sum",
     "schema": "concept",
-    "kind": "morphism",
+    "kind": "function",
     "id": "foo-sum",
     "name": "sum slot of foo",
-    "domain": [
+    "inputs": [
       {
-        "object": "foo"
+        "type": "foo"
       }
     ],
-    "codomain": [
+    "outputs": [
       {
-        "object": "number",
+        "type": "number",
         "name": "sum"
       }
     ]
