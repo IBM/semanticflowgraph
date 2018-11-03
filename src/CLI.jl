@@ -15,7 +15,7 @@
 """ Command-line interface for raw and semantic flow graphs.
 """
 module CLI
-export main
+export main, invoke, parse
 
 using ArgParse
 import DefaultApplication
@@ -234,23 +234,31 @@ end
 # CLI main
 ##########
 
-const command_table = Dict(
-  "record" => record,
-  "enrich" => enrich,
-  "visualize" => visualize,
-)
-
 function main(args)
+  invoke(parse(args)...)
+end
+
+function parse(args)
   parsed_args = parse_args(args, settings)
+  cmd = parsed_args["%COMMAND%"]
+  return (cmd, parsed_args[cmd])
+end
+
+function invoke(cmd, cmd_args)
   try
-    command = parsed_args["%COMMAND%"]
-    command_table[command](parsed_args[command])
+    command_table[cmd](cmd_args)
   catch err
     # Handle further "parsing" errors ala ArgParse.jl.
     isa(err, ArgParseError) || rethrow()
     settings.exc_handler(settings, err)
   end
 end
+
+const command_table = Dict(
+  "record" => record,
+  "enrich" => enrich,
+  "visualize" => visualize,
+)
 
 # CLI extras
 ############

@@ -16,17 +16,24 @@
 
 import SemanticFlowGraphs: CLI
 
-# Reduce load time by only importing PyCall and/or RCall if the "record"
-# command is being invoked.
-if length(ARGS) >= 1 && ARGS[1] == "record"
-  try
+function expand_paths(path::String)::Vector{String}
+  if isfile(path); [ path ]
+  elseif isdir(path); readdir(path)
+  else String[] end
+end
+
+cmd, cmd_args = CLI.parse(ARGS)
+
+# XXX: Reduce load time by only importing extra packages as needed.
+# Julia really needs a better solution to this problem...
+if cmd == "record"
+  paths = expand_paths(cmd_args["path"])
+  if any(endswith(path, ".py") for path in paths)
     import PyCall
-  catch
   end
-  try
+  if any(endswith(path, ".R") for path in paths)
     import RCall
-  catch
   end
 end
 
-CLI.main(ARGS)
+CLI.invoke(cmd, cmd_args)
