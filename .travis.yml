@@ -1,5 +1,12 @@
 # Julia for Travis: http://docs.travis-ci.com/user/languages/julia/
 
+sudo: required
+dist: trusty
+install:
+  - wget http://download.drobilla.net/serd-0.30.0.tar.bz2
+  - tar -vxjf serd-0.30.0.tar.bz2
+  - pushd serd-0.30.0 && CFLAGS="-std=c99" ./waf configure --prefix=/usr && ./waf && sudo ./waf install && popd
+
 language: julia
 julia:
   - 0.7

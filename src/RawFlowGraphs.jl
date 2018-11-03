@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" Datatypes and IO for raw flow graphs.
+""" Datatypes and post-processing for raw flow graphs.
 """
 module RawFlowGraphs
 export RawNode, RawPort, RawNodeAnnotationKind,
@@ -64,8 +64,8 @@ function Base.:(==)(p1::RawPort, p2::RawPort)
   isequal(p1.value, p2.value)
 end
 
-# Graph pre-processing
-######################
+# Graph post-processing
+#######################
 
 """ Remove literals from raw flow graph.
 

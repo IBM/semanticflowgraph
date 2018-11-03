@@ -12,19 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module TestOntology
+module TestOntologyRDF
 using Test
 
-@testset "JSON" begin
-  include("OntologyJSON.jl")
+@testset "Wiring" begin
+  include("WiringRDF.jl")
 end
 
-@testset "Database" begin
-  include("OntologyDBs.jl")
+@testset "Concept" begin
+  include("ConceptRDF.jl")
 end
 
-@testset "RDF" begin
-  include("OntologyRDF.jl")
+@testset "Annotation" begin
+  include("AnnotationRDF.jl")
 end
 
 end
