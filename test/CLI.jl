@@ -40,6 +40,13 @@ mktempdir() do dir
   @test isfile(outpath)
 end
 
+mktempdir() do dir
+  # Convert ontology concepts to RDF.
+  outpath = joinpath(dir, "concepts.ttl")
+  CLI.main(["ontology", "--no-annotations", "--out", outpath])
+  @test isfile(outpath)
+end
+
 if test_py
   import PyCall
 

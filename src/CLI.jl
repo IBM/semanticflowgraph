@@ -20,6 +20,7 @@ export main, invoke, parse
 using ArgParse
 import DefaultApplication
 using Requires
+import Serd
 
 using Catlab.Diagram
 import Catlab.Diagram: Graphviz
@@ -41,6 +42,9 @@ const settings = ArgParseSettings()
     action = :command
   "visualize"
     help = "visualize flow graph"
+    action = :command
+  "ontology"
+    help = "export ontology in non-native format"
     action = :command
 end
 
@@ -74,6 +78,22 @@ end
   "--open"
     help = "open output using OS default application"
     action = :store_true
+end
+
+@add_arg_table settings["ontology"] begin
+  "-o", "--out"
+    help = "output file (default stdout)"
+  "-t", "--to"
+    help = "output format (default RDF/Turtle)"
+    default = "turtle"
+  "--no-concepts"
+    help = "exclude concepts from export"
+    dest_name = "concepts"
+    action = :store_false
+  "--no-annotations"
+    help = "exclude annotations from export"
+    dest_name = "annotations"
+    action = :store_false
 end
 
 """ Map CLI input/output arguments to pairs of input/output files.
@@ -231,6 +251,34 @@ function semantic_graph_to_graphviz(diagram::WiringDiagram)
   )
 end
 
+# Ontology
+##########
+
+function ontology(args::Dict)
+  # Load concepts/annotations from remote database.
+  db = OntologyDB()
+  if args["concepts"]
+    load_concepts(db)
+  end
+  if args["annotations"]
+    load_annotations(db)
+  end
+
+  # Convert to RDF.
+  prefix = Serd.RDF.Prefix("dso", "http://www.datascienceontology.org/ns/dso/")
+  stmts = ontology_to_rdf(db, prefix)
+
+  # Serialize RDF to file or stdout.
+  syntax = args["to"]
+  if args["out"] != nothing
+    open(args["out"], "w") do out
+      Serd.write_rdf(out, stmts, syntax=syntax)
+    end
+  else
+    Serd.write_rdf(stdout, stmts, syntax=syntax)
+  end
+end
+
 # CLI main
 ##########
 
@@ -258,6 +306,7 @@ const command_table = Dict(
   "record" => record,
   "enrich" => enrich,
   "visualize" => visualize,
+  "ontology" => ontology,
 )
 
 # CLI extras
