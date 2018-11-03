@@ -25,6 +25,8 @@ using ..OntologyDBs
 ##############
 
 """ Convert sequence of RDF nodes into RDF List.
+
+An RDF List is a chain of cons cells, i.e., a singly linked list.
 """
 function rdf_list(nodes::Vector{<:RDF.Node}, prefix::String; graph=nothing)
   if length(nodes) == 0
@@ -89,6 +91,8 @@ function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix)::Vector{<:RDF.State
   return stmts
 end
 
+""" Create RDFS label/comment from document name/description.
+"""
 function rdfs_labels(doc, node::RDF.Node)::Vector{<:RDF.Statement}
   stmts = RDF.Statement[]
   if haskey(doc, "name")

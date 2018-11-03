@@ -46,25 +46,18 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix)
     prefix
   ]
   state = RDFState(prefix)
-  for ob in generators(pres, Monocl.Ob)
-    append!(stmts, ob_generator_to_rdf(ob, state))
-  end
-  for subob in generators(pres, Monocl.SubOb)
-    append!(stmts, sub_ob_to_rdf(subob, state))
-  end
-  for hom in generators(pres, Monocl.Hom)
-    append!(stmts, hom_generator_to_rdf(hom, state))
-    append!(stmts, hom_generator_to_wiring_rdf(hom, state))
-  end
-  for subhom in generators(pres, Monocl.SubHom)
-    append!(stmts, sub_hom_to_rdf(subhom, state))
+  for expr in generators(pres)
+    append!(stmts, expr_to_rdf(expr, state))
+    if expr isa Monocl.Hom
+      append!(stmts, hom_generator_to_wiring_rdf(expr, state))
+    end
   end
   stmts
 end
 
 """ Generate RDF for object generator.
 """
-function ob_generator_to_rdf(ob::Monocl.Ob{:generator}, state::RDFState)
+function expr_to_rdf(ob::Monocl.Ob{:generator}, state::RDFState)
   # FIXME: Objects are not really RDFS Classes but we abuse classes for
   # transitivity inference.
   node = generator_rdf_node(ob, state)
@@ -72,9 +65,9 @@ function ob_generator_to_rdf(ob::Monocl.Ob{:generator}, state::RDFState)
     RDF.Triple(node, R("rdf","type"), R("rdfs","Class")) ]
 end
 
-""" Generate RDF for subobject relations.
+""" Generate RDF for subobject relation.
 """
-function sub_ob_to_rdf(sub::Monocl.SubOb, state::RDFState)
+function expr_to_rdf(sub::Monocl.SubOb, state::RDFState)
   node = head(sub) == :generator && first(sub) != nothing ?
     generator_rdf_node(sub, state) : gen_blank(state, "subob")
   dom_node = generator_rdf_node(dom(sub), state)
@@ -89,7 +82,7 @@ end
 
 The domain and codomain objects are represented as RDF Lists.
 """
-function hom_generator_to_rdf(hom::Monocl.Hom{:generator}, state::RDFState)
+function expr_to_rdf(hom::Monocl.Hom{:generator}, state::RDFState)
   # FIXME: Morphisms are not really RDF Properties but we abuse properties for
   # transitivity inference.
   node = generator_rdf_node(hom, state)
@@ -106,9 +99,9 @@ function hom_generator_to_rdf(hom::Monocl.Hom{:generator}, state::RDFState)
   stmts
 end
 
-""" Generate RDF for submorphism relations.
+""" Generate RDF for submorphism relation.
 """
-function sub_hom_to_rdf(sub::Monocl.SubHom, state::RDFState)
+function expr_to_rdf(sub::Monocl.SubHom, state::RDFState)
   node = head(sub) == :generator && first(sub) != nothing ?
     generator_rdf_node(sub, state) : gen_blank(state, "subhom")
   dom_node = generator_rdf_node(dom(sub), state)
