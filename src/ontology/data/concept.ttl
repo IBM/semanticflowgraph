@@ -1,0 +1,14 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix cat: <http://datascienceontology.org/ns/catlab/> .
+@prefix monocl: <http://datascienceontology.org/ns/monocl/> .
+
+monocl:Concept rdf:type rdfs:Class ;
+  rdfs:label "Concept" ;
+  rdfs:comment "Concept in an ontology" .
+
+cat:Ob rdfs:subClassOf monocl:Concept .
+cat:Hom rdfs:subClassOf monocl:Concept .
+
+monocl:SubOb rdf:type rdfs:Class .
+monocl:SubHom rdf:type rdfs:Class .

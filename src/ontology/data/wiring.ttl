@@ -1,0 +1,48 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix cat: <http://datascienceontology.org/ns/catlab/> .
+
+# Boxes.
+
+cat:AbstractBox rdf:type rdfs:Class ;
+  rdfs:comment "Any box with inputs and outputs" .
+
+cat:Box rdf:type rdfs:Class ;
+  rdfs:subClassOf cat:AbstractBox ;
+  rdfs:comment "Black box with no internal structure" .
+  
+cat:WiringDiagram rdf:type rdfs:Class ;
+  rdfs:subClassOf cat:AbstractBox ;
+  rdfs:label "Wiring diagram" ;
+  rdfs:comment "Diagram of boxes connected by wires" .
+
+cat:inputs rdf:type rdfs:Property .
+cat:outputs rdf:type rdfs:Property .
+
+# Ports.
+
+cat:Port rdf:type rdfs:Class ;
+  rdfs:comment "RDF node representing a port on a box" .
+
+cat:port rdf:type rdfs:Property ;
+  rdfs:label "Input or output port on a box" .
+
+cat:input-port rdf:type rdfs:Property ;
+  rdfs:subPropertyOf cat:port ;
+  rdfs:label "Input port on a box" .
+
+cat:output-port rdf:type rdfs:Property ;
+  rdfs:subPropertyOf cat:port ;
+  rdfs:label "Output port on a box" .
+
+# Wires.
+
+cat:wire rdf:type rdfs:Property .
+
+cat:in rdf:type rdfs:Property ;
+  rdfs:subPropertyOf cat:wire ;
+  rdfs:label "Incoming wire from object (port) to morphism (box)" .
+
+cat:out rdf:type rdfs:Property ;
+  rdfs:subPropertyOf cat:wire ;
+  rdfs:label "Outgoing wire from morphism (box) to object (port)" .
