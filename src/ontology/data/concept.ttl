@@ -1,14 +1,45 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix cat: <http://datascienceontology.org/ns/catlab/> .
-@prefix monocl: <http://datascienceontology.org/ns/monocl/> .
+@prefix monocl: <https://www.datascienceontology.org/ns/monocl/> .
+
+
+monocl:Type rdf:type rdfs:Class ;
+  rdfs:label "Type" ;
+  rdfs:comment "A type (alternatively, an object in a category)" .
+
+monocl:Function rdf:type rdfs:Class ;
+  rdfs:label "Function" ;
+  rdfs:comment "A function (alternatively, a morphism in a category)" .
+
+monocl:Subtype rdf:type rdfs:Class ;
+  rdfs:label "Subtype relation" ;
+  rdfs:comment "A subtype (is-a) relation between two types" .
+
+monocl:Subfunction rdf:type rdfs:Class ;
+  rdfs:label "Subfunction relation" ;
+  rdfs:comment "A subfunction (is-a) relation between two functions" .
+
+
+monocl:inputs rdf:type rdfs:Property .
+monocl:outputs rdf:type rdfs:Property .
+
+monocl:dom rdf:type rdfs:Property ;
+  rdfs:label "Domain" .
+
+monocl:codom rdf:type rdfs:Property ;
+  rdfs:label "Codomain" .
+
 
 monocl:Concept rdf:type rdfs:Class ;
   rdfs:label "Concept" ;
-  rdfs:comment "Concept in an ontology" .
+  rdfs:comment "A concept in a Monocl ontology" .
 
-cat:Ob rdfs:subClassOf monocl:Concept .
-cat:Hom rdfs:subClassOf monocl:Concept .
+monocl:TypeConcept rdfs:subClassOf monocl:Concept ;
+  rdfs:subClassOf monocl:Type ;
+  rdfs:label "Type concept" ;
+  rdfs:comment "A type concept in a Monocl ontology" .
 
-monocl:SubOb rdf:type rdfs:Class .
-monocl:SubHom rdf:type rdfs:Class .
+monocl:FunctionConcept rdfs:subClassOf monocl:Concept ;
+  rdfs:subClassOf monocl:Function ;
+  rdfs:label "Function concept" ;
+  rdfs:comment "A function concept in a Monocl ontology" .

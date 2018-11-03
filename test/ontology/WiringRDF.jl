@@ -36,53 +36,53 @@ find_vertex = value -> vs[findfirst(v -> box(diagram, v).value == value, vs)]
 fv, gv, hv = find_vertex(:f), find_vertex(:g), find_vertex(:h)
 
 # Check RDF type of boxes and ports.
-@test Triple(Blank("box$fv"), R("rdf","type"), R("cat","Box")) in stmts
-@test Triple(Blank("box$fv-in1"), R("rdf","type"), R("cat","Port")) in stmts
-@test Triple(Blank("box$fv-out1"), R("rdf","type"), R("cat","Port")) in stmts
+@test Triple(Blank("box$(fv)"), R("rdf","type"), R("monocl","Box")) in stmts
+@test Triple(Blank("box$(fv)_in1"), R("rdf","type"), R("monocl","Port")) in stmts
+@test Triple(Blank("box$(fv)_out1"), R("rdf","type"), R("monocl","Port")) in stmts
 
 # Check values of boxes and ports.
-@test Triple(Blank("box$fv"), R("cat","value"), Literal("f")) in stmts
-@test Triple(Blank("box$fv-in1"), R("cat","value"), Literal("A")) in stmts
-@test Triple(Blank("box$fv-out1"), R("cat","value"), Literal("B")) in stmts
+@test Triple(Blank("box$(fv)"), R("monocl","value"), Literal("f")) in stmts
+@test Triple(Blank("box$(fv)_in1"), R("monocl","value"), Literal("A")) in stmts
+@test Triple(Blank("box$(fv)_out1"), R("monocl","value"), Literal("B")) in stmts
 
 # Check RDF list representation of domain and codomain.
 @test all(stmt in stmts for stmt in [
-  Triple(Blank("box$fv"), R("cat","dom"), Blank("box$fv-dom1")),
-  Triple(Blank("box$fv-dom1"), R("rdf","first"), Blank("box$fv-in1")),
-  Triple(Blank("box$fv-dom1"), R("rdf","rest"), R("rdf","nil")),
-  Triple(Blank("box$fv"), R("cat","codom"), Blank("box$fv-codom1")),
-  Triple(Blank("box$fv-codom1"), R("rdf","first"), Blank("box$fv-out1")),
-  Triple(Blank("box$fv-codom1"), R("rdf","rest"), R("rdf","nil")),
+  Triple(Blank("box$(fv)"), R("monocl","dom"), Blank("box$(fv)_dom1")),
+  Triple(Blank("box$(fv)_dom1"), R("rdf","first"), Blank("box$(fv)_in1")),
+  Triple(Blank("box$(fv)_dom1"), R("rdf","rest"), R("rdf","nil")),
+  Triple(Blank("box$(fv)"), R("monocl","codom"), Blank("box$(fv)_codom1")),
+  Triple(Blank("box$(fv)_codom1"), R("rdf","first"), Blank("box$(fv)_out1")),
+  Triple(Blank("box$(fv)_codom1"), R("rdf","rest"), R("rdf","nil")),
 ])
 
 # Check special input and output nodes.
 @test all(stmt in stmts for stmt in [
-  Triple(Blank("box$vin-out1"), R("rdf","type"), R("cat","Port")),
-  Triple(Blank("box$vin-out2"), R("rdf","type"), R("cat","Port")),
+  Triple(Blank("box$(vin)_out1"), R("rdf","type"), R("monocl","Port")),
+  Triple(Blank("box$(vin)_out2"), R("rdf","type"), R("monocl","Port")),
 ])
 @test all(stmt in stmts for stmt in [
-  Triple(Blank("box$vout-in1"), R("rdf","type"), R("cat","Port")),
-  Triple(Blank("box$vout-in2"), R("rdf","type"), R("cat","Port")),
+  Triple(Blank("box$(vout)_in1"), R("rdf","type"), R("monocl","Port")),
+  Triple(Blank("box$(vout)_in2"), R("rdf","type"), R("monocl","Port")),
 ])
 
 # Check wires.
-@test Triple(Blank("box$fv-out1"), R("cat","wire"), Blank("box$gv-in1")) in stmts
+@test Triple(Blank("box$(fv)_out1"), R("monocl","wire"), Blank("box$(gv)_in1")) in stmts
 
 # Check wires between special input and output nodes.
 @test all(stmt in stmts for stmt in [
-  Triple(Blank("box$vin-out1"), R("cat","wire"), Blank("box$fv-in1")),
-  Triple(Blank("box$vin-out2"), R("cat","wire"), Blank("box$hv-in1")),
-  Triple(Blank("box$gv-out1"), R("cat","wire"), Blank("box$vout-in1")),
-  Triple(Blank("box$hv-out1"), R("cat","wire"), Blank("box$vout-in2")),
+  Triple(Blank("box$(vin)_out1"), R("monocl","wire"), Blank("box$(fv)_in1")),
+  Triple(Blank("box$(vin)_out2"), R("monocl","wire"), Blank("box$(hv)_in1")),
+  Triple(Blank("box$(gv)_out1"), R("monocl","wire"), Blank("box$(vout)_in1")),
+  Triple(Blank("box$(hv)_out1"), R("monocl","wire"), Blank("box$(vout)_in2")),
 ])
 
 # Test that above wiring diagram can be stored as named graph.
 graph = Resource("ex", "diagram")
 stmts = wiring_diagram_to_rdf(diagram; graph=graph)
 
-@test Triple(graph, R("rdf","type"), R("cat","WiringDiagram")) in stmts
-@test Quad(Blank("box$fv"), R("rdf","type"), R("cat","Box"), graph) in stmts
-@test Quad(Blank("box$fv-in1"), R("rdf","type"), R("cat","Port"), graph) in stmts
-@test Quad(Blank("box$fv-out1"), R("rdf","type"), R("cat","Port"), graph) in stmts
+@test Triple(graph, R("rdf","type"), R("monocl","WiringDiagram")) in stmts
+@test Quad(Blank("box$(fv)"), R("rdf","type"), R("monocl","Box"), graph) in stmts
+@test Quad(Blank("box$(fv)_in1"), R("rdf","type"), R("monocl","Port"), graph) in stmts
+@test Quad(Blank("box$(fv)_out1"), R("rdf","type"), R("monocl","Port"), graph) in stmts
 
 end

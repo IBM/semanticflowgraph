@@ -42,7 +42,7 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
   stmts = RDF.Statement[
     RDF.Prefix("rdf"),
     RDF.Prefix("rdfs"),
-    RDF.Prefix("cat", "http://datascienceontology.org/ns/catlab/"),
+    RDF.Prefix("monocl", "http://datascienceontology.org/ns/catlab/"),
     RDF.Prefix("monocl", "http://datascienceontology.org/ns/monocl/"),
     prefix
   ]
@@ -62,10 +62,10 @@ end
 """ Generate RDF for object generator.
 """
 function expr_to_rdf(ob::Monocl.Ob{:generator}, state::RDFState)
-  # FIXME: Objects are not really RDFS Classes but we abuse classes for
+  # XXX: Objects are not really RDFS Classes but we abuse classes for
   # transitivity inference.
   node = generator_rdf_node(ob, state)
-  [ RDF.Triple(node, R("rdf","type"), R("cat","Ob")),
+  [ RDF.Triple(node, R("rdf","type"), R("monocl","Type")),
     RDF.Triple(node, R("rdf","type"), R("rdfs","Class")) ]
 end
 
@@ -77,9 +77,9 @@ function expr_to_rdf(sub::Monocl.SubOb, state::RDFState)
   dom_node = generator_rdf_node(dom(sub), state)
   codom_node = generator_rdf_node(codom(sub), state)
   [ RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node),
-    RDF.Triple(node, R("rdf","type"), R("monocl","SubOb")),
-    RDF.Triple(node, R("cat","dom"), dom_node),
-    RDF.Triple(node, R("cat","codom"), codom_node) ]
+    RDF.Triple(node, R("rdf","type"), R("monocl","Subtype")),
+    RDF.Triple(node, R("monocl","dom"), dom_node),
+    RDF.Triple(node, R("monocl","codom"), codom_node) ]
 end
 
 """ Generate RDF for morphism generator.
@@ -87,16 +87,16 @@ end
 The domain and codomain objects are represented as RDF Lists.
 """
 function expr_to_rdf(hom::Monocl.Hom{:generator}, state::RDFState)
-  # FIXME: Morphisms are not really RDF Properties but we abuse properties for
+  # XXX: Morphisms are not really RDF Properties but we abuse properties for
   # transitivity inference.
   node = generator_rdf_node(hom, state)
   dom_node, dom_stmts = ob_to_rdf_list(dom(hom), state)
   codom_node, codom_stmts = ob_to_rdf_list(codom(hom), state)
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("cat","Hom")),
+    RDF.Triple(node, R("rdf","type"), R("monocl","Function")),
     RDF.Triple(node, R("rdf","type"), R("rdf","Property")),
-    RDF.Triple(node, R("cat","dom"), dom_node),
-    RDF.Triple(node, R("cat","codom"), codom_node),
+    RDF.Triple(node, R("monocl","dom"), dom_node),
+    RDF.Triple(node, R("monocl","codom"), codom_node),
   ]
   append!(stmts, dom_stmts)
   append!(stmts, codom_stmts)
@@ -111,9 +111,9 @@ function expr_to_rdf(sub::Monocl.SubHom, state::RDFState)
   dom_node = generator_rdf_node(dom(sub), state)
   codom_node = generator_rdf_node(codom(sub), state)
   [ RDF.Triple(dom_node, R("rdfs","subPropertyOf"), codom_node),
-    RDF.Triple(node, R("rdf","type"), R("monocl","SubHom")),
-    RDF.Triple(node, R("cat","dom"), dom_node),
-    RDF.Triple(node, R("cat","codom"), codom_node) ]
+    RDF.Triple(node, R("rdf","type"), R("monocl","Subfunction")),
+    RDF.Triple(node, R("monocl","dom"), dom_node),
+    RDF.Triple(node, R("monocl","codom"), codom_node) ]
 end
 
 """ Generate RDF for morphism generator in wiring diagram style.
@@ -126,19 +126,19 @@ function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, state::RDFStat
   for (i, dom_ob) in enumerate(collect(dom(hom)))
     port_node = generator_rdf_node(dom_ob, state)
     append!(stmts, [
-      RDF.Triple(node, R("cat","input-port"), port_node),
-      RDF.Triple(node, R("cat","input-port-$i"), port_node),
-      RDF.Triple(port_node, R("cat","in"), node),
-      RDF.Triple(port_node, R("cat","in-$i"), node),
+      RDF.Triple(node, R("monocl","input_port"), port_node),
+      RDF.Triple(node, R("monocl","input_port_$i"), port_node),
+      RDF.Triple(port_node, R("monocl","in"), node),
+      RDF.Triple(port_node, R("monocl","in_$i"), node),
     ])
   end
   for (i, codom_ob) in enumerate(collect(codom(hom)))
     port_node = generator_rdf_node(codom_ob, state)
     append!(stmts, [
-      RDF.Triple(node, R("cat","output-port"), port_node),
-      RDF.Triple(node, R("cat","output-port-$i"), port_node),
-      RDF.Triple(node, R("cat","out"), port_node),
-      RDF.Triple(node, R("cat","out-$i"), port_node),
+      RDF.Triple(node, R("monocl","output_port"), port_node),
+      RDF.Triple(node, R("monocl","output_port_$i"), port_node),
+      RDF.Triple(node, R("monocl","out"), port_node),
+      RDF.Triple(node, R("monocl","out_$i"), port_node),
     ])
   end
   stmts
@@ -159,7 +159,7 @@ end
 function ob_to_rdf_list(dom_ob::Monocl.Ob, state::RDFState)
   nodes = [ generator_rdf_node(ob, state) for ob in collect(dom_ob) ]
   blank = gen_blank(state, "ob")
-  rdf_list(nodes, string(blank.name, "-"))
+  rdf_list(nodes, string(blank.name, "_"))
 end
 
 """ `gensym` for RDF blank nodes.

@@ -26,9 +26,9 @@ using ..ConceptRDF: generator_rdf_node
 ###########
 
 const language_properties = Dict(
-  :class => "code-class",
-  :function => "code-function",
-  :method => "code-method",
+  :class => "code_class",
+  :function => "code_function",
+  :method => "code_method",
 )
 
 rdf_type(::Type{ObAnnotation}) = "ObAnnotation"
@@ -53,14 +53,14 @@ function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix)
   if head(annotation.definition) == :generator
     push!(stmts, RDF.Triple(
       node,
-      RDF.Resource("monocl","code-meaning"),
+      RDF.Resource("monocl","code_meaning"),
       generator_rdf_node(annotation.definition, prefix)
     ))
   end
   if isa(annotation, HomAnnotation)
     diagram = to_wiring_diagram(annotation.definition)
     graph = RDF.Resource(prefix.name, "$(node.name):diagram")
-    push!(stmts, RDF.Triple(node, RDF.Resource("monocl","code-meaning"), graph))
+    push!(stmts, RDF.Triple(node, RDF.Resource("monocl","code_meaning"), graph))
     append!(stmts, annotation_diagram_to_rdf(diagram, graph, prefix))
   end
   
@@ -74,12 +74,12 @@ function annotation_language_to_rdf(
   stmts = RDF.Statement[
     RDF.Triple(
       node,
-      RDF.Resource("monocl","code-language"),
+      RDF.Resource("monocl","code_language"),
       RDF.Literal(annotation.name.language)
     ),
     RDF.Triple(
       node,
-      RDF.Resource("monocl","code-package"),
+      RDF.Resource("monocl","code_package"),
       RDF.Literal(annotation.name.package)
     ),
   ]
@@ -113,13 +113,13 @@ function annotation_box_to_rdf(expr::Monocl.Hom, node::RDF.Node,
     # FIXME: Discards constructor parameters when head == :construct.
     RDF.Resource("monocl", string(head(expr)))
   end
-  [ RDF.Quad(node, RDF.Resource("cat","type"), type_node, graph) ]
+  [ RDF.Quad(node, RDF.Resource("monocl","type"), type_node, graph) ]
 end
 
 function annotation_port_to_rdf(expr::Monocl.Ob, node::RDF.Node,
                                 graph::RDF.Node, prefix::RDF.Prefix)
   type_node = generator_rdf_node(expr, prefix)
-  [ RDF.Quad(node, RDF.Resource("cat","type"), type_node, graph) ]
+  [ RDF.Quad(node, RDF.Resource("monocl","type"), type_node, graph) ]
 end
 
 """ Create RDF node for annotation.

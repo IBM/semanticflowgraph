@@ -1,41 +1,43 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix monocl: <http://datascienceontology.org/ns/monocl/> .
+@prefix monocl: <https://www.datascienceontology.org/ns/monocl/> .
+
 
 monocl:Annotation rdf:type rdfs:Class ;
   rdfs:label "Annotation" ;
-  rdfs:comment "Semantic annotation of computer program" .
+  rdfs:comment "Semantic annotation of computer code" .
 
-monocl:ObAnnotation rdf:type rdfs:Class ;
+monocl:TypeAnnotation rdf:type rdfs:Class ;
   rdfs:subClassOf monocl:Annotation ;
-  rdfs:label "Object annotation" ;
-  rdfs:comment "Annotation of class or type as an object" .
+  rdfs:label "Type annotation" ;
+  rdfs:comment "Annotation of concrete class or type" .
 
-monocl:HomAnnotation rdf:type rdfs:Class ;
+monocl:FunctionAnnotation rdf:type rdfs:Class ;
   rdfs:subClassOf monocl:Annotation ;
-  rdfs:label "Morphism annotation" ;
-  rdfs:comment "Annotation of function or method as a morphism" .
+  rdfs:label "Function annotation" ;
+  rdfs:comment "Annotation of concrete function or method" .
 
-monocl:code-meaning rdf:type rdfs:Property ;
+
+monocl:code_meaning rdf:type rdfs:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Definition of annotated code in terms of universal concepts" .
 
-monocl:code-language rdf:type rdfs:Property ;
+monocl:code_language rdf:type rdfs:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Programming language of annotated code" .
 
-monocl:code-package rdf:type rdfs:Property ;
+monocl:code_package rdf:type rdfs:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Library or package of annotated code" .
 
-monocl:code-class rdf:type rdfs:Property ;
+monocl:code_class rdf:type rdfs:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Class or type to which annotation applies" .
 
-monocl:code-function rdf:type rdfs:Property ;
-  rdfs:domain monocl:HomAnnotation ;
+monocl:code_function rdf:type rdfs:Property ;
+  rdfs:domain monocl:FunctionAnnotation ;
   rdfs:comment "Function to which annotation applies" .
 
-monocl:code-method rdf:type rdfs:Property ;
-  rdfs:domain monocl:HomAnnotation ;
+monocl:code_method rdf:type rdfs:Property ;
+  rdfs:domain monocl:FunctionAnnotation ;
   rdfs:comment "Method of class to which annotation applies" .

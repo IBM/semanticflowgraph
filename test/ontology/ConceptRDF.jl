@@ -44,17 +44,17 @@ prefix = RDF.Prefix("ex", "http://www.example.org/#")
 stmts = presentation_to_rdf(TestPres, prefix)
 #write_rdf(STDOUT, stmts)
 
-@test Triple(R("ex","A"), R("rdf","type"), R("cat","Ob")) in stmts
-@test Triple(R("ex","A0"), R("rdf","type"), R("cat","Ob")) in stmts
+@test Triple(R("ex","A"), R("rdf","type"), R("monocl","Type")) in stmts
+@test Triple(R("ex","A0"), R("rdf","type"), R("monocl","Type")) in stmts
 @test Triple(R("ex","A0"), R("rdfs","subClassOf"), R("ex","A")) in stmts
 @test Triple(R("ex","f0"), R("rdfs","subPropertyOf"), R("ex","f")) in stmts
 
-@test Triple(R("ex","g"), R("rdf","type"), R("cat","Hom")) in stmts
-@test Triple(R("ex","g"), R("cat","input-port"), R("ex","A")) in stmts
-@test Triple(R("ex","g"), R("cat","output-port"), R("ex","B")) in stmts
-@test Triple(R("ex","g"), R("cat","output-port"), R("ex","C")) in stmts
-@test Triple(R("ex","A"), R("cat","in"), R("ex","g")) in stmts
-@test Triple(R("ex","g"), R("cat","out"), R("ex","B")) in stmts
-@test Triple(R("ex","g"), R("cat","out"), R("ex","C")) in stmts
+@test Triple(R("ex","g"), R("rdf","type"), R("monocl","Function")) in stmts
+@test Triple(R("ex","g"), R("monocl","input_port"), R("ex","A")) in stmts
+@test Triple(R("ex","g"), R("monocl","output_port"), R("ex","B")) in stmts
+@test Triple(R("ex","g"), R("monocl","output_port"), R("ex","C")) in stmts
+@test Triple(R("ex","A"), R("monocl","in"), R("ex","g")) in stmts
+@test Triple(R("ex","g"), R("monocl","out"), R("ex","B")) in stmts
+@test Triple(R("ex","g"), R("monocl","out"), R("ex","C")) in stmts
 
 end
