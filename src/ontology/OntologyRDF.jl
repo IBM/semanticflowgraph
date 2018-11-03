@@ -66,17 +66,12 @@ using .AnnotationRDF
 """
 function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix)::Vector{<:RDF.Statement}
   # Create RDF statements for ontology concepts.
-  stmts = presentation_to_rdf(concepts(db), prefix)
-  
-  # Add RDFS labels for all concepts.
-  for expr in generators(concepts(db))
-    name = first(expr)
-    if name != nothing
-      doc = concept_document(db, name)
-      node = generator_rdf_node(expr, prefix)
-      append!(stmts, rdfs_labels(doc, node))
-    end
+  function concept_labels(expr, node::RDF.Node)::Vector{<:RDF.Statement}
+    # Add RDFS labels for concept.
+    doc = concept_document(db, first(expr))
+    rdfs_labels(doc, node)
   end
+  stmts = presentation_to_rdf(concepts(db), prefix; extra_rdf=concept_labels)
   
   # Create RDF statements for ontology annotations.
   for note in annotations(db)
