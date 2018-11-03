@@ -13,9 +13,9 @@
 # limitations under the License.
 
 module OntologyRDF
-export ontology_to_rdf
+export ontology_to_rdf, presentation_to_rdf, annotation_to_rdf,
+  wiring_diagram_to_rdf
 
-using Reexport
 using Serd
 using Catlab
 
@@ -53,9 +53,9 @@ include("WiringRDF.jl")
 include("ConceptRDF.jl")
 include("AnnotationRDF.jl")
 
-@reexport using .WiringRDF
-@reexport using .ConceptRDF
-@reexport using .AnnotationRDF
+using .WiringRDF
+using .ConceptRDF
+using .AnnotationRDF
 
 # Ontology RDF
 ##############
