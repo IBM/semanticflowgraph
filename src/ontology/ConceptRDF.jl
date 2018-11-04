@@ -33,8 +33,7 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
   stmts = RDF.Statement[
     RDF.Prefix("rdf"),
     RDF.Prefix("rdfs"),
-    RDF.Prefix("monocl", "http://datascienceontology.org/ns/catlab/"),
-    RDF.Prefix("monocl", "http://datascienceontology.org/ns/monocl/"),
+    RDF.Prefix("monocl", "https://www.datascienceontology.org/ns/monocl/"),
     prefix
   ]
   for expr in generators(pres)
@@ -112,8 +111,6 @@ function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Pr
     append!(stmts, [
       RDF.Triple(node, R("monocl","input_port"), port_node),
       RDF.Triple(node, R("monocl","input_port_$i"), port_node),
-      RDF.Triple(port_node, R("monocl","in_wire"), node),
-      RDF.Triple(port_node, R("monocl","in_wire_$i"), node),
     ])
   end
   for (i, codom_ob) in enumerate(collect(codom(hom)))
@@ -121,8 +118,6 @@ function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Pr
     append!(stmts, [
       RDF.Triple(node, R("monocl","output_port"), port_node),
       RDF.Triple(node, R("monocl","output_port_$i"), port_node),
-      RDF.Triple(node, R("monocl","out_wire"), port_node),
-      RDF.Triple(node, R("monocl","out_wire_$i"), port_node),
     ])
   end
   stmts

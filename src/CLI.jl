@@ -265,7 +265,7 @@ function ontology(args::Dict)
   end
 
   # Convert to RDF.
-  prefix = Serd.RDF.Prefix("dso", "http://www.datascienceontology.org/ns/dso/")
+  prefix = Serd.RDF.Prefix("dso", "https://www.datascienceontology.org/ns/dso/")
   stmts = ontology_to_rdf(db, prefix)
 
   # Serialize RDF to file or stdout.
