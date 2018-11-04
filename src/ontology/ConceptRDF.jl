@@ -120,8 +120,8 @@ function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, state::RDFStat
     append!(stmts, [
       RDF.Triple(node, R("monocl","input_port"), port_node),
       RDF.Triple(node, R("monocl","input_port_$i"), port_node),
-      RDF.Triple(port_node, R("monocl","in"), node),
-      RDF.Triple(port_node, R("monocl","in_$i"), node),
+      RDF.Triple(port_node, R("monocl","in_wire"), node),
+      RDF.Triple(port_node, R("monocl","in_wire_$i"), node),
     ])
   end
   for (i, codom_ob) in enumerate(collect(codom(hom)))
@@ -129,8 +129,8 @@ function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, state::RDFStat
     append!(stmts, [
       RDF.Triple(node, R("monocl","output_port"), port_node),
       RDF.Triple(node, R("monocl","output_port_$i"), port_node),
-      RDF.Triple(node, R("monocl","out"), port_node),
-      RDF.Triple(node, R("monocl","out_$i"), port_node),
+      RDF.Triple(node, R("monocl","out_wire"), port_node),
+      RDF.Triple(node, R("monocl","out_wire_$i"), port_node),
     ])
   end
   stmts

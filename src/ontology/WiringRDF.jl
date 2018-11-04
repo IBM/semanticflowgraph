@@ -124,8 +124,8 @@ function port_to_rdf(state::RDFState, port::Port, port_value::Any)
   
   # Add RDF edges for port.
   #
-  # Although "monocl:in" and "monocl:out" are both RDF sub-properties of
-  # "monocl:wire", we include "monocl:wire" explicitly because it is difficult
+  # Although "monocl:in_wire" and "monocl:out_wire" are both RDF sub-properties
+  # of "monocl:wire", we include the latter explicitly because it's difficult
   # (impossible?) to enable reasoning on all named graphs in Apache Jena.
   #
   # Reference: https://stackoverflow.com/q/35428064
@@ -136,8 +136,8 @@ function port_to_rdf(state::RDFState, port::Port, port_value::Any)
       RDF.Edge(node, R("monocl","input_port"), port_node, graph),
       RDF.Edge(node, R("monocl","input_port_$(port.port)"), port_node, graph),
       RDF.Edge(port_node, R("monocl","wire"), node, graph),
-      RDF.Edge(port_node, R("monocl","in"), node, graph),
-      RDF.Edge(port_node, R("monocl","in-$(port.port)"), node, graph),
+      RDF.Edge(port_node, R("monocl","in_wire"), node, graph),
+      RDF.Edge(port_node, R("monocl","in_wire_$(port.port)"), node, graph),
     ])
   elseif port.kind == OutputPort
     append!(stmts, [
@@ -145,8 +145,8 @@ function port_to_rdf(state::RDFState, port::Port, port_value::Any)
       RDF.Edge(node, R("monocl","output_port"), port_node, graph),
       RDF.Edge(node, R("monocl","output_port_$(port.port)"), port_node, graph),
       RDF.Edge(node, R("monocl","wire"), port_node, graph),
-      RDF.Edge(node, R("monocl","out"), port_node, graph),
-      RDF.Edge(node, R("monocl","out_$(port.port)"), port_node, graph),
+      RDF.Edge(node, R("monocl","out_wire"), port_node, graph),
+      RDF.Edge(node, R("monocl","out_wire_$(port.port)"), port_node, graph),
     ])
   end
   stmts

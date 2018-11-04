@@ -53,8 +53,8 @@ stmts = presentation_to_rdf(TestPres, prefix)
 @test Triple(R("ex","g"), R("monocl","input_port"), R("ex","A")) in stmts
 @test Triple(R("ex","g"), R("monocl","output_port"), R("ex","B")) in stmts
 @test Triple(R("ex","g"), R("monocl","output_port"), R("ex","C")) in stmts
-@test Triple(R("ex","A"), R("monocl","in"), R("ex","g")) in stmts
-@test Triple(R("ex","g"), R("monocl","out"), R("ex","B")) in stmts
-@test Triple(R("ex","g"), R("monocl","out"), R("ex","C")) in stmts
+@test Triple(R("ex","A"), R("monocl","in_wire"), R("ex","g")) in stmts
+@test Triple(R("ex","g"), R("monocl","out_wire"), R("ex","B")) in stmts
+@test Triple(R("ex","g"), R("monocl","out_wire"), R("ex","C")) in stmts
 
 end

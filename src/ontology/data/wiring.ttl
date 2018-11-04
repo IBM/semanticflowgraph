@@ -35,14 +35,14 @@ monocl:output_port rdf:type rdfs:Property ;
 # Wires
 
 monocl:wire rdf:type rdfs:Property ;
-  rdfs:comment "Wire connecting box to port (or vice versa)" .
+  rdfs:comment "Wire connecting boxes and/or ports" .
 
-monocl:in rdf:type rdfs:Property ;
+monocl:in_wire rdf:type rdfs:Property ;
   rdfs:subPropertyOf monocl:wire ;
-  rdfs:label "Input wire" ;
+  rdfs:label "Incoming wire" ;
   rdfs:comment "Incoming wire, going from port to box" .
 
-monocl:out rdf:type rdfs:Property ;
+monocl:out_wire rdf:type rdfs:Property ;
   rdfs:subPropertyOf monocl:wire ;
-  rdfs:label "Output wire" ;
+  rdfs:label "Outgoing wire" ;
   rdfs:comment "Outgoing wire, going from box to port" .
