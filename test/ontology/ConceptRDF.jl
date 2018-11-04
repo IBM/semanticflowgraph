@@ -46,8 +46,8 @@ stmts = presentation_to_rdf(TestPres, prefix)
 
 @test Triple(R("ex","A"), R("rdf","type"), R("monocl","Type")) in stmts
 @test Triple(R("ex","A0"), R("rdf","type"), R("monocl","Type")) in stmts
-@test Triple(R("ex","A0"), R("rdfs","subClassOf"), R("ex","A")) in stmts
-@test Triple(R("ex","f0"), R("rdfs","subPropertyOf"), R("ex","f")) in stmts
+@test Triple(R("ex","A0"), R("monocl","subtype_of"), R("ex","A")) in stmts
+@test Triple(R("ex","f0"), R("monocl","subfunction_of"), R("ex","f")) in stmts
 
 @test Triple(R("ex","g"), R("rdf","type"), R("monocl","Function")) in stmts
 @test Triple(R("ex","g"), R("monocl","input_port"), R("ex","A")) in stmts

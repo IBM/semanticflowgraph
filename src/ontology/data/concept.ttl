@@ -11,23 +11,19 @@ monocl:Function rdf:type rdfs:Class ;
   rdfs:label "Function" ;
   rdfs:comment "A function (alternatively, a morphism in a category)" .
 
-monocl:Subtype rdf:type rdfs:Class ;
+monocl:inputs rdf:type rdfs:Property ;
+  rdfs:label "Inputs of function" .
+
+monocl:outputs rdf:type rdfs:Property ;
+  rdfs:label "Outputs of function" .
+
+monocl:subtype_of rdf:type rdfs:Property ;
   rdfs:label "Subtype relation" ;
   rdfs:comment "A subtype (is-a) relation between two types" .
 
-monocl:Subfunction rdf:type rdfs:Class ;
+monocl:subfunction_of rdf:type rdfs:Property ;
   rdfs:label "Subfunction relation" ;
   rdfs:comment "A subfunction (is-a) relation between two functions" .
-
-
-monocl:inputs rdf:type rdfs:Property .
-monocl:outputs rdf:type rdfs:Property .
-
-monocl:dom rdf:type rdfs:Property ;
-  rdfs:label "Domain" .
-
-monocl:codom rdf:type rdfs:Property ;
-  rdfs:label "Codomain" .
 
 
 monocl:Concept rdf:type rdfs:Class ;

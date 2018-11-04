@@ -45,7 +45,7 @@ fv, gv, hv = find_vertex(:f), find_vertex(:g), find_vertex(:h)
 @test Triple(Blank("box$(fv)_in1"), R("monocl","value"), Literal("A")) in stmts
 @test Triple(Blank("box$(fv)_out1"), R("monocl","value"), Literal("B")) in stmts
 
-# Check RDF list representation of domain and codomain.
+# Check RDF list representation of box inputs and outputs.
 @test all(stmt in stmts for stmt in [
   Triple(Blank("box$(fv)"), R("monocl","dom"), Blank("box$(fv)_dom1")),
   Triple(Blank("box$(fv)_dom1"), R("rdf","first"), Blank("box$(fv)_in1")),

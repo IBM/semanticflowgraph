@@ -72,14 +72,10 @@ end
 """ Generate RDF for subobject relation.
 """
 function expr_to_rdf(sub::Monocl.SubOb, state::RDFState)
-  node = head(sub) == :generator && first(sub) != nothing ?
-    generator_rdf_node(sub, state) : gen_blank(state, "subob")
   dom_node = generator_rdf_node(dom(sub), state)
   codom_node = generator_rdf_node(codom(sub), state)
-  [ RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node),
-    RDF.Triple(node, R("rdf","type"), R("monocl","Subtype")),
-    RDF.Triple(node, R("monocl","dom"), dom_node),
-    RDF.Triple(node, R("monocl","codom"), codom_node) ]
+  [ RDF.Triple(dom_node, R("monocl","subtype_of"), codom_node),
+    RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node) ]
 end
 
 """ Generate RDF for morphism generator.
@@ -95,8 +91,8 @@ function expr_to_rdf(hom::Monocl.Hom{:generator}, state::RDFState)
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","Function")),
     RDF.Triple(node, R("rdf","type"), R("rdf","Property")),
-    RDF.Triple(node, R("monocl","dom"), dom_node),
-    RDF.Triple(node, R("monocl","codom"), codom_node),
+    RDF.Triple(node, R("monocl","inputs"), dom_node),
+    RDF.Triple(node, R("monocl","outputs"), codom_node),
   ]
   append!(stmts, dom_stmts)
   append!(stmts, codom_stmts)
@@ -106,14 +102,10 @@ end
 """ Generate RDF for submorphism relation.
 """
 function expr_to_rdf(sub::Monocl.SubHom, state::RDFState)
-  node = head(sub) == :generator && first(sub) != nothing ?
-    generator_rdf_node(sub, state) : gen_blank(state, "subhom")
   dom_node = generator_rdf_node(dom(sub), state)
   codom_node = generator_rdf_node(codom(sub), state)
-  [ RDF.Triple(dom_node, R("rdfs","subPropertyOf"), codom_node),
-    RDF.Triple(node, R("rdf","type"), R("monocl","Subfunction")),
-    RDF.Triple(node, R("monocl","dom"), dom_node),
-    RDF.Triple(node, R("monocl","codom"), codom_node) ]
+  [ RDF.Triple(dom_node, R("monocl","subfunction_of"), codom_node),
+    RDF.Triple(dom_node, R("rdfs","subPropertyOf"), codom_node) ]
 end
 
 """ Generate RDF for morphism generator in wiring diagram style.
