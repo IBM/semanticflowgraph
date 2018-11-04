@@ -94,6 +94,10 @@ end
     help = "exclude annotations from export"
     dest_name = "annotations"
     action = :store_false
+  "--no-wiring-diagrams"
+    help = "exclude wiring diagrams in concepts and annotations from export"
+    dest_name = "wiring"
+    action = :store_false
 end
 
 """ Map CLI input/output arguments to pairs of input/output files.
@@ -266,7 +270,7 @@ function ontology(args::Dict)
 
   # Convert to RDF.
   prefix = Serd.RDF.Prefix("dso", "https://www.datascienceontology.org/ns/dso/")
-  stmts = ontology_to_rdf(db, prefix)
+  stmts = ontology_to_rdf(db, prefix, include_wiring_diagrams=args["wiring"])
 
   # Serialize RDF to file or stdout.
   syntax = args["to"]

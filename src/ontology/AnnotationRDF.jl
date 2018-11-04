@@ -31,15 +31,16 @@ const language_properties = Dict(
   :method => "code_method",
 )
 
-rdf_type(::Type{ObAnnotation}) = "ObAnnotation"
-rdf_type(::Type{HomAnnotation}) = "HomAnnotation"
+rdf_type(::Type{ObAnnotation}) = "TypeAnnotation"
+rdf_type(::Type{HomAnnotation}) = "FunctionAnnotation"
 
 # RDF
 #####
 
 """ Generate RDF for annnotation.
 """
-function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix)
+function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
+                           include_wiring_diagrams::Bool=true)
   node = annotation_rdf_node(annotation, prefix)
   stmts = RDF.Statement[
     RDF.Triple(
@@ -57,7 +58,7 @@ function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix)
       generator_rdf_node(annotation.definition, prefix)
     ))
   end
-  if isa(annotation, HomAnnotation)
+  if include_wiring_diagrams && annotation isa HomAnnotation
     diagram = to_wiring_diagram(annotation.definition)
     graph = RDF.Resource(prefix.name, "$(node.name):diagram")
     push!(stmts, RDF.Triple(node, RDF.Resource("monocl","code_meaning"), graph))
@@ -126,7 +127,7 @@ end
 """
 function annotation_rdf_node(annotation::Annotation, prefix::RDF.Prefix)::RDF.Node
   name = annotation.name
-  node_name = join(["annotation", name.language, name.package, name.id], ":")
+  node_name = join([name.language, name.package, name.id], ":")
   RDF.Resource(prefix.name, node_name)
 end
 

@@ -64,18 +64,21 @@ using .AnnotationRDF
 
 """ Convert ontology (both concepts and annotations) to RDF graph.
 """
-function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix)::Vector{<:RDF.Statement}
+function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix;
+                         include_wiring_diagrams::Bool=true)::Vector{<:RDF.Statement}
   # Create RDF statements for ontology concepts.
   function concept_labels(expr, node::RDF.Node)::Vector{<:RDF.Statement}
     # Add RDFS labels for concept.
     doc = concept_document(db, first(expr))
     rdfs_labels(doc, node)
   end
-  stmts = presentation_to_rdf(concepts(db), prefix; extra_rdf=concept_labels)
+  stmts = presentation_to_rdf(concepts(db), prefix;
+    extra_rdf=concept_labels, wiring_rdf=include_wiring_diagrams)
   
   # Create RDF statements for ontology annotations.
   for note in annotations(db)
-    append!(stmts, annotation_to_rdf(note, prefix))
+    append!(stmts, annotation_to_rdf(note, prefix;
+      include_wiring_diagrams=include_wiring_diagrams))
     
     # Add RDFS labels for annotation.
     doc = annotation_document(db, note.name)

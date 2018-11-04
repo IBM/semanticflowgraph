@@ -29,7 +29,8 @@ const R = RDF.Resource
 """ Convert concepts in Monocl ontology to RDF graph.
 """
 function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
-                             extra_rdf::Union{Function,Nothing}=nothing)
+                             extra_rdf::Union{Function,Nothing}=nothing,
+                             wiring_rdf::Bool=true)
   stmts = RDF.Statement[
     RDF.Prefix("rdf"),
     RDF.Prefix("rdfs"),
@@ -38,7 +39,7 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
   ]
   for expr in generators(pres)
     append!(stmts, expr_to_rdf(expr, prefix))
-    if expr isa Monocl.Hom
+    if wiring_rdf && expr isa Monocl.Hom
       append!(stmts, hom_generator_to_wiring_rdf(expr, prefix))
     end
     if extra_rdf != nothing && first(expr) != nothing

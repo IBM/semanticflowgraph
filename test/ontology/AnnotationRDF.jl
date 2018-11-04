@@ -36,7 +36,7 @@ annotation = ObAnnotation(
   A, []
 )
 stmts = annotation_to_rdf(annotation, prefix)
-node = R("ex", "annotation:python:mypkg:a")
+node = R("ex", "python:mypkg:a")
 @test Triple(node, R("monocl", "code_language"), Literal("python")) in stmts
 @test Triple(node, R("monocl", "code_package"), Literal("mypkg")) in stmts
 @test Triple(node, R("monocl", "code_class"), Literal("ClassA")) in stmts
@@ -49,8 +49,8 @@ annotation = HomAnnotation(
   Dict(:class => ["ClassA", "MixinB"], :method => "do_composition"),
   otimes(compose(f,g),h)
 )
-node = R("ex", "annotation:python:mypkg:a-do-composition")
-graph_node = R("ex", "annotation:python:mypkg:a-do-composition:diagram")
+node = R("ex", "python:mypkg:a-do-composition")
+graph_node = R("ex", "python:mypkg:a-do-composition:diagram")
 stmts = annotation_to_rdf(annotation, prefix)
 @test Triple(node, R("monocl", "code_language"), Literal("python")) in stmts
 @test Triple(node, R("monocl", "code_package"), Literal("mypkg")) in stmts
