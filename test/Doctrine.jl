@@ -34,8 +34,6 @@ subA = SubOb(A0, A)
 subB = SubOb(B0, B)
 @test dom(subA) == A0
 @test codom(subA) == A
-@test_throws MonoclError SubOb(otimes(A,B), C)
-@test_throws MonoclError SubOb(A,I)
 
 sub = compose(SubOb(A0, A), SubOb(A, A1))
 @test dom(sub) == A0

@@ -127,15 +127,6 @@ end
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
 """
 @syntax Monocl(ObExpr,HomExpr,CategoryExpr,CategoryExpr) MonoclCategory begin
-  
-  function SubOb(value::Any, A::Ob, B::Ob)
-    if !(head(A) == :generator && head(B) == :generator)
-      msg = "Cannot construct subobject $A <: $B: subobject generators must contain object generators"
-      throw(MonoclError(msg))
-    end
-    SubOb(value, A, B)
-  end
-
   # TODO: Implicit conversion is not yet implemented, so we have disabled
   # domain checks when composing morphisms!
   # TODO: Domain checks when composing submorphisms need only check domain

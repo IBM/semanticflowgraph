@@ -22,12 +22,14 @@ using SemanticFlowGraphs
 ##########
 
 TestPres = Presentation(String)
-A, B, C, A0 = Ob(Monocl, "A", "B", "C", "A0")
+A, B, C, A0, B0 = Ob(Monocl, "A", "B", "C", "A0", "B0")
 I = munit(Monocl.Ob)
-add_generators!(TestPres, [A, B, C, A0])
-add_generator!(TestPres, SubOb(A0, A))
-add_generator!(TestPres, Hom("f", A, B))
+f, f0 = Hom("f", A, B), Hom("f0", A0, B0)
+add_generators!(TestPres, [A, B, C, A0, B0])
+add_generators!(TestPres, [SubOb(A0, A), SubOb(B0, B)])
+add_generators!(TestPres, [f, f0])
 add_generator!(TestPres, Hom("g", I, otimes(A,B)))
+add_generator!(TestPres, SubHom(f0, f, SubOb(A0, A), SubOb(B0, B)))
 
 concept(pairs...) = Dict("schema" => "concept", pairs...)
 
@@ -50,6 +52,11 @@ const docs = [
     "is-a" => "A",
   ),
   concept(
+    "kind" => "type",
+    "id" => "B0",
+    "is-a" => "B",
+  ),
+  concept(
     "kind" => "function",
     "id" => "f",
     "inputs" => [
@@ -57,6 +64,17 @@ const docs = [
     ],
     "outputs" => [
       Dict("type" => "B"),
+    ]
+  ),
+  concept(
+    "kind" => "function",
+    "id" => "f0",
+    "is-a" => "f",
+    "inputs" => [
+      Dict("type" => "A0"),
+    ],
+    "outputs" => [
+      Dict("type" => "B0"),
     ]
   ),
   concept(
@@ -74,6 +92,7 @@ pres = presentation_from_json(docs)
 @test generators(pres, Monocl.Ob) == generators(TestPres, Monocl.Ob)
 @test generators(pres, Monocl.Hom) == generators(TestPres, Monocl.Hom)
 @test generators(pres, Monocl.SubOb) == generators(TestPres, Monocl.SubOb)
+@test generators(pres, Monocl.SubHom) == generators(TestPres, Monocl.SubHom)
 
 # Annotations
 #############

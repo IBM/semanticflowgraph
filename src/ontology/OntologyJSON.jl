@@ -25,12 +25,24 @@ using ..Ontology
 """ Load Monocl concepts (as a presentation) from JSON documents.
 """
 function presentation_from_json(docs)::Presentation
+  # Be careful about load order because:
+  # - To add a morphism, the domain/codomain objects must be added
+  # - To add a subobject, the domain/codomain objects must already be added
+  # - To add a submorphism, the domain/codomain morphisms must already be added
   presentation = Presentation(String)
-  for doc in filter(doc -> doc["kind"] == "type", docs)
+  ob_docs = filter(doc -> doc["kind"] == "type", docs)
+  hom_docs = filter(doc -> doc["kind"] == "function", docs)
+  for doc in ob_docs
     add_ob_generator_from_json!(presentation, doc)
   end
-  for doc in filter(doc -> doc["kind"] == "function", docs)
+  for doc in ob_docs
+    add_subob_generators_from_json!(presentation, doc)
+  end
+  for doc in hom_docs
     add_hom_generator_from_json!(presentation, doc)
+  end
+  for doc in hom_docs
+    add_subhom_generators_from_json!(presentation, doc)
   end
   presentation
 end
@@ -38,15 +50,18 @@ end
 """ Add object from JSON document to presentation.
 """
 function add_ob_generator_from_json!(pres::Presentation, doc::AbstractDict)
-  # Add object generator.
   ob = Ob(Monocl, doc["id"])
   add_generator!(pres, ob)
-  
-  # Add sub-object generators.
+end
+
+""" Add subobjects from JSON document to presentation.
+"""
+function add_subob_generators_from_json!(pres::Presentation, doc::AbstractDict)
+  ob = generator(pres, doc["id"])::Monocl.Ob
   names = get(doc, "is-a", [])
   names = isa(names, AbstractString) ? [ names ] : names
   for super_name in names
-    super_ob = Ob(Monocl, super_name)
+    super_ob = generator(pres, super_name)::Monocl.Ob
     add_generator!(pres, SubOb(ob, super_ob))
   end
 end
@@ -54,19 +69,32 @@ end
 """ Add morphism from JSON document to presentation.
 """
 function add_hom_generator_from_json!(pres::Presentation, doc::AbstractDict)
-  # Add morphism generator.
   dom_ob = domain_ob_from_json(pres, doc["inputs"])
   codom_ob = domain_ob_from_json(pres, doc["outputs"])
   hom = Hom(doc["id"], dom_ob, codom_ob)
   add_generator!(pres, hom)
-  # TODO: Add sub-morphism generators.
+end
+
+""" Add submorphisms from JSON document to presentation.
+"""
+function add_subhom_generators_from_json!(pres::Presentation, doc::AbstractDict)
+  hom = generator(pres, doc["id"])::Monocl.Hom
+  names = get(doc, "is-a", [])
+  names = isa(names, AbstractString) ? [ names ] : names
+  for super_name in names
+    super_hom = generator(pres, super_name)::Monocl.Hom
+    # FIXME: Do basic type inference to check these subobject relations hold.
+    subob_dom = SubOb(dom(hom), dom(super_hom))
+    subob_codom = SubOb(codom(hom), codom(super_hom))
+    add_generator!(pres, SubHom(hom, super_hom, subob_dom, subob_codom))
+  end
 end
 
 function domain_ob_from_json(pres::Presentation, docs)::Monocl.Ob
   if isempty(docs)
     munit(Monocl.Ob)
   else
-    otimes([ Ob(Monocl, doc["type"]) for doc in docs ])
+    otimes([ generator(pres, doc["type"]) for doc in docs ])
   end
 end
 
