@@ -51,8 +51,10 @@ function wiring_diagram_to_rdf(state::RDFState, diagram::WiringDiagram)
   if graph != nothing
     append!(stmts, [
       RDF.Triple(graph, R("rdf","type"), R("monocl","WiringDiagram")),
-      RDF.Quad(graph, R("monocl","inputs"), box_rdf_node(input_id(diagram)), graph),
-      RDF.Quad(graph, R("monocl","outputs"), box_rdf_node(output_id(diagram)), graph),
+      RDF.Quad(graph, R("monocl","input_box"),
+               box_rdf_node(input_id(diagram)), graph),
+      RDF.Quad(graph, R("monocl","output_box"),
+               box_rdf_node(output_id(diagram)), graph),
     ])
   end
   
@@ -106,8 +108,8 @@ function ports_to_rdf(state::RDFState, v::Int, kind::PortKind, port_values::Vect
   graph = state.graph
   node = box_rdf_node(v)
   port_nodes = [ port_rdf_node(Port(v,kind,i)) for i in eachindex(port_values) ]
-  prop = kind == InputPort ? "dom" : "codom"
-  list_node, list_stmts = rdf_list(port_nodes, "box$(v)_$(prop)"; graph=graph)
+  prop = kind == InputPort ? "inputs" : "outputs"
+  list_node, list_stmts = rdf_list(port_nodes, "box$(v)_$(prop)_list"; graph=graph)
   push!(stmts, RDF.Edge(node, R("monocl",prop), list_node, graph))
   append!(stmts, list_stmts)
   stmts

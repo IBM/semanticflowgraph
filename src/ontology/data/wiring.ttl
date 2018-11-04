@@ -16,33 +16,41 @@ monocl:WiringDiagram rdf:type rdfs:Class ;
   rdfs:label "Wiring diagram" ;
   rdfs:comment "Diagram of boxes connected by wires" .
 
+monocl:input_box rdf:type rdf:Property ;
+  rdfs:label "Input box" ;
+  rdfs:comment "Special box representing inputs of wiring diagram" .
+
+monocl:output_box rdf:type rdf:Property ;
+  rdfs:label "Output box" ;
+  rdfs:comment "Special box representing outputs of wiring diagram" .
+
 # Ports
 
 monocl:Port rdf:type rdfs:Class ;
   rdfs:comment "RDF node representing a port on a box" .
 
-monocl:port rdf:type rdfs:Property ;
+monocl:port rdf:type rdf:Property ;
   rdfs:label "Input or output port on a box" .
 
-monocl:input_port rdf:type rdfs:Property ;
+monocl:input_port rdf:type rdf:Property ;
   rdfs:subPropertyOf monocl:port ;
   rdfs:label "Input port on a box" .
 
-monocl:output_port rdf:type rdfs:Property ;
+monocl:output_port rdf:type rdf:Property ;
   rdfs:subPropertyOf monocl:port ;
   rdfs:label "Output port on a box" .
 
 # Wires
 
-monocl:wire rdf:type rdfs:Property ;
+monocl:wire rdf:type rdf:Property ;
   rdfs:comment "Wire connecting boxes and/or ports" .
 
-monocl:in_wire rdf:type rdfs:Property ;
+monocl:in_wire rdf:type rdf:Property ;
   rdfs:subPropertyOf monocl:wire ;
   rdfs:label "Incoming wire" ;
   rdfs:comment "Incoming wire, going from port to box" .
 
-monocl:out_wire rdf:type rdfs:Property ;
+monocl:out_wire rdf:type rdf:Property ;
   rdfs:subPropertyOf monocl:wire ;
   rdfs:label "Outgoing wire" ;
   rdfs:comment "Outgoing wire, going from box to port" .

@@ -108,19 +108,19 @@ end
 
 function annotation_box_to_rdf(expr::Monocl.Hom, node::RDF.Node,
                                graph::RDF.Node, prefix::RDF.Prefix)
-  type_node = if head(expr) == :generator
+  gen_node = if head(expr) == :generator
     generator_rdf_node(expr, prefix)
   else
     # FIXME: Discards constructor parameters when head == :construct.
     RDF.Resource("monocl", string(head(expr)))
   end
-  [ RDF.Quad(node, RDF.Resource("monocl","type"), type_node, graph) ]
+  [ RDF.Quad(node, RDF.Resource("monocl","concept"), gen_node, graph) ]
 end
 
 function annotation_port_to_rdf(expr::Monocl.Ob, node::RDF.Node,
                                 graph::RDF.Node, prefix::RDF.Prefix)
-  type_node = generator_rdf_node(expr, prefix)
-  [ RDF.Quad(node, RDF.Resource("monocl","type"), type_node, graph) ]
+  gen_node = generator_rdf_node(expr, prefix)
+  [ RDF.Quad(node, RDF.Resource("monocl","concept"), gen_node, graph) ]
 end
 
 """ Create RDF node for annotation.

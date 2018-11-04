@@ -11,17 +11,18 @@ monocl:Function rdf:type rdfs:Class ;
   rdfs:label "Function" ;
   rdfs:comment "A function (alternatively, a morphism in a category)" .
 
-monocl:inputs rdf:type rdfs:Property ;
+
+monocl:inputs rdf:type rdf:Property ;
   rdfs:label "Inputs of function" .
 
-monocl:outputs rdf:type rdfs:Property ;
+monocl:outputs rdf:type rdf:Property ;
   rdfs:label "Outputs of function" .
 
-monocl:subtype_of rdf:type rdfs:Property ;
+monocl:subtype_of rdf:type rdf:Property ;
   rdfs:label "Subtype relation" ;
   rdfs:comment "A subtype (is-a) relation between two types" .
 
-monocl:subfunction_of rdf:type rdfs:Property ;
+monocl:subfunction_of rdf:type rdf:Property ;
   rdfs:label "Subfunction relation" ;
   rdfs:comment "A subfunction (is-a) relation between two functions" .
 
@@ -39,3 +40,7 @@ monocl:FunctionConcept rdfs:subClassOf monocl:Concept ;
   rdfs:subClassOf monocl:Function ;
   rdfs:label "Function concept" ;
   rdfs:comment "A function concept in a Monocl ontology" .
+
+
+monocl:concept rdf:type rdf:Property ;
+  rdfs:comment "Asserts that the subject instantiates the object, a concept" .

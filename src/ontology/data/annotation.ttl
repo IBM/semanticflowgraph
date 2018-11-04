@@ -18,26 +18,26 @@ monocl:FunctionAnnotation rdf:type rdfs:Class ;
   rdfs:comment "Annotation of concrete function or method" .
 
 
-monocl:code_meaning rdf:type rdfs:Property ;
+monocl:code_meaning rdf:type rdf:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Definition of annotated code in terms of universal concepts" .
 
-monocl:code_language rdf:type rdfs:Property ;
+monocl:code_language rdf:type rdf:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Programming language of annotated code" .
 
-monocl:code_package rdf:type rdfs:Property ;
+monocl:code_package rdf:type rdf:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Library or package of annotated code" .
 
-monocl:code_class rdf:type rdfs:Property ;
+monocl:code_class rdf:type rdf:Property ;
   rdfs:domain monocl:Annotation ;
   rdfs:comment "Class or type to which annotation applies" .
 
-monocl:code_function rdf:type rdfs:Property ;
+monocl:code_function rdf:type rdf:Property ;
   rdfs:domain monocl:FunctionAnnotation ;
   rdfs:comment "Function to which annotation applies" .
 
-monocl:code_method rdf:type rdfs:Property ;
+monocl:code_method rdf:type rdf:Property ;
   rdfs:domain monocl:FunctionAnnotation ;
   rdfs:comment "Method of class to which annotation applies" .
