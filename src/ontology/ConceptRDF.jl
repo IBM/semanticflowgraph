@@ -23,15 +23,6 @@ using ..OntologyRDF: rdf_list
 
 const R = RDF.Resource
 
-# Data types
-############
-
-struct RDFState
-  prefix::RDF.Prefix
-  blank_count::Dict{String,Int}
-  RDFState(prefix::RDF.Prefix) = new(prefix, Dict{String,Int}())
-end
-
 # RDF
 #####
 
@@ -46,14 +37,13 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
     RDF.Prefix("monocl", "http://datascienceontology.org/ns/monocl/"),
     prefix
   ]
-  state = RDFState(prefix)
   for expr in generators(pres)
-    append!(stmts, expr_to_rdf(expr, state))
+    append!(stmts, expr_to_rdf(expr, prefix))
     if expr isa Monocl.Hom
-      append!(stmts, hom_generator_to_wiring_rdf(expr, state))
+      append!(stmts, hom_generator_to_wiring_rdf(expr, prefix))
     end
     if extra_rdf != nothing && first(expr) != nothing
-      append!(stmts, extra_rdf(expr, generator_rdf_node(expr, state)))
+      append!(stmts, extra_rdf(expr, generator_rdf_node(expr, prefix)))
     end
   end
   stmts
@@ -61,19 +51,19 @@ end
 
 """ Generate RDF for object generator.
 """
-function expr_to_rdf(ob::Monocl.Ob{:generator}, state::RDFState)
+function expr_to_rdf(ob::Monocl.Ob{:generator}, prefix::RDF.Prefix)
   # XXX: Objects are not really RDFS Classes but we abuse classes for
   # transitivity inference.
-  node = generator_rdf_node(ob, state)
+  node = generator_rdf_node(ob, prefix)
   [ RDF.Triple(node, R("rdf","type"), R("monocl","Type")),
     RDF.Triple(node, R("rdf","type"), R("rdfs","Class")) ]
 end
 
 """ Generate RDF for subobject relation.
 """
-function expr_to_rdf(sub::Monocl.SubOb, state::RDFState)
-  dom_node = generator_rdf_node(dom(sub), state)
-  codom_node = generator_rdf_node(codom(sub), state)
+function expr_to_rdf(sub::Monocl.SubOb, prefix::RDF.Prefix)
+  dom_node = generator_rdf_node(dom(sub), prefix)
+  codom_node = generator_rdf_node(codom(sub), prefix)
   [ RDF.Triple(dom_node, R("monocl","subtype_of"), codom_node),
     RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node) ]
 end
@@ -82,12 +72,14 @@ end
 
 The domain and codomain objects are represented as RDF Lists.
 """
-function expr_to_rdf(hom::Monocl.Hom{:generator}, state::RDFState)
+function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   # XXX: Morphisms are not really RDF Properties but we abuse properties for
   # transitivity inference.
-  node = generator_rdf_node(hom, state)
-  dom_node, dom_stmts = ob_to_rdf_list(dom(hom), state)
-  codom_node, codom_stmts = ob_to_rdf_list(codom(hom), state)
+  node = generator_rdf_node(hom, prefix)
+  dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
+  codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
+  dom_node, dom_stmts = rdf_list(dom_nodes, "$(node.name)_input")
+  codom_node, codom_stmts = rdf_list(codom_nodes, "$(node.name)_output")
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","Function")),
     RDF.Triple(node, R("rdf","type"), R("rdf","Property")),
@@ -101,9 +93,9 @@ end
 
 """ Generate RDF for submorphism relation.
 """
-function expr_to_rdf(sub::Monocl.SubHom, state::RDFState)
-  dom_node = generator_rdf_node(dom(sub), state)
-  codom_node = generator_rdf_node(codom(sub), state)
+function expr_to_rdf(sub::Monocl.SubHom, prefix::RDF.Prefix)
+  dom_node = generator_rdf_node(dom(sub), prefix)
+  codom_node = generator_rdf_node(codom(sub), prefix)
   [ RDF.Triple(dom_node, R("monocl","subfunction_of"), codom_node),
     RDF.Triple(dom_node, R("rdfs","subPropertyOf"), codom_node) ]
 end
@@ -112,11 +104,11 @@ end
 
 Cf. `wiring_diagram_to_rdf` in `WiringRDF` module.
 """
-function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, state::RDFState)
-  node = generator_rdf_node(hom, state)
+function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
+  node = generator_rdf_node(hom, prefix)
   stmts = RDF.Statement[]
   for (i, dom_ob) in enumerate(collect(dom(hom)))
-    port_node = generator_rdf_node(dom_ob, state)
+    port_node = generator_rdf_node(dom_ob, prefix)
     append!(stmts, [
       RDF.Triple(node, R("monocl","input_port"), port_node),
       RDF.Triple(node, R("monocl","input_port_$i"), port_node),
@@ -125,7 +117,7 @@ function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, state::RDFStat
     ])
   end
   for (i, codom_ob) in enumerate(collect(codom(hom)))
-    port_node = generator_rdf_node(codom_ob, state)
+    port_node = generator_rdf_node(codom_ob, prefix)
     append!(stmts, [
       RDF.Triple(node, R("monocl","output_port"), port_node),
       RDF.Triple(node, R("monocl","output_port_$i"), port_node),
@@ -141,25 +133,6 @@ end
 function generator_rdf_node(expr::GATExpr{:generator}, prefix::RDF.Prefix)
   @assert first(expr) != nothing
   R(prefix.name, string(first(expr)))
-end
-function generator_rdf_node(expr::GATExpr{:generator}, state::RDFState)
-  generator_rdf_node(expr, state.prefix)
-end
-
-""" Convert compound object in monoidal category ito RDF List. 
-"""
-function ob_to_rdf_list(dom_ob::Monocl.Ob, state::RDFState)
-  nodes = [ generator_rdf_node(ob, state) for ob in collect(dom_ob) ]
-  blank = gen_blank(state, "ob")
-  rdf_list(nodes, string(blank.name, "_"))
-end
-
-""" `gensym` for RDF blank nodes.
-"""
-function gen_blank(state::RDFState, tag::String="b")
-  count = get(state.blank_count, tag, 0) + 1
-  state.blank_count[tag] = count
-  RDF.Blank(string(tag, count))
 end
 
 end
