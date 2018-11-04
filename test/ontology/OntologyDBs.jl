@@ -27,35 +27,24 @@ db = OntologyDB()
 @test_throws OntologyError concept(db, "foo")
 load_ontology_file(db, joinpath(@__DIR__, "data", "foobar.json"))
 @test has_concept(db, "foo")
-@test isa(concept(db, "foo"), Monocl.Ob)
-@test isa(concept(db, "bar-from-foo"), Monocl.Hom)
+@test concept(db, "foo") isa Monocl.Ob
+@test concept(db, "bar-from-foo") isa Monocl.Hom
 
 # Concept accessors.
-@test isa(concepts(db), Presentation)
+@test concepts(db) isa Presentation
 @test concepts(db, ["foo", "bar-from-foo"]) ==
   [ concept(db, "foo"), concept(db, "bar-from-foo") ]
 
 # Remote database
 #################
 
-# Load single concept.
+# Load all concepts.
 db = OntologyDB()
 @test !has_concept(db, "model")
-@test isa(load_concept(db, "model"), Monocl.Ob)
-@test isa(concept(db, "model"), Monocl.Ob)
-@test isa(load_concept(db, "fit"), Monocl.Hom)
-@test isa(concept(db, "fit"), Monocl.Hom)
-@test isa(concept_document(db, "model"), AbstractDict)
-@test_throws OntologyError load_concept(db, "xxx")
-
-# Load many concepts.
-@test !has_concept(db, "data-source")
-load_concepts(db; ids=["data", "data-source", "read-data"])
-@test isa(concept(db, "model"), Monocl.Ob)       # Already loaded.
-@test isa(concept(db, "fit"), Monocl.Hom)        # Already loaded.
-@test isa(concept(db, "data-source"), Monocl.Ob) # Not loaded.
-@test isa(concept(db, "read-data"), Monocl.Hom)  # Not loaded.
-@test !has_concept(db, "fit-supervised")
+load_concepts(db)
+@test has_concept(db, "model")
+@test concept(db, "model") isa Monocl.Ob
+@test concept(db, "fit") isa Monocl.Hom
 
 # Load single annotation.
 df_id = AnnotationID("python", "pandas", "data-frame")

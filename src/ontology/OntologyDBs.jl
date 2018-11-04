@@ -102,7 +102,7 @@ function load_documents(db::OntologyDB, docs)
   merge!(db.concept_docs, OrderedDict(doc["id"] => doc for doc in concept_docs))
   
   annotation_docs = filter(doc -> doc["schema"] == "annotation", docs)
-  load_reference = id -> load_concept(db, id)
+  load_reference = id -> concept(db, id)
   for doc in annotation_docs
     db.annotations[doc["_id"]] = annotation_from_json(doc, load_reference)
     db.annotation_docs[doc["_id"]] = doc
@@ -123,34 +123,10 @@ end
 # Remote database
 #################
 
-""" Load concepts in ontology from remote database.
+""" Load all concepts in ontology from remote database.
 """
 function load_concepts(db::OntologyDB; ids=nothing)
-  # XXX: This loads all the concepts, then filters them on the client-side.
-  # It would be better to extend the REST API with server-side filtering.
-  docs = api_get(db, "/concepts")
-  if ids != nothing
-    docs = filter(doc -> doc["id"] in ids, docs)
-  end
-  load_documents(db, docs)
-end
-
-""" Load single concept from remote database, if it's not already loaded.
-"""
-function load_concept(db::OntologyDB, id::String)
-  if has_concept(db, id)
-    return concept(db, id)
-  end
-  doc = try
-    api_get(db, "/concept/$id")
-  catch err
-    if isa(err, HTTP.StatusError) && err.status == 404
-      throw(OntologyError("No concept named '$id'"))
-    end
-    rethrow()
-  end
-  load_documents(db, [doc])
-  concept(db, id)
+  load_documents(db, api_get(db, "/concepts"))
 end
 
 """ Load annotations in ontology from remote database.
