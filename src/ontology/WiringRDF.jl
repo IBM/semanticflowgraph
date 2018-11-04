@@ -18,8 +18,6 @@ export wiring_diagram_to_rdf
 using Serd
 using Catlab, Catlab.Diagram.Wiring
 
-using ..OntologyRDF: rdf_list
-
 const R = RDF.Resource
 
 # Data types
@@ -98,20 +96,10 @@ function box_to_rdf(state::RDFState, v::Int, diagram::WiringDiagram)
 end
 
 function ports_to_rdf(state::RDFState, v::Int, kind::PortKind, port_values::Vector)
-  # Add RDF for ports.
   stmts = RDF.Statement[]
   for (i, port_value) in enumerate(port_values)
     append!(stmts, port_to_rdf(state, Port(v,kind,i), port_value))
   end
-  
-  # Add RDF list of ports.
-  graph = state.graph
-  node = box_rdf_node(v)
-  port_nodes = [ port_rdf_node(Port(v,kind,i)) for i in eachindex(port_values) ]
-  prop = kind == InputPort ? "inputs" : "outputs"
-  list_node, list_stmts = rdf_list(port_nodes, "box$(v)_$(prop)_list"; graph=graph)
-  push!(stmts, RDF.Edge(node, R("monocl",prop), list_node, graph))
-  append!(stmts, list_stmts)
   stmts
 end
 
