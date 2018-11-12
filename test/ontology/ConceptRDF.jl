@@ -42,7 +42,7 @@ end
 
 prefix = RDF.Prefix("ex", "http://www.example.org/#")
 stmts = presentation_to_rdf(TestPres, prefix)
-#write_rdf(STDOUT, stmts)
+#write_rdf(stdout, stmts)
 
 @test Triple(R("ex","A"), R("rdf","type"), R("monocl","Type")) in stmts
 @test Triple(R("ex","A0"), R("rdf","type"), R("monocl","Type")) in stmts
