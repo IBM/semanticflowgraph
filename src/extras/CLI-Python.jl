@@ -4,5 +4,6 @@ using .PyCall
 
 function record_file(inpath::String, outpath::String, ::Val{:python})
   PyFlowGraph.record_script(
-    inpath, out=outpath, cwd=dirname(inpath), store_slots=false)
+    inpath, out=outpath, cwd=dirname(inpath),
+    graph_outputs="none", store_slots=false)
 end
