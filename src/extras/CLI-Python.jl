@@ -2,8 +2,8 @@ using .PyCall
 
 @pyimport flowgraph.core.record as PyFlowGraph
 
-function record_file(inpath::String, outpath::String, ::Val{:python})
+function record_file(inpath::String, outpath::String, args::Dict, ::Val{:python})
   PyFlowGraph.record_script(
     inpath, out=outpath, cwd=dirname(inpath),
-    graph_outputs="none", store_slots=false)
+    graph_outputs=args["graph-outputs"], store_slots=false)
 end

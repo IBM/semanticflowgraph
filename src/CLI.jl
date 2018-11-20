@@ -54,6 +54,9 @@ end
     required = true
   "-o", "--out"
     help = "output raw flow graph (GraphML file) or directory"
+  "--graph-outputs"
+    help = "whether and how to retain outputs of raw flow graph (Python only)"
+    default = "none"
 end
 
 @add_arg_table settings["enrich"] begin
@@ -150,11 +153,12 @@ function record(args::Dict)
     lang = get(langs, ext) do
       error("Unsupported file extension: $ext")
     end
-    record_file(abspath(inpath), abspath(outpath), Val(lang))
+    record_file(abspath(inpath), abspath(outpath), args, Val(lang))
   end
 end
 
-function record_file(inpath::String, outpath::String, ::Val{lang}) where lang
+function record_file(inpath::String, outpath::String, args::Dict, 
+                     ::Val{lang}) where lang
   if lang == :python
     error("PyCall.jl has not been imported")
   elseif lang == :r
