@@ -1,43 +1,53 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix monocl: <https://www.datascienceontology.org/ns/monocl/> .
 
 
-monocl:Type rdf:type rdfs:Class ;
+monocl:Type rdf:type owl:Class ;
+  rdfs:subClassOf prov:Entity ;
   rdfs:label "Type" ;
-  rdfs:comment "A type (alternatively, an object in a category)" .
+  rdfs:comment "A type (aka, object)" .
 
-monocl:Function rdf:type rdfs:Class ;
+monocl:Function rdf:type owl:Class ;
+  rdfs:subClassOf prov:Activity ;
   rdfs:label "Function" ;
-  rdfs:comment "A function (alternatively, a morphism in a category)" .
+  rdfs:comment "A function (aka, morphism)" .
 
 
-monocl:inputs rdf:type rdf:Property ;
+monocl:inputs rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:domain monocl:Function ;
   rdfs:label "Inputs of function" .
 
-monocl:outputs rdf:type rdf:Property ;
+monocl:outputs rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:domain monocl:Function ;
   rdfs:label "Outputs of function" .
 
-monocl:subtype_of rdf:type rdf:Property ;
+monocl:subtypeOf rdf:type owl:TransitiveProperty ;
+  rdfs:domain monocl:Type ;
+  rdfs:range monocl:Type ;
   rdfs:label "Subtype relation" ;
   rdfs:comment "A subtype (is-a) relation between two types" .
 
-monocl:subfunction_of rdf:type rdf:Property ;
+monocl:subfunctionOf rdf:type owl:TransitiveProperty ;
+  rdfs:domain monocl:Function ;
+  rdfs:range monocl:Function ;
   rdfs:label "Subfunction relation" ;
   rdfs:comment "A subfunction (is-a) relation between two functions" .
 
 
-monocl:Concept rdf:type rdfs:Class ;
+monocl:Concept rdf:type owl:Class ;
   rdfs:label "Concept" ;
   rdfs:comment "A concept in a Monocl ontology" .
 
-monocl:TypeConcept rdfs:subClassOf monocl:Concept ;
-  rdfs:subClassOf monocl:Type ;
+monocl:TypeConcept rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Concept, monocl:Type ;
   rdfs:label "Type concept" ;
   rdfs:comment "A type concept in a Monocl ontology" .
 
-monocl:FunctionConcept rdfs:subClassOf monocl:Concept ;
-  rdfs:subClassOf monocl:Function ;
+monocl:FunctionConcept rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Concept, monocl:Function ;
   rdfs:label "Function concept" ;
   rdfs:comment "A function concept in a Monocl ontology" .
 

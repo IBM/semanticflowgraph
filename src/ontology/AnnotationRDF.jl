@@ -22,13 +22,15 @@ using ...Doctrine, ...Ontology
 using ..WiringRDF
 using ..ConceptRDF: generator_rdf_node
 
+const R = RDF.Resource
+
 # Constants
 ###########
 
 const language_properties = Dict(
-  :class => "code_class",
-  :function => "code_function",
-  :method => "code_method",
+  :class => "codeClass",
+  :function => "codeFunction",
+  :method => "codeMethod",
 )
 
 rdf_type(::Type{ObAnnotation}) = "TypeAnnotation"
@@ -43,25 +45,24 @@ function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
                            include_wiring_diagrams::Bool=true)
   node = annotation_rdf_node(annotation, prefix)
   stmts = RDF.Statement[
+    RDF.Triple(node, R("rdf","type"), R("owl","Class")),
     RDF.Triple(
       node,
-      RDF.Resource("rdf","type"),
-      RDF.Resource("monocl", rdf_type(typeof(annotation)))
+      R("rdfs","subClassOf"),
+      R("monocl", rdf_type(typeof(annotation)))
     )
   ]
   append!(stmts, annotation_language_to_rdf(annotation, node, prefix))
   
   if head(annotation.definition) == :generator
-    push!(stmts, RDF.Triple(
-      node,
-      RDF.Resource("monocl","code_meaning"),
-      generator_rdf_node(annotation.definition, prefix)
-    ))
+    gen_node = generator_rdf_node(annotation.definition, prefix)
+    push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), gen_node))
   end
+  
   if include_wiring_diagrams && annotation isa HomAnnotation
     diagram = to_wiring_diagram(annotation.definition)
-    graph = RDF.Resource(prefix.name, "$(node.name):diagram")
-    push!(stmts, RDF.Triple(node, RDF.Resource("monocl","code_meaning"), graph))
+    graph = R(prefix.name, "$(node.name):diagram")
+    push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), graph))
     append!(stmts, annotation_diagram_to_rdf(diagram, graph, prefix))
   end
   
@@ -72,26 +73,18 @@ end
 """
 function annotation_language_to_rdf(
     annotation::Annotation, node::RDF.Node, prefix::RDF.Prefix)
+  name = annotation.name
   stmts = RDF.Statement[
-    RDF.Triple(
-      node,
-      RDF.Resource("monocl","code_language"),
-      RDF.Literal(annotation.name.language)
-    ),
-    RDF.Triple(
-      node,
-      RDF.Resource("monocl","code_package"),
-      RDF.Literal(annotation.name.package)
-    ),
+    RDF.Triple(node, R("monocl","codeLanguage"), RDF.Literal(name.language)),
+    RDF.Triple(node, R("monocl","codePackage"), RDF.Literal(name.package)),
   ]
   for key in intersect(keys(language_properties), keys(annotation.language))
     value = annotation.language[key]
-    values = isa(value, AbstractArray) ? value : [ value ]
-    append!(stmts, [ RDF.Triple(
-      node,
-      RDF.Resource("monocl", language_properties[key]),
-      RDF.Literal(value)
-    ) for value in values ])
+    values = value isa AbstractArray ? value : [ value ]
+    append!(stmts, [
+      RDF.Triple(node, R("monocl", language_properties[key]), RDF.Literal(v))
+      for v in values
+    ])
   end
   stmts
 end
@@ -112,15 +105,15 @@ function annotation_box_to_rdf(expr::Monocl.Hom, node::RDF.Node,
     generator_rdf_node(expr, prefix)
   else
     # FIXME: Discards constructor parameters when head == :construct.
-    RDF.Resource("monocl", string(head(expr)))
+    R("monocl", string(head(expr)))
   end
-  [ RDF.Quad(node, RDF.Resource("monocl","concept"), gen_node, graph) ]
+  [ RDF.Quad(node, R("monocl","concept"), gen_node, graph) ]
 end
 
 function annotation_port_to_rdf(expr::Monocl.Ob, node::RDF.Node,
                                 graph::RDF.Node, prefix::RDF.Prefix)
   gen_node = generator_rdf_node(expr, prefix)
-  [ RDF.Quad(node, RDF.Resource("monocl","concept"), gen_node, graph) ]
+  [ RDF.Quad(node, R("monocl","concept"), gen_node, graph) ]
 end
 
 """ Create RDF node for annotation.
@@ -128,7 +121,7 @@ end
 function annotation_rdf_node(annotation::Annotation, prefix::RDF.Prefix)::RDF.Node
   name = annotation.name
   node_name = join([name.language, name.package, name.id], ":")
-  RDF.Resource(prefix.name, node_name)
+  R(prefix.name, node_name)
 end
 
 end

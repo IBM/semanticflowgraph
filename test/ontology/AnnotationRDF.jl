@@ -37,10 +37,10 @@ annotation = ObAnnotation(
 )
 stmts = annotation_to_rdf(annotation, prefix)
 node = R("ex", "python:mypkg:a")
-@test Triple(node, R("monocl", "code_language"), Literal("python")) in stmts
-@test Triple(node, R("monocl", "code_package"), Literal("mypkg")) in stmts
-@test Triple(node, R("monocl", "code_class"), Literal("ClassA")) in stmts
-@test Triple(node, R("monocl", "code_meaning"), R("ex","A")) in stmts
+@test Triple(node, R("monocl", "codeLanguage"), Literal("python")) in stmts
+@test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
+@test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
+@test Triple(node, R("monocl", "codeDefinition"), R("ex","A")) in stmts
 
 # Morphism annotations
 
@@ -52,11 +52,11 @@ annotation = HomAnnotation(
 node = R("ex", "python:mypkg:a-do-composition")
 graph_node = R("ex", "python:mypkg:a-do-composition:diagram")
 stmts = annotation_to_rdf(annotation, prefix)
-@test Triple(node, R("monocl", "code_language"), Literal("python")) in stmts
-@test Triple(node, R("monocl", "code_package"), Literal("mypkg")) in stmts
-@test Triple(node, R("monocl", "code_class"), Literal("ClassA")) in stmts
-@test Triple(node, R("monocl", "code_class"), Literal("MixinB")) in stmts
-@test Triple(node, R("monocl", "code_method"), Literal("do_composition")) in stmts
-@test Triple(node, R("monocl", "code_meaning"), graph_node) in stmts
+@test Triple(node, R("monocl", "codeLanguage"), Literal("python")) in stmts
+@test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
+@test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
+@test Triple(node, R("monocl", "codeClass"), Literal("MixinB")) in stmts
+@test Triple(node, R("monocl", "codeMethod"), Literal("do_composition")) in stmts
+@test Triple(node, R("monocl", "codeDefinition"), graph_node) in stmts
 
 end

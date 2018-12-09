@@ -32,8 +32,8 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
                              extra_rdf::Union{Function,Nothing}=nothing,
                              wiring_rdf::Bool=true)
   stmts = RDF.Statement[
-    RDF.Prefix("rdf"),
-    RDF.Prefix("rdfs"),
+    RDF.Prefix("rdf"), RDF.Prefix("rdfs"),
+    RDF.Prefix("owl"), RDF.Prefix("prov"),
     RDF.Prefix("monocl", "https://www.datascienceontology.org/ns/monocl/"),
     prefix
   ]
@@ -52,11 +52,9 @@ end
 """ Generate RDF for object generator.
 """
 function expr_to_rdf(ob::Monocl.Ob{:generator}, prefix::RDF.Prefix)
-  # XXX: Objects are not really RDFS Classes but we abuse classes for
-  # transitivity inference.
   node = generator_rdf_node(ob, prefix)
-  [ RDF.Triple(node, R("rdf","type"), R("monocl","Type")),
-    RDF.Triple(node, R("rdf","type"), R("rdfs","Class")) ]
+  [ RDF.Triple(node, R("rdf","type"), R("owl","Class")),
+    RDF.Triple(node, R("rdfs","subClassOf"), R("monocl","TypeConcept")) ]
 end
 
 """ Generate RDF for subobject relation.
@@ -64,7 +62,7 @@ end
 function expr_to_rdf(sub::Monocl.SubOb, prefix::RDF.Prefix)
   dom_node = generator_rdf_node(dom(sub), prefix)
   codom_node = generator_rdf_node(codom(sub), prefix)
-  [ RDF.Triple(dom_node, R("monocl","subtype_of"), codom_node),
+  [ RDF.Triple(dom_node, R("monocl","subtypeOf"), codom_node),
     RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node) ]
 end
 
@@ -73,16 +71,14 @@ end
 The domain and codomain objects are represented as RDF Lists.
 """
 function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
-  # XXX: Morphisms are not really RDF Properties but we abuse properties for
-  # transitivity inference.
   node = generator_rdf_node(hom, prefix)
   dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
   codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
   dom_node, dom_stmts = rdf_list(dom_nodes, "$(node.name)_input")
   codom_node, codom_stmts = rdf_list(codom_nodes, "$(node.name)_output")
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("monocl","Function")),
-    RDF.Triple(node, R("rdf","type"), R("rdf","Property")),
+    RDF.Triple(node, R("rdf","type"), R("owl","Class")),
+    RDF.Triple(node, R("rdfs","subClassOf"), R("monocl","FunctionConcept")),
     RDF.Triple(node, R("monocl","inputs"), dom_node),
     RDF.Triple(node, R("monocl","outputs"), codom_node),
   ]
@@ -96,8 +92,8 @@ end
 function expr_to_rdf(sub::Monocl.SubHom, prefix::RDF.Prefix)
   dom_node = generator_rdf_node(dom(sub), prefix)
   codom_node = generator_rdf_node(codom(sub), prefix)
-  [ RDF.Triple(dom_node, R("monocl","subfunction_of"), codom_node),
-    RDF.Triple(dom_node, R("rdfs","subPropertyOf"), codom_node) ]
+  [ RDF.Triple(dom_node, R("monocl","subfunctionOf"), codom_node),
+    RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node) ]
 end
 
 """ Generate RDF for morphism generator in wiring diagram style.
