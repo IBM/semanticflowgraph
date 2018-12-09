@@ -53,8 +53,7 @@ end
 """
 function expr_to_rdf(ob::Monocl.Ob{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(ob, prefix)
-  [ RDF.Triple(node, R("rdf","type"), R("owl","Class")),
-    RDF.Triple(node, R("rdfs","subClassOf"), R("monocl","TypeConcept")) ]
+  [ RDF.Triple(node, R("rdf","type"), R("monocl","TypeConcept")) ]
 end
 
 """ Generate RDF for subobject relation.
@@ -62,8 +61,7 @@ end
 function expr_to_rdf(sub::Monocl.SubOb, prefix::RDF.Prefix)
   dom_node = generator_rdf_node(dom(sub), prefix)
   codom_node = generator_rdf_node(codom(sub), prefix)
-  [ RDF.Triple(dom_node, R("monocl","subtypeOf"), codom_node),
-    RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node) ]
+  [ RDF.Triple(dom_node, R("monocl","subtypeOf"), codom_node) ]
 end
 
 """ Generate RDF for morphism generator.
@@ -77,8 +75,7 @@ function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   dom_node, dom_stmts = rdf_list(dom_nodes, "$(node.name)_input")
   codom_node, codom_stmts = rdf_list(codom_nodes, "$(node.name)_output")
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("owl","Class")),
-    RDF.Triple(node, R("rdfs","subClassOf"), R("monocl","FunctionConcept")),
+    RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
     RDF.Triple(node, R("monocl","inputs"), dom_node),
     RDF.Triple(node, R("monocl","outputs"), codom_node),
   ]
@@ -92,8 +89,7 @@ end
 function expr_to_rdf(sub::Monocl.SubHom, prefix::RDF.Prefix)
   dom_node = generator_rdf_node(dom(sub), prefix)
   codom_node = generator_rdf_node(codom(sub), prefix)
-  [ RDF.Triple(dom_node, R("monocl","subfunctionOf"), codom_node),
-    RDF.Triple(dom_node, R("rdfs","subClassOf"), codom_node) ]
+  [ RDF.Triple(dom_node, R("monocl","subfunctionOf"), codom_node) ]
 end
 
 """ Generate RDF for morphism generator in wiring diagram style.

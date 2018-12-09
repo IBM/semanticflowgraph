@@ -21,6 +21,7 @@ monocl:FunctionAnnotation rdf:type owl:Class ;
 
 monocl:codeDefinition
   rdf:type owl:ObjectProperty ;
+  rdfs:label "Code definition" ;
   rdfs:comment "Definition of annotated code in terms of universal concepts" .
 
 monocl:codeLanguage

@@ -44,12 +44,12 @@ prefix = RDF.Prefix("ex", "http://www.example.org/#")
 stmts = presentation_to_rdf(TestPres, prefix)
 #write_rdf(stdout, stmts)
 
-@test Triple(R("ex","A"), R("rdfs","subClassOf"), R("monocl","TypeConcept")) in stmts
-@test Triple(R("ex","A0"), R("rdfs","subClassOf"), R("monocl","TypeConcept")) in stmts
+@test Triple(R("ex","A"), R("rdf","type"), R("monocl","TypeConcept")) in stmts
+@test Triple(R("ex","A0"), R("rdf","type"), R("monocl","TypeConcept")) in stmts
 @test Triple(R("ex","A0"), R("monocl","subtypeOf"), R("ex","A")) in stmts
 @test Triple(R("ex","f0"), R("monocl","subfunctionOf"), R("ex","f")) in stmts
 
-@test Triple(R("ex","g"), R("rdfs","subClassOf"), R("monocl","FunctionConcept")) in stmts
+@test Triple(R("ex","g"), R("rdf","type"), R("monocl","FunctionConcept")) in stmts
 @test Triple(R("ex","g"), R("monocl","input_port"), R("ex","A")) in stmts
 @test Triple(R("ex","g"), R("monocl","input_port_1"), R("ex","A")) in stmts
 @test Triple(R("ex","g"), R("monocl","output_port"), R("ex","B")) in stmts

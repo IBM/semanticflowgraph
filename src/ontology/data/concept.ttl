@@ -27,13 +27,13 @@ monocl:outputs rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
 monocl:subtypeOf rdf:type owl:TransitiveProperty ;
   rdfs:domain monocl:Type ;
   rdfs:range monocl:Type ;
-  rdfs:label "Subtype relation" ;
+  rdfs:label "Subtype of" ;
   rdfs:comment "A subtype (is-a) relation between two types" .
 
 monocl:subfunctionOf rdf:type owl:TransitiveProperty ;
   rdfs:domain monocl:Function ;
   rdfs:range monocl:Function ;
-  rdfs:label "Subfunction relation" ;
+  rdfs:label "Subfunction of" ;
   rdfs:comment "A subfunction (is-a) relation between two functions" .
 
 

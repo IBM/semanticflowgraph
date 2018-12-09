@@ -45,12 +45,7 @@ function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
                            include_wiring_diagrams::Bool=true)
   node = annotation_rdf_node(annotation, prefix)
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("owl","Class")),
-    RDF.Triple(
-      node,
-      R("rdfs","subClassOf"),
-      R("monocl", rdf_type(typeof(annotation)))
-    )
+    RDF.Triple(node, R("rdf","type"), R("monocl", rdf_type(typeof(annotation))))
   ]
   append!(stmts, annotation_language_to_rdf(annotation, node, prefix))
   
@@ -58,7 +53,7 @@ function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
     gen_node = generator_rdf_node(annotation.definition, prefix)
     push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), gen_node))
   end
-  
+
   if include_wiring_diagrams && annotation isa HomAnnotation
     diagram = to_wiring_diagram(annotation.definition)
     graph = R(prefix.name, "$(node.name):diagram")
