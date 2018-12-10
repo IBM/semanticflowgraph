@@ -12,6 +12,7 @@ monocl:Type rdf:type owl:Class ;
 
 monocl:Function rdf:type owl:Class ;
   rdfs:subClassOf prov:Activity ;
+  owl:disjointWith monocl:Type ;
   rdfs:label "Function" ;
   rdfs:comment "A function (aka, morphism)" .
 
@@ -48,6 +49,7 @@ monocl:TypeConcept rdf:type owl:Class ;
 
 monocl:FunctionConcept rdf:type owl:Class ;
   rdfs:subClassOf monocl:Concept, monocl:Function ;
+  owl:disjointWith monocl:TypeConcept ;
   rdfs:label "Function concept" ;
   rdfs:comment "A function concept in a Monocl ontology" .
 

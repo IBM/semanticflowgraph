@@ -5,6 +5,7 @@
 
 
 monocl:Annotation rdf:type owl:Class ;
+  owl:disjointWith monocl:Concept ;
   rdfs:label "Annotation" ;
   rdfs:comment "Semantic annotation of computer code" .
 
@@ -15,6 +16,7 @@ monocl:TypeAnnotation rdf:type owl:Class ;
 
 monocl:FunctionAnnotation rdf:type owl:Class ;
   rdfs:subClassOf monocl:Annotation ;
+  owl:disjointWith monocl:TypeAnnotation ;
   rdfs:label "Function annotation" ;
   rdfs:comment "Annotation of concrete function or method" .
 
