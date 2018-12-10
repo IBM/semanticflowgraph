@@ -87,7 +87,7 @@ end
   "-o", "--out"
     help = "output file (default stdout)"
   "-t", "--to"
-    help = "output format (default RDF/Turtle)"
+    help = "output format (default RDF/OWL in Turtle syntax)"
     default = "turtle"
   "--no-concepts"
     help = "exclude concepts from export"
@@ -262,7 +262,7 @@ end
 # Ontology
 ##########
 
-const ontology_schema_dir = joinpath(@__DIR__, "ontology", "schema")
+const ontology_schema_dir = joinpath(@__DIR__, "ontology", "rdf", "schema")
 
 function ontology(args::Dict)
   # Load ontology schema from filesystem and ontology data from remote database.
