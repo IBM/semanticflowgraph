@@ -21,6 +21,8 @@ using Catlab
 
 using ..OntologyDBs
 
+const R = RDF.Resource
+
 # RDF Utilties
 ##############
 
@@ -31,19 +33,19 @@ singly linked list (chain of cons cells).
 
 Note: We don't use the builtin RDF List because OWL doesn't support RDF Lists.
 """
-function owl_list(nodes::Vector{<:RDF.Node}, prefix::String; graph=nothing)
+function owl_list(nodes::Vector{<:RDF.Node}, cell_node::Function; graph=nothing)
   stmts = RDF.Statement[]
-  nil = RDF.Blank("$(prefix)$(length(nodes)+1)")
   for (i, node) in enumerate(nodes)
-    blank = RDF.Blank("$(prefix)$i")
-    rest = i < length(nodes) ? RDF.Blank("$(prefix)$(i+1)") : nil
+    cell = cell_node(i)
+    rest = cell_node(i+1)
     append!(stmts, [
-      RDF.Edge(blank, RDF.Resource("list","hasContent"), node, graph),
-      RDF.Edge(blank, RDF.Resource("list","hasNext"), rest, graph),
+      RDF.Edge(cell, R("rdf","type"), R("list","OWLList"), graph),
+      RDF.Edge(cell, R("list","hasContent"), node, graph),
+      RDF.Edge(cell, R("list","hasNext"), rest, graph),
     ])
   end
-  push!(stmts, RDF.Edge(
-    nil, RDF.Resource("rdf","type"), RDF.Resource("list","EmptyList"), graph))
+  nil = cell_node(length(nodes) + 1)
+  push!(stmts, RDF.Edge(nil, R("rdf","type"), R("list","EmptyList"), graph))
   (stmts[1].subject, stmts)
 end
 
