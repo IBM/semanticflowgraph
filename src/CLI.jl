@@ -262,7 +262,7 @@ end
 # Ontology
 ##########
 
-const ontology_data_dir = joinpath(@__DIR__, "ontology", "data")
+const ontology_schema_dir = joinpath(@__DIR__, "ontology", "schema")
 
 function ontology(args::Dict)
   # Load ontology schema from filesystem and ontology data from remote database.
@@ -297,7 +297,7 @@ function ontology(args::Dict)
 end
 
 function read_ontology_schema(name::String)
-  Serd.read_rdf_file(joinpath(ontology_data_dir, name))
+  Serd.read_rdf_file(joinpath(ontology_schema_dir, name))
 end
 
 # CLI main
