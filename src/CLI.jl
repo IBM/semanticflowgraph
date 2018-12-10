@@ -266,7 +266,7 @@ const ontology_data_dir = joinpath(@__DIR__, "ontology", "data")
 
 function ontology(args::Dict)
   # Load ontology schema from filesystem and ontology data from remote database.
-  stmts = Serd.RDF.Statement[]
+  stmts = read_ontology_schema("list.ttl")
   db = OntologyDB()
   if args["concepts"]
     append!(stmts, read_ontology_schema("concept.ttl"))

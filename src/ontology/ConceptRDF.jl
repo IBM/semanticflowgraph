@@ -19,7 +19,7 @@ using Serd
 using Catlab
 
 using ...Doctrine, ...Ontology
-using ..OntologyRDF: rdf_list
+using ..OntologyRDF: owl_list
 
 const R = RDF.Resource
 
@@ -34,6 +34,7 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
   stmts = RDF.Statement[
     RDF.Prefix("rdf"), RDF.Prefix("rdfs"),
     RDF.Prefix("owl"), RDF.Prefix("prov"),
+    RDF.Prefix("list", "http://www.co-ode.org/ontologies/list.owl#"),
     RDF.Prefix("monocl", "https://www.datascienceontology.org/ns/monocl/"),
     prefix
   ]
@@ -72,8 +73,8 @@ function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(hom, prefix)
   dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
   codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
-  dom_node, dom_stmts = rdf_list(dom_nodes, "$(node.name)_input")
-  codom_node, codom_stmts = rdf_list(codom_nodes, "$(node.name)_output")
+  dom_node, dom_stmts = owl_list(dom_nodes, "$(node.name)_input")
+  codom_node, codom_stmts = owl_list(codom_nodes, "$(node.name)_output")
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
     RDF.Triple(node, R("monocl","inputs"), dom_node),

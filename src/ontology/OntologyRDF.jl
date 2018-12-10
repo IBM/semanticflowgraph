@@ -24,27 +24,26 @@ using ..OntologyDBs
 # RDF Utilties
 ##############
 
-""" Convert sequence of RDF nodes into RDF List.
+""" Convert sequence of RDF nodes into an OWL list.
 
-An RDF List is a chain of cons cells, i.e., a singly linked list.
+OWL doesn't officially support lists, but it's straightforward to implement a
+singly linked list (chain of cons cells).
+
+Note: We don't use the builtin RDF List because OWL doesn't support RDF Lists.
 """
-function rdf_list(nodes::Vector{<:RDF.Node}, prefix::String; graph=nothing)
-  if length(nodes) == 0
-    return (Serd.RDF.Resource("rdf","nil"), Serd.RDF.Statement[])
-  end
+function owl_list(nodes::Vector{<:RDF.Node}, prefix::String; graph=nothing)
   stmts = RDF.Statement[]
+  nil = RDF.Blank("$(prefix)$(length(nodes)+1)")
   for (i, node) in enumerate(nodes)
     blank = RDF.Blank("$(prefix)$i")
-    rest = if i < length(nodes)
-      RDF.Blank("$(prefix)$(i+1)")
-    else
-      RDF.Resource("rdf","nil")
-    end
+    rest = i < length(nodes) ? RDF.Blank("$(prefix)$(i+1)") : nil
     append!(stmts, [
-      RDF.Edge(blank, RDF.Resource("rdf","first"), node, graph),
-      RDF.Edge(blank, RDF.Resource("rdf","rest"), rest, graph),
+      RDF.Edge(blank, RDF.Resource("list","hasContent"), node, graph),
+      RDF.Edge(blank, RDF.Resource("list","hasNext"), rest, graph),
     ])
   end
+  push!(stmts, RDF.Edge(
+    nil, RDF.Resource("rdf","type"), RDF.Resource("list","EmptyList"), graph))
   (stmts[1].subject, stmts)
 end
 
