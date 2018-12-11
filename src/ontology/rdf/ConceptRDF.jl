@@ -23,17 +23,16 @@ using ..OntologyRDF: owl_list
 
 const R = RDF.Resource
 
-# RDF
-#####
 
-""" Convert concepts in Monocl ontology to RDF graph.
+""" Convert concepts into RDF/OWL ontology.
+
+Concepts are repesented as individuals of the OWL class `Concept`.
 """
 function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
                              extra_rdf::Union{Function,Nothing}=nothing,
                              wiring_rdf::Bool=true)
   stmts = RDF.Statement[
-    RDF.Prefix("rdf"), RDF.Prefix("rdfs"),
-    RDF.Prefix("owl"), RDF.Prefix("prov"),
+    RDF.Prefix("rdf"), RDF.Prefix("rdfs"), RDF.Prefix("owl"),
     RDF.Prefix("list", "http://www.co-ode.org/ontologies/list.owl#"),
     RDF.Prefix("monocl", "https://www.datascienceontology.org/ns/monocl/"),
     prefix
@@ -67,7 +66,7 @@ end
 
 """ Generate RDF for morphism generator.
 
-The domain and codomain objects are represented as RDF Lists.
+The domain and codomain objects are represented as OWL lists.
 """
 function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(hom, prefix)

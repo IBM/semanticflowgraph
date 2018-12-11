@@ -54,20 +54,23 @@ end
 
 include("WiringRDF.jl")
 include("ConceptRDF.jl")
+include("ConceptPROV.jl")
 include("AnnotationRDF.jl")
 
 using .WiringRDF
 using .ConceptRDF
+using .ConceptPROV
 using .AnnotationRDF
 
 # Ontology RDF
 ##############
 
-""" Convert ontology (both concepts and annotations) to RDF graph.
+""" Convert ontology's concepts and annotations into RDF/OWL ontology.
 """
 function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix;
+                         include_provenance::Bool=true,
                          include_wiring_diagrams::Bool=true)::Vector{<:RDF.Statement}
-  # Create RDF statements for ontology concepts.
+  # Create RDF triples for concepts.
   function concept_labels(expr, node::RDF.Node)::Vector{<:RDF.Statement}
     # Add RDFS labels for concept.
     doc = concept_document(db, first(expr))
@@ -76,7 +79,12 @@ function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix;
   stmts = presentation_to_rdf(concepts(db), prefix;
     extra_rdf=concept_labels, wiring_rdf=include_wiring_diagrams)
   
-  # Create RDF statements for ontology annotations.
+  # Create RDF triples for concept hierarchy based on PROV-O.
+  if include_provenance
+    append!(stmts, presentation_to_prov(concepts(db), prefix))
+  end
+  
+  # Create RDF triples for annotations.
   for note in annotations(db)
     append!(stmts, annotation_to_rdf(note, prefix;
       include_wiring_diagrams=include_wiring_diagrams))

@@ -39,7 +39,7 @@ rdf_type(::Type{HomAnnotation}) = "FunctionAnnotation"
 # RDF
 #####
 
-""" Generate RDF for annnotation.
+""" Convert annotation into triples for RDF/OWL ontology.
 """
 function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
                            include_wiring_diagrams::Bool=true)
@@ -64,7 +64,7 @@ function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
   return stmts
 end
 
-""" Generate RDF for language-specific data in annotation.
+""" Convert annotation's language-specific data into triples for RDF/OWL ontology.
 """
 function annotation_language_to_rdf(
     annotation::Annotation, node::RDF.Node, prefix::RDF.Prefix)
@@ -84,7 +84,7 @@ function annotation_language_to_rdf(
   stmts
 end
 
-""" Generate RDF for annotation wiring diagram.
+""" Convert annotation's wiring diagram into RDF triples.
 """
 function annotation_diagram_to_rdf(
     diagram::WiringDiagram, graph::RDF.Node, prefix::RDF.Prefix)
