@@ -29,8 +29,7 @@ const R = RDF.Resource
 Concepts are repesented as individuals of the OWL class `Concept`.
 """
 function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
-                             extra_rdf::Union{Function,Nothing}=nothing,
-                             wiring_rdf::Bool=true)
+                             extra_rdf::Union{Function,Nothing}=nothing)
   stmts = RDF.Statement[
     RDF.Prefix("rdf"), RDF.Prefix("rdfs"), RDF.Prefix("owl"),
     RDF.Prefix("list", "http://www.co-ode.org/ontologies/list.owl#"),
@@ -39,9 +38,6 @@ function presentation_to_rdf(pres::Presentation, prefix::RDF.Prefix;
   ]
   for expr in generators(pres)
     append!(stmts, expr_to_rdf(expr, prefix))
-    if wiring_rdf && expr isa Monocl.Hom
-      append!(stmts, hom_generator_to_wiring_rdf(expr, prefix))
-    end
     if extra_rdf != nothing && first(expr) != nothing
       append!(stmts, extra_rdf(expr, generator_rdf_node(expr, prefix)))
     end
@@ -72,10 +68,10 @@ function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(hom, prefix)
   dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
   codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
-  dom_node, dom_stmts = owl_list(dom_nodes,
-    i -> R(prefix.name, "$(node.name)-input$i"))
-  codom_node, codom_stmts = owl_list(codom_nodes,
-    i -> R(prefix.name, "$(node.name)-output$i"))
+  dom_node, dom_stmts = owl_list(
+    dom_nodes, i -> R(prefix.name, "$(node.name)-input$i"))
+  codom_node, codom_stmts = owl_list(
+    codom_nodes, i -> R(prefix.name, "$(node.name)-output$i"))
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
     RDF.Triple(node, R("monocl","inputs"), dom_node),
@@ -92,30 +88,6 @@ function expr_to_rdf(sub::Monocl.SubHom, prefix::RDF.Prefix)
   dom_node = generator_rdf_node(dom(sub), prefix)
   codom_node = generator_rdf_node(codom(sub), prefix)
   [ RDF.Triple(dom_node, R("monocl","subfunctionOf"), codom_node) ]
-end
-
-""" Generate RDF for morphism generator in wiring diagram style.
-
-Cf. `wiring_diagram_to_rdf` in `WiringRDF` module.
-"""
-function hom_generator_to_wiring_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
-  node = generator_rdf_node(hom, prefix)
-  stmts = RDF.Statement[]
-  for (i, dom_ob) in enumerate(collect(dom(hom)))
-    port_node = generator_rdf_node(dom_ob, prefix)
-    append!(stmts, [
-      RDF.Triple(node, R("monocl","input_port"), port_node),
-      RDF.Triple(node, R("monocl","input_port_$i"), port_node),
-    ])
-  end
-  for (i, codom_ob) in enumerate(collect(codom(hom)))
-    port_node = generator_rdf_node(codom_ob, prefix)
-    append!(stmts, [
-      RDF.Triple(node, R("monocl","output_port"), port_node),
-      RDF.Triple(node, R("monocl","output_port_$i"), port_node),
-    ])
-  end
-  stmts
 end
 
 """ Create RDF node for generator expression.

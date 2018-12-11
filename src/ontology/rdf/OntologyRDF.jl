@@ -76,8 +76,7 @@ function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix;
     doc = concept_document(db, first(expr))
     rdfs_labels(doc, node)
   end
-  stmts = presentation_to_rdf(concepts(db), prefix;
-    extra_rdf=concept_labels, wiring_rdf=include_wiring_diagrams)
+  stmts = presentation_to_rdf(concepts(db), prefix; extra_rdf=concept_labels)
   
   # Create RDF triples for concept hierarchy based on PROV-O.
   if include_provenance
