@@ -19,8 +19,8 @@ using Serd
 using Catlab, Catlab.Diagram.Wiring
 
 using ...Doctrine, ...Ontology
-using ..WiringRDF
 using ..ConceptRDF: generator_rdf_node
+using ..WiringRDF
 
 const R = RDF.Resource
 
@@ -33,9 +33,6 @@ const language_properties = Dict(
   :method => "codeMethod",
 )
 
-rdf_type(::Type{ObAnnotation}) = "TypeAnnotation"
-rdf_type(::Type{HomAnnotation}) = "FunctionAnnotation"
-
 # RDF
 #####
 
@@ -43,31 +40,38 @@ rdf_type(::Type{HomAnnotation}) = "FunctionAnnotation"
 """
 function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
                            include_wiring_diagrams::Bool=true)
+  # Annotation RDF node.
   node = annotation_rdf_node(annotation, prefix)
+  type_node = annotation isa ObAnnotation ?
+    R("monocl","TypeAnnotation") : R("monocl","FunctionAnnotation")
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("monocl", rdf_type(typeof(annotation))))
+    RDF.Triple(node, R("rdf","type"), type_node)
   ]
-  append!(stmts, annotation_language_to_rdf(annotation, node, prefix))
+
+  # Language-specific data.
+  append!(stmts, annotation_language_to_rdf(annotation, prefix))
   
+  # Definition as expression, if it's a basic object or morphism (generator).
   if head(annotation.definition) == :generator
     gen_node = generator_rdf_node(annotation.definition, prefix)
     push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), gen_node))
   end
 
+  # Definition as wiring diagram.
   if include_wiring_diagrams && annotation isa HomAnnotation
     diagram = to_wiring_diagram(annotation.definition)
     graph = R(prefix.name, "$(node.name):diagram")
     push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), graph))
     append!(stmts, annotation_diagram_to_rdf(diagram, graph, prefix))
   end
-  
+
   return stmts
 end
 
 """ Convert annotation's language-specific data into triples for RDF/OWL ontology.
 """
-function annotation_language_to_rdf(
-    annotation::Annotation, node::RDF.Node, prefix::RDF.Prefix)
+function annotation_language_to_rdf(annotation::Annotation, prefix::RDF.Prefix)
+  node = annotation_rdf_node(annotation, prefix)
   name = annotation.name
   stmts = RDF.Statement[
     RDF.Triple(node, R("monocl","codeLanguage"), RDF.Literal(name.language)),

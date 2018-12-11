@@ -10,38 +10,42 @@ monocl:Annotation rdf:type owl:Class ;
   rdfs:comment "Semantic annotation of computer code" .
 
 monocl:TypeAnnotation rdf:type owl:Class ;
-  rdfs:subClassOf monocl:Annotation ;
+  rdfs:subClassOf monocl:Annotation, monocl:Type ;
   rdfs:label "Type annotation" ;
   rdfs:comment "Annotation of concrete class or type" .
 
 monocl:FunctionAnnotation rdf:type owl:Class ;
-  rdfs:subClassOf monocl:Annotation ;
-  owl:disjointWith monocl:TypeAnnotation ;
+  rdfs:subClassOf monocl:Annotation, monocl:Function ;
   rdfs:label "Function annotation" ;
   rdfs:comment "Annotation of concrete function or method" .
 
 
 monocl:codeDefinition
   rdf:type owl:ObjectProperty ;
-  rdfs:label "Code definition" ;
+  rdfs:label "Definition" ;
   rdfs:comment "Definition of annotated code in terms of universal concepts" .
 
 monocl:codeLanguage
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Programming language" ;
   rdfs:comment "Programming language of annotated code" .
 
 monocl:codePackage
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Package" ;
   rdfs:comment "Library or package of annotated code" .
 
 monocl:codeClass
   rdf:type owl:DatatypeProperty ;
+  rdfs:label "Class" ;
   rdfs:comment "Class or classes (intersection) to which annotation applies" .
 
 monocl:codeFunction
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Function" ;
   rdfs:comment "Function to which annotation applies" .
 
 monocl:codeMethod
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Method" ;
   rdfs:comment "Method of class to which annotation applies" .
