@@ -69,9 +69,9 @@ function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
   codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
   dom_node, dom_stmts = owl_list(
-    dom_nodes, i -> R(prefix.name, "$(node.name)-input$i"))
+    dom_nodes, i -> R(prefix.name, "$(node.name):input$i"))
   codom_node, codom_stmts = owl_list(
-    codom_nodes, i -> R(prefix.name, "$(node.name)-output$i"))
+    codom_nodes, i -> R(prefix.name, "$(node.name):output$i"))
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
     RDF.Triple(node, R("monocl","inputs"), dom_node),

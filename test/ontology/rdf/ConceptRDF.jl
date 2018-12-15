@@ -50,10 +50,10 @@ stmts = presentation_to_rdf(TestPres, prefix)
 @test Triple(R("ex","f0"), R("monocl","subfunctionOf"), R("ex","f")) in stmts
 
 @test Triple(R("ex","g"), R("rdf","type"), R("monocl","FunctionConcept")) in stmts
-@test Triple(R("ex","g-input1"), R("rdf","type"), R("list","OWLList")) in stmts
-@test Triple(R("ex","g-input1"), R("list","hasContent"), R("ex","A")) in stmts
-@test Triple(R("ex","g-output1"), R("list","hasContent"), R("ex","B")) in stmts
-@test Triple(R("ex","g-output1"), R("list","hasNext"), R("ex","g-output2")) in stmts
-@test Triple(R("ex","g-output2"), R("list","hasContent"), R("ex","C")) in stmts
+@test Triple(R("ex","g:input1"), R("rdf","type"), R("list","OWLList")) in stmts
+@test Triple(R("ex","g:input1"), R("list","hasContent"), R("ex","A")) in stmts
+@test Triple(R("ex","g:output1"), R("list","hasContent"), R("ex","B")) in stmts
+@test Triple(R("ex","g:output1"), R("list","hasNext"), R("ex","g:output2")) in stmts
+@test Triple(R("ex","g:output2"), R("list","hasContent"), R("ex","C")) in stmts
 
 end

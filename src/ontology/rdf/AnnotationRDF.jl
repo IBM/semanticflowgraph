@@ -19,6 +19,7 @@ using Serd
 using Catlab, Catlab.Diagram.Wiring
 
 using ...Doctrine, ...Ontology
+using ..OntologyRDF: owl_list
 using ..ConceptRDF: generator_rdf_node
 using ..WiringRDF
 
@@ -39,11 +40,13 @@ const language_properties = Dict(
 """ Convert annotation into triples for RDF/OWL ontology.
 """
 function annotation_to_rdf(annotation::ObAnnotation, prefix::RDF.Prefix; kw...)
-  # Annotation node and language-specific data.
+  # Annotation RDF node.
   node = annotation_rdf_node(annotation, prefix)
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","TypeAnnotation"))
   ]
+
+  # Language-specific data.
   append!(stmts, annotation_language_to_rdf(annotation, prefix))
 
   # Definition as expression, assuming it's a basic object.
@@ -71,12 +74,22 @@ end
 
 function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
                            include_wiring_diagrams::Bool=true)
-  # Annotation node and language-specific data.
+  # Annotation RDF node.
   node = annotation_rdf_node(annotation, prefix)
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","FunctionAnnotation"))
   ]
+
+  # Language-specific data.
   append!(stmts, annotation_language_to_rdf(annotation, prefix))
+  dom_node, dom_stmts = annotation_domain_to_rdf(annotation, prefix, codomain=false)
+  codom_node, codom_stmts = annotation_domain_to_rdf(annotation, prefix, codomain=true)
+  append!(stmts, [
+    RDF.Triple(node, R("monocl","inputs"), dom_node),
+    RDF.Triple(node, R("monocl","outputs"), codom_node),
+  ])
+  append!(stmts, dom_stmts)
+  append!(stmts, codom_stmts)
 
   # Definition as expression, if it's a basic morphism.
   if head(annotation.definition) == :generator
@@ -113,6 +126,29 @@ function annotation_language_to_rdf(annotation::Annotation, prefix::RDF.Prefix)
     ])
   end
   stmts
+end
+
+""" Convert annotation's language-specific (co)domain data into RDF triples.
+"""
+function annotation_domain_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
+                                  codomain::Bool=false)
+  node = annotation_rdf_node(annotation, prefix)
+  stmts = RDF.Statement[]
+
+  dom_name = string(node.name, ":", codomain ? "output" : "input")
+  language_key = codomain ? :outputs : :inputs
+  slot_nodes = RDF.Node[]
+  for (i, data) in enumerate(annotation.language[language_key])
+    slot = data["slot"]
+    slot_node = R(prefix.name, "$(dom_name)$i-content")
+    push!(slot_nodes, slot_node)
+    push!(stmts, RDF.Triple(slot_node, R("monocl","codeSlot"), RDF.Literal(slot)))
+  end
+
+  dom_node, dom_stmts = owl_list(slot_nodes, i -> R(prefix.name, "$(dom_name)$i"))
+  append!(stmts, dom_stmts)
+  
+  (dom_node, stmts)
 end
 
 """ Convert annotation's wiring diagram into RDF triples.

@@ -32,7 +32,10 @@ h = Hom("h", D, D)
 prefix = RDF.Prefix("ex", "http://www.example.org/#")
 annotation = ObAnnotation(
   AnnotationID("python", "mypkg", "a"),
-  Dict(:class => "ClassA", :slots => [Dict("slot" => "attrB")]),
+  Dict(
+    :class => "ClassA",
+    :slots => [Dict("slot" => "attrB")],
+  ),
   A, [f]
 )
 stmts = annotation_to_rdf(annotation, prefix)
@@ -51,8 +54,13 @@ slot_node = R("ex", "python:mypkg:a:slot1")
 
 annotation = HomAnnotation(
   AnnotationID("python", "mypkg", "a-do-composition"),
-  Dict(:class => ["ClassA", "MixinB"], :method => "do_composition"),
-  otimes(compose(f,g),h)
+  Dict(
+    :class => ["ClassA", "MixinB"],
+    :method => "do_composition",
+    :inputs => [Dict("slot" => 1)],
+    :outputs => [Dict("slot" => "return")],
+  ),
+  compose(f,g)
 )
 node = R("ex", "python:mypkg:a-do-composition")
 graph_node = R("ex", "python:mypkg:a-do-composition:diagram")
