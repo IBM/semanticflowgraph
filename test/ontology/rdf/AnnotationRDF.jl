@@ -32,31 +32,44 @@ h = Hom("h", D, D)
 prefix = RDF.Prefix("ex", "http://www.example.org/#")
 annotation = ObAnnotation(
   AnnotationID("python", "mypkg", "a"),
-  Dict(:class => "ClassA"),
-  A, []
+  Dict(
+    :class => "ClassA",
+    :slots => [Dict("slot" => "attrB")],
+  ),
+  A, [f]
 )
 stmts = annotation_to_rdf(annotation, prefix)
 node = R("ex", "python:mypkg:a")
-@test Triple(node, R("monocl", "code_language"), Literal("python")) in stmts
-@test Triple(node, R("monocl", "code_package"), Literal("mypkg")) in stmts
-@test Triple(node, R("monocl", "code_class"), Literal("ClassA")) in stmts
-@test Triple(node, R("monocl", "code_meaning"), R("ex","A")) in stmts
+@test Triple(node, R("monocl", "codeLanguage"), Literal("python")) in stmts
+@test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
+@test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
+@test Triple(node, R("monocl", "codeDefinition"), R("ex","A")) in stmts
+
+slot_node = R("ex", "python:mypkg:a:slot1")
+@test Triple(node, R("monocl", "annotatedSlot"), slot_node) in stmts
+@test Triple(slot_node, R("monocl", "codeDefinition"), R("ex","f")) in stmts
+@test Triple(slot_node, R("monocl", "codeSlot"), Literal("attrB")) in stmts
 
 # Morphism annotations
 
 annotation = HomAnnotation(
   AnnotationID("python", "mypkg", "a-do-composition"),
-  Dict(:class => ["ClassA", "MixinB"], :method => "do_composition"),
-  otimes(compose(f,g),h)
+  Dict(
+    :class => ["ClassA", "MixinB"],
+    :method => "do_composition",
+    :inputs => [Dict("slot" => 1)],
+    :outputs => [Dict("slot" => "return")],
+  ),
+  compose(f,g)
 )
 node = R("ex", "python:mypkg:a-do-composition")
 graph_node = R("ex", "python:mypkg:a-do-composition:diagram")
 stmts = annotation_to_rdf(annotation, prefix)
-@test Triple(node, R("monocl", "code_language"), Literal("python")) in stmts
-@test Triple(node, R("monocl", "code_package"), Literal("mypkg")) in stmts
-@test Triple(node, R("monocl", "code_class"), Literal("ClassA")) in stmts
-@test Triple(node, R("monocl", "code_class"), Literal("MixinB")) in stmts
-@test Triple(node, R("monocl", "code_method"), Literal("do_composition")) in stmts
-@test Triple(node, R("monocl", "code_meaning"), graph_node) in stmts
+@test Triple(node, R("monocl", "codeLanguage"), Literal("python")) in stmts
+@test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
+@test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
+@test Triple(node, R("monocl", "codeClass"), Literal("MixinB")) in stmts
+@test Triple(node, R("monocl", "codeMethod"), Literal("do_composition")) in stmts
+@test Triple(node, R("monocl", "codeDefinition"), graph_node) in stmts
 
 end

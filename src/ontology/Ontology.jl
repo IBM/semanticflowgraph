@@ -56,7 +56,7 @@ end
 
 include("OntologyJSON.jl")
 include("OntologyDBs.jl")
-include("OntologyRDF.jl")
+include("rdf/OntologyRDF.jl")
 
 @reexport using .OntologyJSON
 @reexport using .OntologyDBs

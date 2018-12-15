@@ -1,0 +1,54 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix monocl: <https://www.datascienceontology.org/ns/monocl/> .
+
+
+monocl:Type rdf:type owl:Class ;
+  rdfs:label "Type" ;
+  rdfs:comment "A type (aka, object)" .
+
+monocl:Function rdf:type owl:Class ;
+  owl:disjointWith monocl:Type ;
+  rdfs:label "Function" ;
+  rdfs:comment "A function (aka, morphism)" .
+
+
+monocl:inputs rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:domain monocl:Function ;
+  rdfs:label "Inputs of function" .
+
+monocl:outputs rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:domain monocl:Function ;
+  rdfs:label "Outputs of function" .
+
+monocl:subtypeOf rdf:type owl:TransitiveProperty ;
+  rdfs:domain monocl:Type ;
+  rdfs:range monocl:Type ;
+  rdfs:label "Subtype of" ;
+  rdfs:comment "A subtype (is-a) relation between two types" .
+
+monocl:subfunctionOf rdf:type owl:TransitiveProperty ;
+  rdfs:domain monocl:Function ;
+  rdfs:range monocl:Function ;
+  rdfs:label "Subfunction of" ;
+  rdfs:comment "A subfunction (is-a) relation between two functions" .
+
+
+monocl:Concept rdf:type owl:Class ;
+  rdfs:label "Concept" ;
+  rdfs:comment "A concept in a Monocl ontology" .
+
+monocl:TypeConcept rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Concept, monocl:Type ;
+  rdfs:label "Type concept" ;
+  rdfs:comment "A type concept in a Monocl ontology" .
+
+monocl:FunctionConcept rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Concept, monocl:Function ;
+  rdfs:label "Function concept" ;
+  rdfs:comment "A function concept in a Monocl ontology" .
+
+
+monocl:concept rdf:type rdf:Property ;
+  rdfs:comment "Asserts that the subject instantiates the object, a concept" .

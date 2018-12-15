@@ -1,0 +1,58 @@
+# List Ontology
+#
+# Adapted from CO-ODE project (defunct as of 2009):
+# http://owl.cs.manchester.ac.uk/research/co-ode/
+# https://web.archive.org/web/20120115230828/http://www.co-ode.org:80/ontologies/lists/2008/09/11/
+#
+# Reference: Drummond, Rector, Stevens et al, 2006: Putting OWL in order:
+# Patterns for sequences in OWL
+
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix list: <http://www.co-ode.org/ontologies/list.owl#> .
+
+list:OWLList rdf:type owl:Class .
+
+list:hasListProperty
+  rdf:type owl:ObjectProperty ;
+  rdfs:domain list:OWLList .
+
+list:hasContents
+  rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:subPropertyOf list:hasListProperty .
+
+list:hasNext
+  rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:subPropertyOf list:isFollowedBy .
+
+list:isFollowedBy
+  rdf:type owl:ObjectProperty, owl:TransitiveProperty ;
+  rdfs:range list:OWLList ;
+  rdfs:subPropertyOf list:hasListProperty .
+
+list:EmptyList rdf:type owl:Class ;
+  owl:equivalentClass [
+    owl:intersectionOf (
+      list:OWLList
+      [
+        owl:complementOf [
+          rdf:type owl:Restriction ;
+          owl:onProperty list:isFollowedBy ;
+          owl:someValuesFrom owl:Thing
+        ]
+      ]
+    )
+  ] ;
+  owl:equivalentClass [
+    owl:intersectionOf (
+      list:OWLList
+      [
+        owl:complementOf [
+          rdf:type owl:Restriction ;
+          owl:onProperty list:hasContents ;
+          owl:someValuesFrom owl:Thing
+        ]
+      ]
+    )
+  ] .

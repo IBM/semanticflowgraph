@@ -87,7 +87,7 @@ end
   "-o", "--out"
     help = "output file (default stdout)"
   "-t", "--to"
-    help = "output format (default RDF/Turtle)"
+    help = "output format (default RDF/OWL in Turtle syntax)"
     default = "turtle"
   "--no-concepts"
     help = "exclude concepts from export"
@@ -262,19 +262,28 @@ end
 # Ontology
 ##########
 
+const ontology_schema_dir = joinpath(@__DIR__, "ontology", "rdf", "schema")
+
 function ontology(args::Dict)
-  # Load concepts/annotations from remote database.
+  # Load ontology schema from filesystem and ontology data from remote database.
+  stmts = read_ontology_schema("list.ttl")
   db = OntologyDB()
   if args["concepts"]
+    append!(stmts, read_ontology_schema("concept.ttl"))
     load_concepts(db)
   end
   if args["annotations"]
+    append!(stmts, read_ontology_schema("annotation.ttl"))
     load_annotations(db)
+  end
+  if args["wiring"]
+    append!(stmts, read_ontology_schema("wiring.ttl"))
   end
 
   # Convert to RDF.
   prefix = Serd.RDF.Prefix("dso", "https://www.datascienceontology.org/ns/dso/")
-  stmts = ontology_to_rdf(db, prefix, include_wiring_diagrams=args["wiring"])
+  append!(stmts,
+    ontology_to_rdf(db, prefix, include_wiring_diagrams=args["wiring"]))
 
   # Serialize RDF to file or stdout.
   syntax = args["to"]
@@ -285,6 +294,10 @@ function ontology(args::Dict)
   else
     Serd.write_rdf(stdout, stmts, syntax=syntax)
   end
+end
+
+function read_ontology_schema(name::String)
+  Serd.read_rdf_file(joinpath(ontology_schema_dir, name))
 end
 
 # CLI main

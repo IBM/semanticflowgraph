@@ -101,7 +101,9 @@ end
 # Annotations
 #############
 
-const language_keys = [ "class", "function", "method", "domain", "codomain" ]
+const language_keys = [
+  "class", "function", "method", "inputs", "outputs", "slots",
+]
 
 """ Load annotation from JSON document.
 """

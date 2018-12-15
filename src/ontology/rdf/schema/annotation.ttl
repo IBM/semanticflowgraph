@@ -1,0 +1,64 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix monocl: <https://www.datascienceontology.org/ns/monocl/> .
+
+
+monocl:Annotation rdf:type owl:Class ;
+  owl:disjointWith monocl:Concept ;
+  rdfs:label "Annotation" ;
+  rdfs:comment "Semantic annotation of computer code" .
+
+monocl:TypeAnnotation rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Annotation, monocl:Type ;
+  rdfs:label "Type annotation" ;
+  rdfs:comment "Annotation of concrete class or type" .
+
+monocl:FunctionAnnotation rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Annotation, monocl:Function ;
+  rdfs:label "Function annotation" ;
+  rdfs:comment "Annotation of concrete function or method" .
+
+monocl:SlotAnnotation rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Annotation ;
+  rdfs:label "Slot annotation" ;
+  rdfs:comment "Annotation of slot (property) of concrete class" .
+
+
+monocl:annotatedSlot rdf:type owl:ObjectProperty ;
+  rdfs:label "Annotated slot" ;
+  rdfs:comment "Slot annotated by an type annotation" .
+
+monocl:codeDefinition rdf:type owl:ObjectProperty ;
+  rdfs:label "Definition" ;
+  rdfs:comment "Definition of annotated code in terms of universal concepts" .
+
+monocl:codeLanguage
+  rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Programming language" ;
+  rdfs:comment "Programming language of annotated code" .
+
+monocl:codePackage
+  rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Package" ;
+  rdfs:comment "Library or package of annotated code" .
+
+monocl:codeClass
+  rdf:type owl:DatatypeProperty ;
+  rdfs:label "Class" ;
+  rdfs:comment "Class or classes (intersection) to which annotation applies" .
+
+monocl:codeFunction
+  rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Function" ;
+  rdfs:comment "Function to which annotation applies" .
+
+monocl:codeMethod
+  rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Method" ;
+  rdfs:comment "Method of class to which annotation applies" .
+
+monocl:codeSlot
+  rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Slot" ;
+  rdfs:comment "Slot of class to which annotation applies" .

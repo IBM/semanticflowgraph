@@ -24,7 +24,7 @@ end
 end
 
 @testset "RDF" begin
-  include("OntologyRDF.jl")
+  include("rdf/OntologyRDF.jl")
 end
 
 end
