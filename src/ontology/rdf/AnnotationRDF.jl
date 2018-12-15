@@ -38,34 +38,61 @@ const language_properties = Dict(
 
 """ Convert annotation into triples for RDF/OWL ontology.
 """
-function annotation_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
-                           include_wiring_diagrams::Bool=true)
-  # Annotation RDF node.
+function annotation_to_rdf(annotation::ObAnnotation, prefix::RDF.Prefix; kw...)
+  # Annotation node and language-specific data.
   node = annotation_rdf_node(annotation, prefix)
-  type_node = annotation isa ObAnnotation ?
-    R("monocl","TypeAnnotation") : R("monocl","FunctionAnnotation")
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), type_node)
+    RDF.Triple(node, R("rdf","type"), R("monocl","TypeAnnotation"))
   ]
-
-  # Language-specific data.
   append!(stmts, annotation_language_to_rdf(annotation, prefix))
-  
-  # Definition as expression, if it's a basic object or morphism (generator).
+
+  # Definition as expression, assuming it's a basic object.
+  gen_node = generator_rdf_node(annotation.definition, prefix)
+  push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), gen_node))
+
+  # Slot annotations.
+  for (i, hom) in enumerate(annotation.slots)
+    slot = annotation.language[:slots][i]["slot"]
+    #slot_name = occursin(r"^[a-zA-Z0-9_]*$", slot) ? slot : "$i"
+    slot_node = R(prefix.name, "$(node.name):slot$i")
+    append!(stmts, [
+      RDF.Triple(node, R("monocl","annotatedSlot"), slot_node),
+      RDF.Triple(slot_node, R("rdf","type"), R("monocl","SlotAnnotation")),
+      RDF.Triple(slot_node, R("monocl","codeSlot"), RDF.Literal(slot)),
+    ])
+    if head(hom) == :generator
+      gen_node = generator_rdf_node(hom, prefix)
+      push!(stmts, RDF.Triple(slot_node, R("monocl","codeDefinition"), gen_node))
+    end
+  end
+
+  stmts
+end
+
+function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
+                           include_wiring_diagrams::Bool=true)
+  # Annotation node and language-specific data.
+  node = annotation_rdf_node(annotation, prefix)
+  stmts = RDF.Statement[
+    RDF.Triple(node, R("rdf","type"), R("monocl","FunctionAnnotation"))
+  ]
+  append!(stmts, annotation_language_to_rdf(annotation, prefix))
+
+  # Definition as expression, if it's a basic morphism.
   if head(annotation.definition) == :generator
     gen_node = generator_rdf_node(annotation.definition, prefix)
     push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), gen_node))
   end
 
   # Definition as wiring diagram.
-  if include_wiring_diagrams && annotation isa HomAnnotation
+  if include_wiring_diagrams
     diagram = to_wiring_diagram(annotation.definition)
     graph = R(prefix.name, "$(node.name):diagram")
     push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), graph))
     append!(stmts, annotation_diagram_to_rdf(diagram, graph, prefix))
   end
 
-  return stmts
+  stmts
 end
 
 """ Convert annotation's language-specific data into triples for RDF/OWL ontology.

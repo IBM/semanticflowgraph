@@ -32,8 +32,8 @@ h = Hom("h", D, D)
 prefix = RDF.Prefix("ex", "http://www.example.org/#")
 annotation = ObAnnotation(
   AnnotationID("python", "mypkg", "a"),
-  Dict(:class => "ClassA"),
-  A, []
+  Dict(:class => "ClassA", :slots => [Dict("slot" => "attrB")]),
+  A, [f]
 )
 stmts = annotation_to_rdf(annotation, prefix)
 node = R("ex", "python:mypkg:a")
@@ -41,6 +41,11 @@ node = R("ex", "python:mypkg:a")
 @test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
 @test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
 @test Triple(node, R("monocl", "codeDefinition"), R("ex","A")) in stmts
+
+slot_node = R("ex", "python:mypkg:a:slot1")
+@test Triple(node, R("monocl", "annotatedSlot"), slot_node) in stmts
+@test Triple(slot_node, R("monocl", "codeDefinition"), R("ex","f")) in stmts
+@test Triple(slot_node, R("monocl", "codeSlot"), Literal("attrB")) in stmts
 
 # Morphism annotations
 

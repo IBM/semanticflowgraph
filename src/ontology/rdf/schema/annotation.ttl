@@ -19,9 +19,17 @@ monocl:FunctionAnnotation rdf:type owl:Class ;
   rdfs:label "Function annotation" ;
   rdfs:comment "Annotation of concrete function or method" .
 
+monocl:SlotAnnotation rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Annotation ;
+  rdfs:label "Slot annotation" ;
+  rdfs:comment "Annotation of slot (property) of concrete class" .
 
-monocl:codeDefinition
-  rdf:type owl:ObjectProperty ;
+
+monocl:annotatedSlot rdf:type owl:ObjectProperty ;
+  rdfs:label "Annotated slot" ;
+  rdfs:comment "Slot annotated by an type annotation" .
+
+monocl:codeDefinition rdf:type owl:ObjectProperty ;
   rdfs:label "Definition" ;
   rdfs:comment "Definition of annotated code in terms of universal concepts" .
 
@@ -49,3 +57,8 @@ monocl:codeMethod
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
   rdfs:label "Method" ;
   rdfs:comment "Method of class to which annotation applies" .
+
+monocl:codeSlot
+  rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:label "Slot" ;
+  rdfs:comment "Slot of class to which annotation applies" .
