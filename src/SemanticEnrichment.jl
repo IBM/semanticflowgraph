@@ -22,7 +22,7 @@ using Nullables
 
 using LightGraphs, MetaGraphs
 
-using Catlab.Diagram
+using Catlab.WiringDiagrams
 using ..Doctrine
 using ..Ontology
 using ..RawFlowGraphs

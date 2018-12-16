@@ -22,12 +22,12 @@ using AutoHashEquals
 using Nullables
 
 using Catlab
-import Catlab.Doctrine: CategoryExpr, ObExpr, HomExpr, SymmetricMonoidalCategory,
-  Ob, Hom, dom, codom, compose, id, otimes, munit,
+import Catlab.Doctrines: CategoryExpr, ObExpr, HomExpr,
+  SymmetricMonoidalCategory, Ob, Hom, dom, codom, compose, id, otimes, munit,
   braid, mcopy, delete, pair, hom, ev, curry
 
-using Catlab.Diagram
-import Catlab.Diagram.Wiring: Box, WiringDiagram, to_wiring_diagram
+using Catlab.WiringDiagrams
+import Catlab.WiringDiagrams: Box, WiringDiagram, to_wiring_diagram
 
 # Cartesian (closed) category
 #############################

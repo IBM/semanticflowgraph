@@ -15,7 +15,7 @@
 module TestSemanticEnrichment
 using Test
 
-using Catlab.Diagram
+using Catlab.WiringDiagrams
 using SemanticFlowGraphs
 
 const db_filename = joinpath(@__DIR__, "ontology", "data", "employee.json")

@@ -4,7 +4,7 @@ module Visualization
 
 using Nullables
 
-using Catlab.Diagram
+using Catlab.WiringDiagrams, Catlab.Graphics
 using ..Doctrine
 using ..RawFlowGraphs
 

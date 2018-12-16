@@ -22,7 +22,7 @@ export RawNode, RawPort, RawNodeAnnotationKind,
 using AutoHashEquals, Parameters
 using Nullables
 
-using Catlab.Diagram
+using Catlab.WiringDiagrams
 
 @enum(RawNodeAnnotationKind,
   FunctionAnnotation = 0,

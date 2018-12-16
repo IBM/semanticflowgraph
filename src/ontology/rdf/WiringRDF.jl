@@ -16,7 +16,7 @@ module WiringRDF
 export wiring_diagram_to_rdf
 
 using Serd
-using Catlab, Catlab.Diagram.Wiring
+using Catlab, Catlab.WiringDiagrams
 
 const R = RDF.Resource
 

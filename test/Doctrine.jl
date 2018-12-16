@@ -15,9 +15,8 @@
 module TestDoctrine
 using Test
 
-using Catlab
-using Catlab.Diagram
-import Catlab.Diagram: Graphviz
+using Catlab, Catlab.WiringDiagrams, Catlab.Graphics
+import Catlab.Graphics: Graphviz
 using SemanticFlowGraphs.Doctrine
 
 # Monocl category

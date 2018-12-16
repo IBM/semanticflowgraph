@@ -22,8 +22,8 @@ import DefaultApplication
 using Requires
 import Serd
 
-using Catlab.Diagram
-import Catlab.Diagram: Graphviz
+using Catlab.WiringDiagrams, Catlab.Graphics
+import Catlab.Graphics: Graphviz
 using ..RawFlowGraphs
 using ..Ontology, ..SemanticEnrichment
 using ..Serialization

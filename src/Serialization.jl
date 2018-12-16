@@ -5,7 +5,7 @@ export read_raw_graph, read_semantic_graph
 
 using Nullables
 
-using Catlab, Catlab.Diagram
+using Catlab, Catlab.WiringDiagrams
 using ..Doctrine
 using ..RawFlowGraphs
 

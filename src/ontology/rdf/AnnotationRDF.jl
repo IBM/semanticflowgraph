@@ -16,7 +16,7 @@ module AnnotationRDF
 export annotation_to_rdf, annotation_rdf_node
 
 using Serd
-using Catlab, Catlab.Diagram.Wiring
+using Catlab, Catlab.WiringDiagrams
 
 using ...Doctrine, ...Ontology
 using ..OntologyRDF: owl_list
