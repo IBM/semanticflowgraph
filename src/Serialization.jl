@@ -6,6 +6,7 @@ export read_raw_graph, read_semantic_graph
 using Nullables
 
 using Catlab, Catlab.WiringDiagrams
+import Catlab.WiringDiagrams: convert_from_graphml_data, convert_to_graphml_data
 using ..Doctrine
 using ..RawFlowGraphs
 
@@ -15,10 +16,10 @@ using ..RawFlowGraphs
 """ Read raw flow graph from GraphML.
 """
 function read_raw_graph(xml)
-  GraphML.read_graphml(RawNode, RawPort, Nothing, xml)
+  read_graphml(RawNode, RawPort, Nothing, xml)
 end
 
-function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
+function convert_from_graphml_data(::Type{RawNode}, data::Dict)
   annotation = to_nullable(String, pop!(data, "annotation", nothing))
   annotation_index = to_nullable(Int, pop!(data, "annotation_index", nothing))
   annotation_kind_str = to_nullable(String, pop!(data, "annotation_kind", nothing))
@@ -27,7 +28,7 @@ function GraphML.convert_from_graphml_data(::Type{RawNode}, data::Dict)
   RawNode(data, annotation, annotation_index, annotation_kind)
 end
 
-function GraphML.convert_from_graphml_data(::Type{RawPort}, data::Dict)
+function convert_from_graphml_data(::Type{RawPort}, data::Dict)
   annotation = to_nullable(String, pop!(data, "annotation", nothing))
   annotation_index = to_nullable(Int, pop!(data, "annotation_index", nothing))
   value = to_nullable(Any, pop!(data, "value", nothing))
@@ -42,40 +43,40 @@ to_nullable(T::Type, x) = x == nothing ? Nullable{T}() : Nullable{T}(x)
 """ Read semantic flow graph from GraphML.
 """
 function read_semantic_graph(xml; elements::Bool=true)
-  GraphML.read_graphml(
+  read_graphml(
     Union{Monocl.Hom,Nothing},
     !elements ? Union{Monocl.Ob,Nothing} : MonoclElem,
     Nothing, xml)
 end
 
-function GraphML.convert_from_graphml_data(::Type{Monocl.Ob}, data::Dict)
+function convert_from_graphml_data(::Type{Monocl.Ob}, data::Dict)
   parse_json_sexpr(Monocl, data["ob"]; symbols=false)
 end
-function GraphML.convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
+function convert_from_graphml_data(::Type{Monocl.Hom}, data::Dict)
   parse_json_sexpr(Monocl, data["hom"]; symbols=false)
 end
-function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Ob,Nothing}}, data::Dict)
-  isempty(data) ? nothing : GraphML.convert_from_graphml_data(Monocl.Ob, data)
+function convert_from_graphml_data(::Type{Union{Monocl.Ob,Nothing}}, data::Dict)
+  isempty(data) ? nothing : convert_from_graphml_data(Monocl.Ob, data)
 end
-function GraphML.convert_from_graphml_data(::Type{Union{Monocl.Hom,Nothing}}, data::Dict)
-  isempty(data) ? nothing : GraphML.convert_from_graphml_data(Monocl.Hom, data)
+function convert_from_graphml_data(::Type{Union{Monocl.Hom,Nothing}}, data::Dict)
+  isempty(data) ? nothing : convert_from_graphml_data(Monocl.Hom, data)
 end
 
-function GraphML.convert_to_graphml_data(expr::Monocl.Ob)
+function convert_to_graphml_data(expr::Monocl.Ob)
   Dict("ob" => to_json_sexpr(expr))
 end
-function GraphML.convert_to_graphml_data(expr::Monocl.Hom)
+function convert_to_graphml_data(expr::Monocl.Hom)
   Dict("hom" => to_json_sexpr(expr))
 end
 
-function GraphML.convert_from_graphml_data(::Type{MonoclElem}, data::Dict)
+function convert_from_graphml_data(::Type{MonoclElem}, data::Dict)
   ob = haskey(data, "ob") ?
     parse_json_sexpr(Monocl, data["ob"]; symbols=false) : nothing
   value = get(data, "value", Nullable())
   MonoclElem(ob, value)
 end
 
-function GraphML.convert_to_graphml_data(elem::MonoclElem)
+function convert_to_graphml_data(elem::MonoclElem)
   data = Dict{String,Any}()
   if (elem.ob != nothing) data["ob"] = to_json_sexpr(elem.ob) end
   if (!isnull(elem.value)) data["value"] = get(elem.value) end

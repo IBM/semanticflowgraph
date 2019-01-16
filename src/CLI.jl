@@ -181,7 +181,7 @@ function enrich(args::Dict)
   for (inpath, outpath) in paths
     raw = rem_literals!(read_raw_graph(inpath))
     semantic = to_semantic_graph(db, raw)
-    GraphML.write_graphml(semantic, outpath)
+    write_graphml(semantic, outpath)
   end
 end
 

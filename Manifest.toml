@@ -32,7 +32,7 @@ version = "0.5.3"
 
 [[Catlab]]
 deps = ["AutoHashEquals", "DataStructures", "JSON", "LightGraphs", "LightXML", "Match", "MetaGraphs", "Nullables", "Parameters", "Pkg", "Reexport", "Requires", "Test", "UnionFind"]
-git-tree-sha1 = "3e7aa6ebc9883239144eded18a85badbfecc5fb6"
+git-tree-sha1 = "28a10fa896aa0247a24507eac72d952542fe9fc3"
 repo-rev = "master"
 repo-url = "https://github.com/epatters/Catlab"
 uuid = "fe5c7674-9d0d-11e8-2f75-77422a24ba09"
@@ -52,9 +52,9 @@ version = "1.4.0"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections", "Random", "Serialization", "Test"]
-git-tree-sha1 = "8fc6e166e24fda04b2b648d4260cdad241788c54"
+git-tree-sha1 = "ca971f03e146cf144a9e2f2ce59674f5bf0e8038"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.14.0"
+version = "0.15.0"
 
 [[Dates]]
 deps = ["Printf"]
@@ -76,9 +76,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[FileIO]]
 deps = ["Pkg", "Random", "Test"]
-git-tree-sha1 = "1a114d08094e7267ba8d4d684f930d5a722184de"
+git-tree-sha1 = "c94b0787956629036fb2b20fccde9e52b89d079a"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.0.4"
+version = "1.0.5"
 
 [[HTTP]]
 deps = ["Base64", "Dates", "Distributed", "IniFile", "MbedTLS", "Sockets", "Test"]
@@ -88,9 +88,9 @@ version = "0.7.1"
 
 [[Homebrew]]
 deps = ["BinDeps", "InteractiveUtils", "JSON", "Libdl", "Test", "Unicode"]
-git-tree-sha1 = "5582ec74f735cf8d12e562a2e65c47f34063bd51"
+git-tree-sha1 = "f01fb2f34675f9839d55ba7238bab63ebd2e531e"
 uuid = "d9be37ee-ecc9-5288-90f1-b9ca67657a75"
-version = "0.7.0"
+version = "0.7.1"
 
 [[Inflate]]
 deps = ["Pkg", "Printf", "Random", "Test"]
@@ -257,9 +257,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[StaticArrays]]
 deps = ["InteractiveUtils", "LinearAlgebra", "Random", "Statistics", "Test"]
-git-tree-sha1 = "97c4bf0f647488dd7ac01ea12be5885f88762938"
+git-tree-sha1 = "1eb114d6e23a817cd3e99abc3226190876d7c898"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "0.10.0"
+version = "0.10.2"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
