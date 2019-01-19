@@ -14,6 +14,7 @@
 
 module TestCLI
 using Test
+import JSON
 
 import SemanticFlowGraphs: CLI
 
@@ -41,9 +42,17 @@ mktempdir() do dir
 end
 
 mktempdir() do dir
-  # Convert ontology concepts to RDF.
+  # Export concepts as JSON.
+  outpath = joinpath(dir, "concepts.json")
+  CLI.main(["ontology", "json", "--no-annotations", "--out", outpath])
+  @test isfile(outpath)
+  @test JSON.parsefile(outpath) isa AbstractVector
+end
+
+mktempdir() do dir
+  # Export concepts as RDF/OWL.
   outpath = joinpath(dir, "concepts.ttl")
-  CLI.main(["ontology", "--no-annotations", "--out", outpath])
+  CLI.main(["ontology", "rdf", "--no-annotations", "--out", outpath])
   @test isfile(outpath)
 end
 

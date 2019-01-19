@@ -20,6 +20,7 @@ export main, invoke, parse
 using ArgParse
 import DefaultApplication
 using Requires
+import JSON
 import Serd
 
 using Catlab.WiringDiagrams, Catlab.Graphics
@@ -44,7 +45,7 @@ const settings = ArgParseSettings()
     help = "visualize flow graph"
     action = :command
   "ontology"
-    help = "export ontology in non-native format"
+    help = "export ontology"
     action = :command
 end
 
@@ -84,10 +85,36 @@ end
 end
 
 @add_arg_table settings["ontology"] begin
+  "json"
+    help = "export ontology as JSON"
+    action = :command
+  "rdf"
+    help = "export ontology as RDF/OWL"
+    action = :command
+end
+
+@add_arg_table settings["ontology"]["json"] begin
   "-o", "--out"
-    help = "output file (default stdout)"
+    help = "output file (default: stdout)"
+  "--indent"
+    help = "number of spaces to indent (default: compact output)"
+    arg_type = Int
+    default = nothing
+  "--no-concepts"
+    help = "exclude concepts from export"
+    dest_name = "concepts"
+    action = :store_false
+  "--no-annotations"
+    help = "exclude annotations from export"
+    dest_name = "annotations"
+    action = :store_false
+end
+
+@add_arg_table settings["ontology"]["rdf"] begin
+  "-o", "--out"
+    help = "output file (default: stdout)"
   "-t", "--to"
-    help = "output format (default RDF/OWL in Turtle syntax)"
+    help = "output format (one of: \"turtle\", \"ntriples\", \"nquads\", \"trig\")"
     default = "turtle"
   "--no-concepts"
     help = "exclude concepts from export"
@@ -262,22 +289,38 @@ end
 # Ontology
 ##########
 
-const ontology_schema_dir = joinpath(@__DIR__, "ontology", "rdf", "schema")
-
-function ontology(args::Dict)
-  # Load ontology schema from filesystem and ontology data from remote database.
-  stmts = read_ontology_schema("list.ttl")
+function ontology_as_json(args::Dict)
+  docs = AbstractDict[]
   db = OntologyDB()
   if args["concepts"]
-    append!(stmts, read_ontology_schema("concept.ttl"))
+    append!(docs, OntologyDBs.api_get(db, "/concepts"))
+  end
+  if args["annotations"]
+    append!(docs, OntologyDBs.api_get(db, "/annotations"))
+  end
+  if args["out"] != nothing
+    open(args["out"], "w") do out
+      JSON.print(out, docs, args["indent"])
+    end
+  else
+    JSON.print(stdout, docs, args["indent"])
+  end
+end
+
+function ontology_as_rdf(args::Dict)
+  # Load ontology schema from filesystem and ontology data from remote database.
+  stmts = read_ontology_rdf_schema("list.ttl")
+  db = OntologyDB()
+  if args["concepts"]
+    append!(stmts, read_ontology_rdf_schema("concept.ttl"))
     load_concepts(db)
   end
   if args["annotations"]
-    append!(stmts, read_ontology_schema("annotation.ttl"))
+    append!(stmts, read_ontology_rdf_schema("annotation.ttl"))
     load_annotations(db)
   end
   if args["wiring"]
-    append!(stmts, read_ontology_schema("wiring.ttl"))
+    append!(stmts, read_ontology_rdf_schema("wiring.ttl"))
   end
 
   # Convert to RDF.
@@ -296,9 +339,11 @@ function ontology(args::Dict)
   end
 end
 
-function read_ontology_schema(name::String)
-  Serd.read_rdf_file(joinpath(ontology_schema_dir, name))
+function read_ontology_rdf_schema(name::String)
+  Serd.read_rdf_file(joinpath(ontology_rdf_schema_dir, name))
 end
+
+const ontology_rdf_schema_dir = joinpath(@__DIR__, "ontology", "rdf", "schema")
 
 # CLI main
 ##########
@@ -308,14 +353,21 @@ function main(args)
 end
 
 function parse(args)
+  cmds = String[]
   parsed_args = parse_args(args, settings)
-  cmd = parsed_args["%COMMAND%"]
-  return (cmd, parsed_args[cmd])
+  while haskey(parsed_args, "%COMMAND%")
+    cmd = parsed_args["%COMMAND%"]
+    parsed_args = parsed_args[cmd]
+    push!(cmds, cmd)
+  end
+  return (cmds, parsed_args)
 end
 
-function invoke(cmd, cmd_args)
+function invoke(cmds, cmd_args)
   try
-    command_table[cmd](cmd_args)
+    cmd_fun = command_table
+    for cmd in cmds; cmd_fun = cmd_fun[cmd] end
+    cmd_fun(cmd_args)
   catch err
     # Handle further "parsing" errors ala ArgParse.jl.
     isa(err, ArgParseError) || rethrow()
@@ -327,7 +379,10 @@ const command_table = Dict(
   "record" => record,
   "enrich" => enrich,
   "visualize" => visualize,
-  "ontology" => ontology,
+  "ontology" => Dict(
+    "json" => ontology_as_json,
+    "rdf" => ontology_as_rdf,
+  ),
 )
 
 # CLI extras

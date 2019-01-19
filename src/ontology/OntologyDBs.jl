@@ -165,7 +165,7 @@ end
 
 function api_get(api_url::String, endpoint::String)
   response = HTTP.get(string(api_url, endpoint))
-  JSON.parse(String(response.body))
+  JSON.parse(String(response.body), dicttype=OrderedDict)
 end
 
 api_get(db::OntologyDB, endpoint::String) = api_get(db.api_url, endpoint)
