@@ -74,15 +74,20 @@ function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
   codom_cell = i -> R(prefix.name, "$(node.name):output$i")
   codom_stmts = owl_list(codom_nodes, codom_cell, index=true)
-  
-  stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
-    RDF.Triple(node, R("monocl","inputs"), dom_cell(1)),
-    RDF.Triple(node, R("monocl","outputs"), codom_cell(1)),
+
+  RDF.Statement[
+    [
+      RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
+      RDF.Triple(node, R("monocl","inputs"), dom_cell(1)),
+      RDF.Triple(node, R("monocl","outputs"), codom_cell(1)),
+    ];
+    [ RDF.Triple(node, R("monocl","hasInput"), dom_cell(i))
+      for i in eachindex(dom_nodes) ];
+    [ RDF.Triple(node, R("monocl","hasOutput"), codom_cell(i))
+      for i in eachindex(codom_nodes) ];
+    dom_stmts;
+    codom_stmts;
   ]
-  append!(stmts, dom_stmts)
-  append!(stmts, codom_stmts)
-  stmts
 end
 
 """ Generate RDF for submorphism relation.

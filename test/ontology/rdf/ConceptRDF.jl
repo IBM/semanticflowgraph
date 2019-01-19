@@ -16,7 +16,7 @@ module TestConceptRDF
 using Test
 
 using Serd
-using Serd.RDF: Triple, Resource
+using Serd.RDF: Triple, Literal, Resource
 using Catlab
 
 using SemanticFlowGraphs
@@ -46,14 +46,23 @@ stmts = presentation_to_rdf(TestPres, prefix)
 
 @test Triple(R("ex","A"), R("rdf","type"), R("monocl","TypeConcept")) in stmts
 @test Triple(R("ex","A0"), R("rdf","type"), R("monocl","TypeConcept")) in stmts
+@test Triple(R("ex","g"), R("rdf","type"), R("monocl","FunctionConcept")) in stmts
+
 @test Triple(R("ex","A0"), R("monocl","subtypeOf"), R("ex","A")) in stmts
 @test Triple(R("ex","f0"), R("monocl","subfunctionOf"), R("ex","f")) in stmts
 
-@test Triple(R("ex","g"), R("rdf","type"), R("monocl","FunctionConcept")) in stmts
-@test Triple(R("ex","g:input1"), R("rdf","type"), R("list","OWLList")) in stmts
+@test Triple(R("ex","g"), R("monocl","inputs"), R("ex","g:input1")) in stmts
+@test Triple(R("ex","g"), R("monocl","hasInput"), R("ex","g:input1")) in stmts
 @test Triple(R("ex","g:input1"), R("list","hasContent"), R("ex","A")) in stmts
+@test Triple(R("ex","g:input1"), R("list","index"), Literal(1)) in stmts
+
+@test Triple(R("ex","g"), R("monocl","outputs"), R("ex","g:output1")) in stmts
+@test Triple(R("ex","g"), R("monocl","hasOutput"), R("ex","g:output1")) in stmts
+@test Triple(R("ex","g"), R("monocl","hasOutput"), R("ex","g:output2")) in stmts
 @test Triple(R("ex","g:output1"), R("list","hasContent"), R("ex","B")) in stmts
 @test Triple(R("ex","g:output1"), R("list","hasNext"), R("ex","g:output2")) in stmts
+@test Triple(R("ex","g:output1"), R("list","index"), Literal(1)) in stmts
 @test Triple(R("ex","g:output2"), R("list","hasContent"), R("ex","C")) in stmts
+@test Triple(R("ex","g:output2"), R("list","index"), Literal(2)) in stmts
 
 end

@@ -81,15 +81,22 @@ function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
   ]
 
   # Language-specific data.
+  # FIXME: Clean up this code. Eliminate duplication of code in concept RDF.
   append!(stmts, annotation_language_to_rdf(annotation, prefix))
-  dom_node, dom_stmts = annotation_domain_to_rdf(annotation, prefix, codomain=false)
-  codom_node, codom_stmts = annotation_domain_to_rdf(annotation, prefix, codomain=true)
+  dom_cell, dom_stmts = annotation_domain_to_rdf(annotation, prefix, codomain=false)
+  codom_cell, codom_stmts = annotation_domain_to_rdf(annotation, prefix, codomain=true)
   append!(stmts, [
-    RDF.Triple(node, R("monocl","inputs"), dom_node),
-    RDF.Triple(node, R("monocl","outputs"), codom_node),
+    [
+      RDF.Triple(node, R("monocl","inputs"), dom_cell(1)),
+      RDF.Triple(node, R("monocl","outputs"), codom_cell(1)),
+    ];
+    [ RDF.Triple(node, R("monocl","hasInput"), dom_cell(i))
+      for i in eachindex(annotation.language[:inputs]) ];
+    [ RDF.Triple(node, R("monocl","hasOutput"), codom_cell(i))
+      for i in eachindex(annotation.language[:outputs]) ];
+    dom_stmts;
+    codom_stmts;
   ])
-  append!(stmts, dom_stmts)
-  append!(stmts, codom_stmts)
 
   # Definition as expression, if it's a basic morphism.
   if head(annotation.definition) == :generator
@@ -149,7 +156,7 @@ function annotation_domain_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
   dom_stmts = owl_list(slot_nodes, dom_cell, index=true)
   append!(stmts, dom_stmts)
   
-  (dom_cell(1), stmts)
+  (dom_cell, stmts)
 end
 
 """ Convert annotation's wiring diagram into RDF triples.
