@@ -145,10 +145,11 @@ function annotation_domain_to_rdf(annotation::Annotation, prefix::RDF.Prefix;
     push!(stmts, RDF.Triple(slot_node, R("monocl","codeSlot"), RDF.Literal(slot)))
   end
 
-  dom_node, dom_stmts = owl_list(slot_nodes, i -> R(prefix.name, "$(dom_name)$i"))
+  dom_cell = i -> R(prefix.name, "$(dom_name)$i")
+  dom_stmts = owl_list(slot_nodes, dom_cell, index=true)
   append!(stmts, dom_stmts)
   
-  (dom_node, stmts)
+  (dom_cell(1), stmts)
 end
 
 """ Convert annotation's wiring diagram into RDF triples.

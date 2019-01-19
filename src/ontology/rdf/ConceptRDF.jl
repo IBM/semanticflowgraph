@@ -66,16 +66,19 @@ The domain and codomain objects are represented as OWL lists.
 """
 function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(hom, prefix)
+
   dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
+  dom_cell = i -> R(prefix.name, "$(node.name):input$i")
+  dom_stmts = owl_list(dom_nodes, dom_cell, index=true)
+
   codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
-  dom_node, dom_stmts = owl_list(
-    dom_nodes, i -> R(prefix.name, "$(node.name):input$i"))
-  codom_node, codom_stmts = owl_list(
-    codom_nodes, i -> R(prefix.name, "$(node.name):output$i"))
+  codom_cell = i -> R(prefix.name, "$(node.name):output$i")
+  codom_stmts = owl_list(codom_nodes, codom_cell, index=true)
+  
   stmts = RDF.Statement[
     RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
-    RDF.Triple(node, R("monocl","inputs"), dom_node),
-    RDF.Triple(node, R("monocl","outputs"), codom_node),
+    RDF.Triple(node, R("monocl","inputs"), dom_cell(1)),
+    RDF.Triple(node, R("monocl","outputs"), codom_cell(1)),
   ]
   append!(stmts, dom_stmts)
   append!(stmts, codom_stmts)

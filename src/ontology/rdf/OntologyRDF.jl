@@ -33,20 +33,23 @@ singly linked list (chain of cons cells).
 
 Note: We don't use the builtin RDF List because OWL doesn't support RDF Lists.
 """
-function owl_list(nodes::Vector{<:RDF.Node}, cell_node::Function; graph=nothing)
+function owl_list(nodes::Vector{<:RDF.Node}, cell_node::Function; index::Bool=false)
   stmts = RDF.Statement[]
   for (i, node) in enumerate(nodes)
     cell = cell_node(i)
     rest = cell_node(i+1)
     append!(stmts, [
-      RDF.Edge(cell, R("rdf","type"), R("list","OWLList"), graph),
-      RDF.Edge(cell, R("list","hasContent"), node, graph),
-      RDF.Edge(cell, R("list","hasNext"), rest, graph),
+      RDF.Triple(cell, R("rdf","type"), R("list","OWLList")),
+      RDF.Triple(cell, R("list","hasContent"), node),
+      RDF.Triple(cell, R("list","hasNext"), rest),
     ])
+    if index
+      push!(stmts, RDF.Triple(cell, R("list","index"), RDF.Literal(i)))
+    end
   end
   nil = cell_node(length(nodes) + 1)
-  push!(stmts, RDF.Edge(nil, R("rdf","type"), R("list","EmptyList"), graph))
-  (stmts[1].subject, stmts)
+  push!(stmts, RDF.Triple(nil, R("rdf","type"), R("list","EmptyList")))
+  stmts
 end
 
 # Submodules

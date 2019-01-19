@@ -1,11 +1,22 @@
 # List Ontology
 #
-# Adapted from CO-ODE project (defunct as of 2009):
-# http://owl.cs.manchester.ac.uk/research/co-ode/
-# https://web.archive.org/web/20120115230828/http://www.co-ode.org:80/ontologies/lists/2008/09/11/
+# We define a singly linked list (chain of cons cells), following the List
+# Ontology in the CO-ODE project (defunct as of 2009):
+# <http://owl.cs.manchester.ac.uk/research/co-ode/>
+# <https://web.archive.org/web/20120115230828/http://www.co-ode.org:80/ontologies/lists/2008/09/11/>
 #
-# Reference: Drummond, Rector, Stevens et al, 2006: Putting OWL in order:
-# Patterns for sequences in OWL
+# A list item may also specifiy an integer index, as in the Ordered List
+# Ontology:
+# <http://purl.org/ontology/olo/core#>
+# <https://github.com/smiy/orderedlistonto>
+# Indices are optionally. They make lists easier to query but harder to update.
+#
+# Further reading:
+#
+# - Drummond, Rector, Stevens et al, 2006: Putting OWL in order: Patterns for
+#   sequences in OWL
+# - W3C, 2006: Defining n-ary relations on the Semantic Web
+#   <https://www.w3.org/TR/swbp-n-aryRelations/>
 
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -25,6 +36,10 @@ list:hasContents
 list:hasNext
   rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
   rdfs:subPropertyOf list:isFollowedBy .
+
+list:index
+  rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
+  rdfs:subPropertyOf list:hasListProperty .
 
 list:isFollowedBy
   rdf:type owl:ObjectProperty, owl:TransitiveProperty ;

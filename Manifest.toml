@@ -229,7 +229,7 @@ uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
 [[Serd]]
 deps = ["AutoHashEquals", "BinDeps", "Homebrew", "Libdl", "Nullables", "Test"]
-git-tree-sha1 = "ff8b205f304f018564887f854607419f90b8c138"
+git-tree-sha1 = "f718036fe16037dcb74309d8e136af69a4acf9e6"
 repo-rev = "master"
 repo-url = "https://github.com/epatters/Serd.jl"
 uuid = "450495b8-9c41-11e8-108b-bf40c112a898"

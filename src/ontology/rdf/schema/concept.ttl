@@ -16,11 +16,13 @@ monocl:Function rdf:type owl:Class ;
 
 monocl:inputs rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
   rdfs:domain monocl:Function ;
-  rdfs:label "Inputs of function" .
+  rdfs:label "Inputs" ;
+  rdfs:comment "Inputs of function" .
 
 monocl:outputs rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
   rdfs:domain monocl:Function ;
-  rdfs:label "Outputs of function" .
+  rdfs:label "Outputs" ;
+  rdfs:comment "Outputs of function" .
 
 monocl:subtypeOf rdf:type owl:TransitiveProperty ;
   rdfs:domain monocl:Type ;
