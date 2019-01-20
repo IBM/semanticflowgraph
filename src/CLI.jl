@@ -124,6 +124,10 @@ end
     help = "exclude annotations from export"
     dest_name = "annotations"
     action = :store_false
+  "--no-provenance"
+    help = "exclude provenance (PROV-O) interop from export"
+    dest_name = "provenance"
+    action = :store_false
   "--no-wiring-diagrams"
     help = "exclude wiring diagrams in concepts and annotations from export"
     dest_name = "wiring"
@@ -325,8 +329,9 @@ function ontology_as_rdf(args::Dict)
 
   # Convert to RDF.
   prefix = Serd.RDF.Prefix("dso", "https://www.datascienceontology.org/ns/dso/")
-  append!(stmts,
-    ontology_to_rdf(db, prefix, include_wiring_diagrams=args["wiring"]))
+  append!(stmts, ontology_to_rdf(db, prefix,
+    include_provenance=args["provenance"],
+    include_wiring_diagrams=args["wiring"]))
 
   # Serialize RDF to file or stdout.
   syntax = args["to"]

@@ -163,13 +163,13 @@ function annotation_box_to_rdf(expr::Monocl.Hom, node::RDF.Node,
     # FIXME: Discards constructor parameters when head == :construct.
     R("monocl", string(head(expr)))
   end
-  [ RDF.Quad(node, R("monocl","concept"), gen_node, graph) ]
+  [ RDF.Quad(node, R("monocl","isConcept"), gen_node, graph) ]
 end
 
 function annotation_port_to_rdf(expr::Monocl.Ob, node::RDF.Node,
                                 graph::RDF.Node, prefix::RDF.Prefix)
   gen_node = generator_rdf_node(expr, prefix)
-  [ RDF.Quad(node, R("monocl","concept"), gen_node, graph) ]
+  [ RDF.Quad(node, R("monocl","isConcept"), gen_node, graph) ]
 end
 
 """ Create RDF node for annotation.
