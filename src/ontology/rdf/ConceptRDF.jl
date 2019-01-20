@@ -66,27 +66,12 @@ The domain and codomain objects are represented as OWL lists.
 """
 function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(hom, prefix)
-
+  make_cell = name -> R(prefix.name, "$(node.name):$name")
   dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
-  dom_cell = i -> R(prefix.name, "$(node.name):input$i")
-  dom_stmts = owl_list(dom_nodes, dom_cell, index=true)
-
   codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
-  codom_cell = i -> R(prefix.name, "$(node.name):output$i")
-  codom_stmts = owl_list(codom_nodes, codom_cell, index=true)
-
   RDF.Statement[
-    [
-      RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
-      RDF.Triple(node, R("monocl","inputs"), dom_cell(1)),
-      RDF.Triple(node, R("monocl","outputs"), codom_cell(1)),
-    ];
-    [ RDF.Triple(node, R("monocl","hasInput"), dom_cell(i))
-      for i in eachindex(dom_nodes) ];
-    [ RDF.Triple(node, R("monocl","hasOutput"), codom_cell(i))
-      for i in eachindex(codom_nodes) ];
-    dom_stmts;
-    codom_stmts;
+    [ RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")) ];
+    function_domain_to_rdf(node, make_cell, dom_nodes, codom_nodes, index=true);
   ]
 end
 
@@ -103,6 +88,28 @@ end
 function generator_rdf_node(expr::GATExpr{:generator}, prefix::RDF.Prefix)
   @assert first(expr) != nothing
   R(prefix.name, string(first(expr)))
+end
+
+""" Generate RDF for domain and codomain of a function-like node.
+"""
+function function_domain_to_rdf(
+    node::RDF.Node, make_cell::Function,
+    dom_nodes::Vector{<:RDF.Node}, codom_nodes::Vector{<:RDF.Node};
+    index::Bool=false)
+  dom_cell = i -> make_cell("input$i")
+  codom_cell = i -> make_cell("output$i")
+  RDF.Statement[
+    [
+      RDF.Triple(node, R("monocl","inputs"), dom_cell(1)),
+      RDF.Triple(node, R("monocl","outputs"), codom_cell(1)),
+    ];
+    [ RDF.Triple(node, R("monocl","hasInput"), dom_cell(i))
+      for i in eachindex(dom_nodes) ];
+    [ RDF.Triple(node, R("monocl","hasOutput"), codom_cell(i))
+      for i in eachindex(codom_nodes) ];
+    owl_list(dom_nodes, dom_cell, index=index);
+    owl_list(codom_nodes, codom_cell, index=index);
+  ]
 end
 
 end
