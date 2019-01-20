@@ -19,7 +19,7 @@ using Serd
 using Catlab
 
 using ...Doctrine, ...Ontology
-using ..OntologyRDF: owl_list
+using ..RDFUtils
 
 const R = RDF.Resource
 

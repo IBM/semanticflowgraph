@@ -19,7 +19,7 @@ using Serd
 using Catlab, Catlab.WiringDiagrams
 
 using ...Doctrine, ...Ontology
-using ..OntologyRDF: owl_list
+using ..RDFUtils
 using ..ConceptRDF: generator_rdf_node, function_domain_to_rdf
 using ..WiringRDF
 

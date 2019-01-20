@@ -21,45 +21,16 @@ using Catlab
 
 using ..OntologyDBs
 
-const R = RDF.Resource
-
-# RDF Utilties
-##############
-
-""" Convert sequence of RDF nodes into an OWL list.
-
-OWL doesn't officially support lists, but it's straightforward to implement a
-singly linked list (chain of cons cells).
-
-Note: We don't use the builtin RDF List because OWL doesn't support RDF Lists.
-"""
-function owl_list(nodes::Vector{<:RDF.Node}, cell_node::Function; index::Bool=false)
-  stmts = RDF.Statement[]
-  for (i, node) in enumerate(nodes)
-    cell = cell_node(i)
-    rest = cell_node(i+1)
-    append!(stmts, [
-      RDF.Triple(cell, R("rdf","type"), R("list","OWLList")),
-      RDF.Triple(cell, R("list","hasContent"), node),
-      RDF.Triple(cell, R("list","hasNext"), rest),
-    ])
-    if index
-      push!(stmts, RDF.Triple(cell, R("list","index"), RDF.Literal(i)))
-    end
-  end
-  nil = cell_node(length(nodes) + 1)
-  push!(stmts, RDF.Triple(nil, R("rdf","type"), R("list","EmptyList")))
-  stmts
-end
-
 # Submodules
 ############
 
+include("RDFUtils.jl")
 include("WiringRDF.jl")
 include("ConceptRDF.jl")
 include("ConceptPROV.jl")
 include("AnnotationRDF.jl")
 
+using .RDFUtils
 using .WiringRDF
 using .ConceptRDF
 using .ConceptPROV
@@ -98,27 +69,6 @@ function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix;
   end
   
   return stmts
-end
-
-""" Create RDFS label/comment from document name/description.
-"""
-function rdfs_labels(doc, node::RDF.Node)::Vector{<:RDF.Statement}
-  stmts = RDF.Statement[]
-  if haskey(doc, "name")
-    push!(stmts, RDF.Triple(
-      node,
-      RDF.Resource("rdfs", "label"),
-      RDF.Literal(doc["name"])
-    ))
-  end
-  if haskey(doc, "description")
-    push!(stmts, RDF.Triple(
-      node,
-      RDF.Resource("rdfs", "comment"),
-      RDF.Literal(doc["description"])
-    ))
-  end
-  stmts
 end
 
 end
