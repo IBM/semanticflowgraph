@@ -40,16 +40,10 @@ end
 
 # Graphviz support.
 Graphviz.node_label(f::Monocl.Hom{:coerce}) = "to"
-Graphviz.node_id(f::Monocl.Hom{:coerce}) = ":coerce"
-
 Graphviz.node_label(f::Monocl.Hom{:construct}) = string(codom(f))
-Graphviz.node_id(f::Monocl.Hom{:construct}) = ":construct"
 
 function Graphviz.node_label(f::Nullable{Monocl.Hom})
   isnull(f) ? "?" : Graphviz.node_label(get(f))
-end
-function Graphviz.node_id(f::Nullable{Monocl.Hom})
-  isnull(f) ? "" : Graphviz.node_id(get(f))
 end
 function Graphviz.edge_label(A::Nullable{Monocl.Ob})
   isnull(A) ? "" : Graphviz.edge_label(get(A))
