@@ -23,7 +23,9 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix list: <http://www.co-ode.org/ontologies/list.owl#> .
 
-list:OWLList rdf:type owl:Class .
+list:OWLList rdf:type owl:Class ;
+  rdfs:label "List" ;
+  rdfs:comment "Singly linked list" .
 
 list:hasListProperty
   rdf:type owl:ObjectProperty ;
@@ -31,20 +33,24 @@ list:hasListProperty
 
 list:hasContents
   rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
-  rdfs:subPropertyOf list:hasListProperty .
+  rdfs:subPropertyOf list:hasListProperty ;
+  rdfs:label "Has contents" .
 
 list:hasNext
   rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
-  rdfs:subPropertyOf list:isFollowedBy .
+  rdfs:subPropertyOf list:isFollowedBy ;
+  rdfs:label "Has next" .
 
 list:index
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
-  rdfs:subPropertyOf list:hasListProperty .
+  rdfs:subPropertyOf list:hasListProperty ;
+  rdfs:label "Index in list" .
 
 list:isFollowedBy
   rdf:type owl:ObjectProperty, owl:TransitiveProperty ;
   rdfs:range list:OWLList ;
-  rdfs:subPropertyOf list:hasListProperty .
+  rdfs:subPropertyOf list:hasListProperty ;
+  rdfs:label "Is followed by" .
 
 list:EmptyList rdf:type owl:Class ;
   owl:equivalentClass [
@@ -59,15 +65,4 @@ list:EmptyList rdf:type owl:Class ;
       ]
     )
   ] ;
-  owl:equivalentClass [
-    owl:intersectionOf (
-      list:OWLList
-      [
-        owl:complementOf [
-          rdf:type owl:Restriction ;
-          owl:onProperty list:hasContents ;
-          owl:someValuesFrom owl:Thing
-        ]
-      ]
-    )
-  ] .
+  rdfs:label "Empty list" .

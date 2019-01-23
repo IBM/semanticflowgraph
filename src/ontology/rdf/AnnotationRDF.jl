@@ -20,7 +20,7 @@ using Catlab, Catlab.WiringDiagrams
 
 using ...Doctrine, ...Ontology
 using ..RDFUtils
-using ..ConceptRDF: generator_rdf_node, function_domain_to_rdf
+using ..ConceptRDF: generator_rdf_node
 using ..WiringRDF
 
 const R = RDF.Resource
@@ -125,24 +125,14 @@ end
 """
 function annotation_domain_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix)
   node = annotation_rdf_node(annotation, prefix)
-  make_cell = name -> R(prefix.name, "$(node.name):$name")
-  stmts = RDF.Statement[]
-  dom_nodes = map(enumerate(annotation.language[:inputs])) do (i, data)
-    slot, slot_node = data["slot"], make_cell("input$i:content")
-    push!(stmts,
-      RDF.Triple(slot_node, R("monocl","codeSlot"), RDF.Literal(slot)))
-    slot_node
+  cell_node = name -> R(prefix.name, "$(node.name):$name")
+  inputs, outputs = annotation.language[:inputs], annotation.language[:outputs]
+  nin, nout = length(inputs), length(outputs)
+  owl_inputs_outputs(node, cell_node, nin, nout, index=true) do cell, is_input, i
+    data = (is_input ? inputs : outputs)[i]
+    slot = data["slot"]
+    [ RDF.Triple(cell, R("monocl","codeSlot"), RDF.Literal(slot)) ]
   end
-  codom_nodes = map(enumerate(annotation.language[:outputs])) do (i, data)
-    slot, slot_node = data["slot"], make_cell("output$i:content")
-    push!(stmts,
-      RDF.Triple(slot_node, R("monocl","codeSlot"), RDF.Literal(slot)))
-    slot_node
-  end
-  RDF.Statement[
-    function_domain_to_rdf(node, make_cell, dom_nodes, codom_nodes, index=true);
-    stmts;
-  ]
 end
 
 """ Convert annotation's wiring diagram into RDF triples.

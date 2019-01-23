@@ -66,12 +66,17 @@ The domain and codomain objects are represented as OWL lists.
 """
 function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(hom, prefix)
-  make_cell = name -> R(prefix.name, "$(node.name):$name")
-  dom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
-  codom_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
+  cell_node = name -> R(prefix.name, "$(node.name):$name")
+  input_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(dom(hom)) ]
+  output_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
+  nin, nout = length(input_nodes), length(output_nodes)
   RDF.Statement[
     [ RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")) ];
-    function_domain_to_rdf(node, make_cell, dom_nodes, codom_nodes, index=true);
+    owl_inputs_outputs(node, cell_node, nin, nout, index=true) do cell, is_input, i
+      gen_node = (is_input ? input_nodes : output_nodes)[i]
+      [ RDF.Triple(cell, R("list","hasContents"), gen_node),
+        RDF.Triple(cell, R("monocl","isConcept"), gen_node) ]
+    end;
   ]
 end
 
@@ -88,28 +93,6 @@ end
 function generator_rdf_node(expr::GATExpr{:generator}, prefix::RDF.Prefix)
   @assert first(expr) != nothing
   R(prefix.name, string(first(expr)))
-end
-
-""" Generate RDF for domain and codomain of a function-like node.
-"""
-function function_domain_to_rdf(
-    node::RDF.Node, make_cell::Function,
-    dom_nodes::Vector{<:RDF.Node}, codom_nodes::Vector{<:RDF.Node};
-    index::Bool=false)
-  dom_cell = i -> make_cell("input$i")
-  codom_cell = i -> make_cell("output$i")
-  RDF.Statement[
-    [
-      RDF.Triple(node, R("monocl","inputs"), dom_cell(1)),
-      RDF.Triple(node, R("monocl","outputs"), codom_cell(1)),
-    ];
-    [ RDF.Triple(node, R("monocl","hasInput"), dom_cell(i))
-      for i in eachindex(dom_nodes) ];
-    [ RDF.Triple(node, R("monocl","hasOutput"), codom_cell(i))
-      for i in eachindex(codom_nodes) ];
-    owl_list(dom_nodes, dom_cell, index=index);
-    owl_list(codom_nodes, codom_cell, index=index);
-  ]
 end
 
 end

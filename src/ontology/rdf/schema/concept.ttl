@@ -63,5 +63,6 @@ monocl:FunctionConcept rdf:type owl:Class ;
   rdfs:comment "A function concept in a Monocl ontology" .
 
 
-monocl:isConcept rdf:type rdf:Property ;
-  rdfs:comment "Asserts that the subject instantiates a concept" .
+monocl:isConcept rdf:type owl:ObjectProperty ;
+  rdfs:label "Is concept" ;
+  rdfs:comment "Asserts that the subject is, or instantiates, a concept" .
