@@ -15,18 +15,35 @@
 module WiringRDF
 export wiring_diagram_to_rdf
 
+using Parameters
 using Serd
-using Catlab, Catlab.WiringDiagrams
+using Catlab
+using Catlab.WiringDiagrams, Catlab.WiringDiagrams.WiringDiagramSerialization
 
 const R = RDF.Resource
 
-# Data types
-############
+# Configuration
+###############
 
-struct RDFState
-  graph::Union{RDF.Node,Nothing}
-  box_value_to_rdf::Function
-  port_value_to_rdf::Function
+default_box_rdf_node(name::String) = RDF.Blank(name)
+default_port_rdf_node(name::String, port::String) = RDF.Blank("$name:$port")
+default_wire_rdf_node(name::String) = RDF.Blank(name)
+
+function default_value_to_rdf(node::RDF.Node, value)
+  if value == nothing
+    RDF.Statement[]
+  else
+    [ RDF.Triple(node, R("monocl","value"), RDF.Literal(string(value))) ]
+  end
+end
+
+@with_kw struct RDFConfig
+  box_rdf_node::Function = default_box_rdf_node
+  port_rdf_node::Function = default_port_rdf_node
+  wire_rdf_node::Function = default_wire_rdf_node
+  box_value_to_rdf::Function = default_value_to_rdf
+  port_value_to_rdf::Function = default_value_to_rdf
+  wire_value_to_rdf::Function = default_value_to_rdf
 end
 
 # RDF
@@ -34,138 +51,83 @@ end
 
 """ Translate wiring diagram to RDF, possibly as a named graph.
 """
-function wiring_diagram_to_rdf(diagram::WiringDiagram;
-    graph::Union{RDF.Node,Nothing} = nothing,
-    box_value_to_rdf::Function = default_value_to_rdf,
-    port_value_to_rdf::Function = default_value_to_rdf
-  )
-  state = RDFState(graph, box_value_to_rdf, port_value_to_rdf)
-  wiring_diagram_to_rdf(state, diagram)
+function wiring_diagram_to_rdf(diagram::WiringDiagram; kw...)
+  config = RDFConfig(; kw...)
+  node, stmts = box_to_rdf(config, diagram, Int[])
+  stmts
 end
 
-function wiring_diagram_to_rdf(state::RDFState, diagram::WiringDiagram)
-  stmts = RDF.Statement[]
-  graph = state.graph
-  if graph != nothing
-    append!(stmts, [
-      RDF.Triple(graph, R("rdf","type"), R("monocl","WiringDiagram")),
-      RDF.Quad(graph, R("monocl","input_box"),
-               box_rdf_node(input_id(diagram)), graph),
-      RDF.Quad(graph, R("monocl","output_box"),
-               box_rdf_node(output_id(diagram)), graph),
-    ])
-  end
-  
-  # Add ports of outer box.
-  append!(stmts, ports_to_rdf(
-    state, input_id(diagram), OutputPort, input_ports(diagram)))
-  append!(stmts, ports_to_rdf(
-    state, output_id(diagram), InputPort, output_ports(diagram)))
-  
-  # Add boxes.
+function box_to_rdf(config::RDFConfig, diagram::WiringDiagram, path::Vector{Int})
+  node = config.box_rdf_node(box_id(path))
+  stmts = RDF.Statement[
+    [ RDF.Triple(node, R("rdf","type"), R("monocl","WiringDiagram")) ];
+    ports_to_rdf(config, diagram, path);
+  ]
+
+  # Add RDF for boxes.
   for v in box_ids(diagram)
-    append!(stmts, box_to_rdf(state, v, box(diagram, v)))
+    box_node, box_stmts = box_to_rdf(config, box(diagram, v), [path; v])
+    push!(stmts, RDF.Triple(node, R("monocl","hasBox"), box_node))
+    append!(stmts, box_stmts)
   end
-  
-  # Add wires.
+
+  # Add RDF for wires.
+  port_rdf_node = port::Port -> config.port_rdf_node(
+    box_id(diagram, [path; port.box]),
+    port_name(diagram, port)
+  )
   for (i, wire) in enumerate(wires(diagram))
-    append!(stmts, wire_to_rdf(state, i, wire))
+    wire_node = config.wire_rdf_node(wire_id(path, i))
+    src_node = port_rdf_node(wire.source)
+    tgt_node = port_rdf_node(wire.target)
+    append!(stmts, [
+      RDF.Triple(node, R("monocl","hasWire"), wire_node),
+      RDF.Triple(wire_node, R("rdf","type"), R("monocl","Wire")),
+      RDF.Triple(wire_node, R("monocl","source"), src_node),
+      RDF.Triple(wire_node, R("monocl","target"), tgt_node),
+      RDF.Triple(src_node, R("monocl","wire"), tgt_node),
+    ])
+    append!(stmts, config.wire_value_to_rdf(wire_node, wire.value))
   end
-  
-  return stmts
+
+  (node, stmts)
 end
 
-function box_to_rdf(state::RDFState, v::Int, box::Box)
-  # Add RDF node for box.
-  node = box_rdf_node(v)
-  graph = state.graph
+function box_to_rdf(config::RDFConfig, box::Box, path::Vector{Int})
+  node = config.box_rdf_node(box_id(path))
   stmts = RDF.Statement[
-    RDF.Edge(node, R("rdf","type"), R("monocl","Box"), graph)
+    [ RDF.Triple(node, R("rdf","type"), R("monocl","Box")) ];
+    config.box_value_to_rdf(node, box.value);
+    ports_to_rdf(config, box, path);
   ]
-  append!(stmts, state.box_value_to_rdf(box.value, node, graph))
-  
-  # Add RDF for ports of box.
-  append!(stmts, ports_to_rdf(state, v, InputPort, input_ports(box)))
-  append!(stmts, ports_to_rdf(state, v, OutputPort, output_ports(box)))
-  
-  return stmts
+  (node, stmts)
 end
 
-function box_to_rdf(state::RDFState, v::Int, diagram::WiringDiagram)
-  error("RDF representation of nested wiring diagrams not yet implemented")
-end
-
-function ports_to_rdf(state::RDFState, v::Int, kind::PortKind, port_values::Vector)
+function ports_to_rdf(config::RDFConfig, box::AbstractBox, path::Vector{Int})
+  # TODO: Use `function_domain_to_rdf()` here.
   stmts = RDF.Statement[]
-  for (i, port_value) in enumerate(port_values)
-    append!(stmts, port_to_rdf(state, Port(v,kind,i), port_value))
-  end
-  stmts
-end
+  name = box_id(path)
+  node = config.box_rdf_node(name)
 
-function port_to_rdf(state::RDFState, port::Port, port_value::Any)
-  # Add RDF node for port.
-  graph = state.graph
-  port_node = port_rdf_node(port)
-  stmts = RDF.Statement[
-    RDF.Edge(port_node, R("rdf","type"), R("monocl","Port"), graph),
-  ]
-  append!(stmts, state.port_value_to_rdf(port_value, port_node, graph))
-  
-  # Add RDF edges for port.
-  #
-  # Although "monocl:in_wire" and "monocl:out_wire" are both RDF sub-properties
-  # of "monocl:wire", we include the latter explicitly because it's difficult
-  # (impossible?) to enable reasoning on all named graphs in Apache Jena.
-  #
-  # Reference: https://stackoverflow.com/q/35428064
-  node = box_rdf_node(port.box)
-  if port.kind == InputPort
+  for (i, port_value) in enumerate(input_ports(box))
+    port_node = config.port_rdf_node(name, port_name(InputPort, i))
     append!(stmts, [
-      RDF.Edge(node, R("monocl","port"), port_node, graph),
-      RDF.Edge(node, R("monocl","input_port"), port_node, graph),
-      RDF.Edge(node, R("monocl","input_port_$(port.port)"), port_node, graph),
-      RDF.Edge(port_node, R("monocl","wire"), node, graph),
-      RDF.Edge(port_node, R("monocl","in_wire"), node, graph),
-      RDF.Edge(port_node, R("monocl","in_wire_$(port.port)"), node, graph),
+      RDF.Triple(node, R("monocl","hasInput"), port_node),
+      RDF.Triple(port_node, R("rdf","type"), R("monocl","Port"))
     ])
-  elseif port.kind == OutputPort
+    append!(stmts, config.port_value_to_rdf(port_node, port_value))
+  end
+
+  for (i, port_value) in enumerate(output_ports(box))
+    port_node = config.port_rdf_node(name, port_name(OutputPort, i))
     append!(stmts, [
-      RDF.Edge(node, R("monocl","port"), port_node, graph),
-      RDF.Edge(node, R("monocl","output_port"), port_node, graph),
-      RDF.Edge(node, R("monocl","output_port_$(port.port)"), port_node, graph),
-      RDF.Edge(node, R("monocl","wire"), port_node, graph),
-      RDF.Edge(node, R("monocl","out_wire"), port_node, graph),
-      RDF.Edge(node, R("monocl","out_wire_$(port.port)"), port_node, graph),
+      RDF.Triple(node, R("monocl","hasOutput"), port_node),
+      RDF.Triple(port_node, R("rdf","type"), R("monocl","Port"))
     ])
+    append!(stmts, config.port_value_to_rdf(port_node, port_value))
   end
+
   stmts
-end
-
-function wire_to_rdf(state::RDFState, n::Int, wire::Wire)
-  graph = state.graph
-  src, tgt = wire.source, wire.target
-  src_node, tgt_node = port_rdf_node(src), port_rdf_node(tgt)
-  RDF.Statement[
-    RDF.Edge(src_node, R("monocl","wire"), tgt_node, graph),
-  ]
-end
-
-function box_rdf_node(v::Int)::RDF.Node
-  RDF.Blank(string("box", v))
-end
-
-function port_rdf_node(port::Port)::RDF.Node
-  RDF.Blank(string("box", port.box, "_",
-                   port.kind == InputPort ? "in" : "out", port.port))
-end
-
-function default_value_to_rdf(value, node, graph)
-  if value == nothing
-    RDF.Statement[]
-  else
-    [ RDF.Edge(node, R("monocl","value"), RDF.Literal(string(value)), graph) ]
-  end
 end
 
 end

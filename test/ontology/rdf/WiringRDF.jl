@@ -28,7 +28,7 @@ g = Hom(:g, B, C)
 h = Hom(:h, D, D)
 diagram = to_wiring_diagram(otimes(compose(f,g), h))
 stmts = wiring_diagram_to_rdf(diagram)
-#write_rdf(stdout, stmts, syntax="trig")
+#write_rdf(stdout, stmts)
 
 vs = box_ids(diagram)
 vin, vout = input_id(diagram), output_id(diagram)
@@ -36,43 +36,21 @@ find_vertex = value -> vs[findfirst(v -> box(diagram, v).value == value, vs)]
 fv, gv, hv = find_vertex(:f), find_vertex(:g), find_vertex(:h)
 
 # Check RDF type of boxes and ports.
-@test Triple(Blank("box$(fv)"), R("rdf","type"), R("monocl","Box")) in stmts
-@test Triple(Blank("box$(fv)_in1"), R("rdf","type"), R("monocl","Port")) in stmts
-@test Triple(Blank("box$(fv)_out1"), R("rdf","type"), R("monocl","Port")) in stmts
+@test Triple(Blank("n$fv"), R("rdf","type"), R("monocl","Box")) in stmts
+@test Triple(Blank("n$fv:in1"), R("rdf","type"), R("monocl","Port")) in stmts
+@test Triple(Blank("n$fv:out1"), R("rdf","type"), R("monocl","Port")) in stmts
 
 # Check values of boxes and ports.
-@test Triple(Blank("box$(fv)"), R("monocl","value"), Literal("f")) in stmts
-@test Triple(Blank("box$(fv)_in1"), R("monocl","value"), Literal("A")) in stmts
-@test Triple(Blank("box$(fv)_out1"), R("monocl","value"), Literal("B")) in stmts
+@test Triple(Blank("n$fv"), R("monocl","value"), Literal("f")) in stmts
+@test Triple(Blank("n$fv:in1"), R("monocl","value"), Literal("A")) in stmts
+@test Triple(Blank("n$fv:out1"), R("monocl","value"), Literal("B")) in stmts
 
-# Check special input and output nodes.
-@test all(stmt in stmts for stmt in [
-  Triple(Blank("box$(vin)_out1"), R("rdf","type"), R("monocl","Port")),
-  Triple(Blank("box$(vin)_out2"), R("rdf","type"), R("monocl","Port")),
-])
-@test all(stmt in stmts for stmt in [
-  Triple(Blank("box$(vout)_in1"), R("rdf","type"), R("monocl","Port")),
-  Triple(Blank("box$(vout)_in2"), R("rdf","type"), R("monocl","Port")),
-])
-
-# Check wires.
-@test Triple(Blank("box$(fv)_out1"), R("monocl","wire"), Blank("box$(gv)_in1")) in stmts
-
-# Check wires between special input and output nodes.
-@test all(stmt in stmts for stmt in [
-  Triple(Blank("box$(vin)_out1"), R("monocl","wire"), Blank("box$(fv)_in1")),
-  Triple(Blank("box$(vin)_out2"), R("monocl","wire"), Blank("box$(hv)_in1")),
-  Triple(Blank("box$(gv)_out1"), R("monocl","wire"), Blank("box$(vout)_in1")),
-  Triple(Blank("box$(hv)_out1"), R("monocl","wire"), Blank("box$(vout)_in2")),
-])
-
-# Test that above wiring diagram can be stored as named graph.
-graph = Resource("ex", "diagram")
-stmts = wiring_diagram_to_rdf(diagram; graph=graph)
-
-@test Triple(graph, R("rdf","type"), R("monocl","WiringDiagram")) in stmts
-@test Quad(Blank("box$(fv)"), R("rdf","type"), R("monocl","Box"), graph) in stmts
-@test Quad(Blank("box$(fv)_in1"), R("rdf","type"), R("monocl","Port"), graph) in stmts
-@test Quad(Blank("box$(fv)_out1"), R("rdf","type"), R("monocl","Port"), graph) in stmts
+# Check wires, in both reified and non-reified form.
+i = first([ i for (i, wire) in enumerate(wires(diagram))
+            if wire.source.box == fv && wire.target.box == gv ])
+@test Triple(Blank("e$i"), R("rdf","type"), R("monocl","Wire")) in stmts
+@test Triple(Blank("e$i"), R("monocl","source"), Blank("n$fv:out1")) in stmts
+@test Triple(Blank("e$i"), R("monocl","target"), Blank("n$gv:in1")) in stmts
+@test Triple(Blank("n$fv:out1"), R("monocl","wire"), Blank("n$gv:in1")) in stmts
 
 end

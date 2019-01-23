@@ -1,56 +1,54 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix monocl: <https://www.datascienceontology.org/ns/monocl/> .
 
 # Boxes
 
-monocl:AbstractBox rdf:type rdfs:Class ;
+monocl:AbstractBox rdf:type owl:Class ;
+  rdfs:subClassOf monocl:Function ;
   rdfs:comment "Any box with inputs and outputs" .
 
-monocl:Box rdf:type rdfs:Class ;
+monocl:Box rdf:type owl:Class ;
   rdfs:subClassOf monocl:AbstractBox ;
   rdfs:comment "Black box with no internal structure" .
   
-monocl:WiringDiagram rdf:type rdfs:Class ;
+monocl:WiringDiagram rdf:type owl:Class ;
   rdfs:subClassOf monocl:AbstractBox ;
   rdfs:label "Wiring diagram" ;
   rdfs:comment "Diagram of boxes connected by wires" .
 
-monocl:input_box rdf:type rdf:Property ;
-  rdfs:label "Input box" ;
-  rdfs:comment "Special box representing inputs of wiring diagram" .
+monocl:hasBox rdf:type owl:ObjectProperty ;
+  rdfs:domain monocl:WiringDiagram ;
+  rdfs:range monocl:AbstractBox ;
+  rdfs:label "Has box" ;
+  rdfs:comment "Box (object) belongs to wiring diagram (subject)" .
 
-monocl:output_box rdf:type rdf:Property ;
-  rdfs:label "Output box" ;
-  rdfs:comment "Special box representing outputs of wiring diagram" .
+monocl:hasWire rdf:type owl:ObjectProperty ;
+  rdfs:domain monocl:WiringDiagram ;
+  rdfs:range monocl:Wire ;
+  rdfs:label "Has wire" ;
+  rdfs:comment "Wire (object) belongs to wiring diagram (subject)" .
 
 # Ports
 
-monocl:Port rdf:type rdfs:Class ;
-  rdfs:comment "RDF node representing a port on a box" .
-
-monocl:port rdf:type rdf:Property ;
-  rdfs:label "Input or output port on a box" .
-
-monocl:input_port rdf:type rdf:Property ;
-  rdfs:subPropertyOf monocl:port ;
-  rdfs:label "Input port on a box" .
-
-monocl:output_port rdf:type rdf:Property ;
-  rdfs:subPropertyOf monocl:port ;
-  rdfs:label "Output port on a box" .
+monocl:Port rdf:type owl:Class ;
+  rdfs:comment "Input or output port on a box" .
 
 # Wires
 
-monocl:wire rdf:type rdf:Property ;
-  rdfs:comment "Wire connecting boxes and/or ports" .
+monocl:Wire rdf:type owl:Class ;
+  rdfs:comment "Wire in a wiring diagram" .
 
-monocl:in_wire rdf:type rdf:Property ;
-  rdfs:subPropertyOf monocl:wire ;
-  rdfs:label "Incoming wire" ;
-  rdfs:comment "Incoming wire, going from port to box" .
+monocl:source rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:domain monocl:Wire ;
+  rdfs:range monocl:Port ;
+  rdfs:comment "Source port of wire" .
 
-monocl:out_wire rdf:type rdf:Property ;
-  rdfs:subPropertyOf monocl:wire ;
-  rdfs:label "Outgoing wire" ;
-  rdfs:comment "Outgoing wire, going from box to port" .
+monocl:target rdf:type owl:ObjectProperty, owl:FunctionalProperty ;
+  rdfs:domain monocl:Wire ;
+  rdfs:range monocl:Port ;
+  rdfs:comment "Target port of wire" .
+
+monocl:wire rdf:type owl:ObjectProperty ;
+  rdfs:comment "Wire between two ports" .

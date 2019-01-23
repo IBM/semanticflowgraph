@@ -117,19 +117,19 @@ end
     help = "output format (one of: \"turtle\", \"ntriples\", \"nquads\", \"trig\")"
     default = "turtle"
   "--no-concepts"
-    help = "exclude concepts from export"
+    help = "omit concepts"
     dest_name = "concepts"
     action = :store_false
   "--no-annotations"
-    help = "exclude annotations from export"
+    help = "omit annotations"
     dest_name = "annotations"
     action = :store_false
   "--no-provenance"
-    help = "exclude provenance (PROV-O) interop from export"
+    help = "omit interoperability with PROV Ontology (PROV-O)"
     dest_name = "provenance"
     action = :store_false
   "--no-wiring-diagrams"
-    help = "exclude wiring diagrams in concepts and annotations from export"
+    help = "omit wiring diagrams in concepts and annotations"
     dest_name = "wiring"
     action = :store_false
 end
