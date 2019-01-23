@@ -3,16 +3,21 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix monocl: <https://www.datascienceontology.org/ns/monocl/> .
 
+monocl:WiringDiagramElement rdf:type owl:Class ;
+  rdfs:label "Diagram element" ;
+  rdfs:comment "Any element of a wiring diagram" .
+
 # Boxes
 
 monocl:AbstractBox rdf:type owl:Class ;
-  rdfs:subClassOf monocl:Function ;
+  rdfs:subClassOf monocl:Function, monocl:WiringDiagramElement ;
+  rdfs:label "Abstract box" ;
   rdfs:comment "Any box with inputs and outputs" .
 
 monocl:Box rdf:type owl:Class ;
   rdfs:subClassOf monocl:AbstractBox ;
   rdfs:comment "Black box with no internal structure" .
-  
+
 monocl:WiringDiagram rdf:type owl:Class ;
   rdfs:subClassOf monocl:AbstractBox ;
   rdfs:label "Wiring diagram" ;
@@ -33,11 +38,13 @@ monocl:hasWire rdf:type owl:ObjectProperty ;
 # Ports
 
 monocl:Port rdf:type owl:Class ;
+  rdfs:subClassOf monocl:WiringDiagramElement ;
   rdfs:comment "Input or output port on a box" .
 
 # Wires
 
 monocl:Wire rdf:type owl:Class ;
+  rdfs:subClassOf monocl:WiringDiagramElement ;
   rdfs:comment "Wire in a wiring diagram" .
 
 monocl:source rdf:type owl:ObjectProperty, owl:FunctionalProperty ;

@@ -63,12 +63,13 @@ annotation = HomAnnotation(
   compose(f,g)
 )
 node = R("ex", "python:mypkg:a-do-composition")
-stmts = annotation_to_rdf(annotation, prefix, include_wiring_diagrams=false)
+root_node = R("ex", "python:mypkg:a-do-composition:diagram:root")
+stmts = annotation_to_rdf(annotation, prefix)
 @test Triple(node, R("monocl", "codeLanguage"), Literal("python")) in stmts
 @test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
 @test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
 @test Triple(node, R("monocl", "codeClass"), Literal("MixinB")) in stmts
 @test Triple(node, R("monocl", "codeMethod"), Literal("do_composition")) in stmts
-@test_skip Triple(node, R("monocl", "codeDefinition"), diagram_node) in stmts
+@test Triple(node, R("monocl", "codeDefinition"), root_node) in stmts
 
 end

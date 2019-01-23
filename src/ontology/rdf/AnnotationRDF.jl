@@ -93,9 +93,11 @@ function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
   # Definition as wiring diagram.
   if include_wiring_diagrams
     diagram = to_wiring_diagram(annotation.definition)
-    graph = R(prefix.name, "$(node.name):diagram")
-    push!(stmts, RDF.Triple(node, R("monocl","codeDefinition"), graph))
-    append!(stmts, annotation_diagram_to_rdf(diagram, graph, prefix))
+    root_node, diagram_stmts = annotation_diagram_to_rdf(diagram, node, prefix)
+    append!(stmts, [
+      [ RDF.Triple(node, R("monocl","codeDefinition"), root_node) ];
+      diagram_stmts;
+    ])
   end
 
   stmts
@@ -135,31 +137,34 @@ function annotation_domain_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix)
   end
 end
 
-""" Convert annotation's wiring diagram into RDF triples.
+""" Convert annotation's wiring diagram to RDF.
 """
 function annotation_diagram_to_rdf(
-    diagram::WiringDiagram, graph::RDF.Node, prefix::RDF.Prefix)
+    diagram::WiringDiagram, parent::RDF.Node, prefix::RDF.Prefix)
+  diagram_name = "$(parent.name):diagram"
   wiring_diagram_to_rdf(diagram;
-    graph = graph,
+    box_rdf_node = box -> R(prefix.name, "$diagram_name:$box"),
+    port_rdf_node = (box, port) -> R(prefix.name, "$diagram_name:$box:$port"),
+    wire_rdf_node = wire -> R(prefix.name, "$diagram_name:$wire"),
     box_value_to_rdf = (args...) -> annotation_box_to_rdf(args..., prefix),
     port_value_to_rdf = (args...) -> annotation_port_to_rdf(args..., prefix))
 end
 
-function annotation_box_to_rdf(expr::Monocl.Hom, node::RDF.Node,
-                               graph::RDF.Node, prefix::RDF.Prefix)
+function annotation_box_to_rdf(node::RDF.Node, expr::Monocl.Hom,
+                               prefix::RDF.Prefix)
   gen_node = if head(expr) == :generator
     generator_rdf_node(expr, prefix)
   else
     # FIXME: Discards constructor parameters when head == :construct.
     R("monocl", string(head(expr)))
   end
-  [ RDF.Quad(node, R("monocl","isConcept"), gen_node, graph) ]
+  [ RDF.Triple(node, R("monocl","isConcept"), gen_node) ]
 end
 
-function annotation_port_to_rdf(expr::Monocl.Ob, node::RDF.Node,
-                                graph::RDF.Node, prefix::RDF.Prefix)
+function annotation_port_to_rdf(node::RDF.Node, expr::Monocl.Ob,
+                                prefix::RDF.Prefix)
   gen_node = generator_rdf_node(expr, prefix)
-  [ RDF.Quad(node, R("monocl","isConcept"), gen_node, graph) ]
+  [ RDF.Triple(node, R("monocl","isConcept"), gen_node) ]
 end
 
 """ Create RDF node for annotation.

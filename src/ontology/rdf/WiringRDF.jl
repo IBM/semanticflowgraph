@@ -27,9 +27,9 @@ const R = RDF.Resource
 # Configuration
 ###############
 
-default_box_rdf_node(name::String) = RDF.Blank(name)
-default_port_rdf_node(name::String, port::String) = RDF.Blank("$name:$port")
-default_wire_rdf_node(name::String) = RDF.Blank(name)
+default_box_rdf_node(box::String) = RDF.Blank(box)
+default_port_rdf_node(box::String, port::String) = RDF.Blank("$box:$port")
+default_wire_rdf_node(wire::String) = RDF.Blank(wire)
 
 function default_value_to_rdf(node::RDF.Node, value)
   if value == nothing
@@ -55,8 +55,7 @@ end
 """
 function wiring_diagram_to_rdf(diagram::WiringDiagram; kw...)
   config = RDFConfig(; kw...)
-  node, stmts = box_to_rdf(config, diagram, Int[])
-  stmts
+  box_to_rdf(config, diagram, Int[])
 end
 
 function box_to_rdf(config::RDFConfig, diagram::WiringDiagram, path::Vector{Int})

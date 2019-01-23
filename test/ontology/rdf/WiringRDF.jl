@@ -27,7 +27,7 @@ f = Hom(:f, A, B)
 g = Hom(:g, B, C)
 h = Hom(:h, D, D)
 diagram = to_wiring_diagram(otimes(compose(f,g), h))
-stmts = wiring_diagram_to_rdf(diagram)
+_, stmts = wiring_diagram_to_rdf(diagram)
 #write_rdf(stdout, stmts)
 
 vs = box_ids(diagram)
