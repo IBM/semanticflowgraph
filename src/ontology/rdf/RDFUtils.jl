@@ -50,8 +50,8 @@ end
 """
 function owl_inputs_outputs(cell_content::Function, node::RDF.Node,
     cell_node::Function, nin::Int, nout::Int; index::Bool=false)
-  input_cell = i -> cell_node("input$i")
-  output_cell = i -> cell_node("output$i")
+  input_cell = i -> cell_node("in$i")
+  output_cell = i -> cell_node("out$i")
   RDF.Statement[
     [
       RDF.Triple(node, R("monocl","inputs"), input_cell(1)),

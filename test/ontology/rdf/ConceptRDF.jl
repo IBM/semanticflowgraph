@@ -51,18 +51,18 @@ stmts = presentation_to_rdf(TestPres, prefix)
 @test Triple(R("ex","A0"), R("monocl","subtypeOf"), R("ex","A")) in stmts
 @test Triple(R("ex","f0"), R("monocl","subfunctionOf"), R("ex","f")) in stmts
 
-@test Triple(R("ex","g"), R("monocl","inputs"), R("ex","g:input1")) in stmts
-@test Triple(R("ex","g"), R("monocl","hasInput"), R("ex","g:input1")) in stmts
-@test Triple(R("ex","g:input1"), R("list","hasContents"), R("ex","A")) in stmts
-@test Triple(R("ex","g:input1"), R("list","index"), Literal(1)) in stmts
+@test Triple(R("ex","g"), R("monocl","inputs"), R("ex","g:in1")) in stmts
+@test Triple(R("ex","g"), R("monocl","hasInput"), R("ex","g:in1")) in stmts
+@test Triple(R("ex","g:in1"), R("list","hasContents"), R("ex","A")) in stmts
+@test Triple(R("ex","g:in1"), R("list","index"), Literal(1)) in stmts
 
-@test Triple(R("ex","g"), R("monocl","outputs"), R("ex","g:output1")) in stmts
-@test Triple(R("ex","g"), R("monocl","hasOutput"), R("ex","g:output1")) in stmts
-@test Triple(R("ex","g"), R("monocl","hasOutput"), R("ex","g:output2")) in stmts
-@test Triple(R("ex","g:output1"), R("list","hasContents"), R("ex","B")) in stmts
-@test Triple(R("ex","g:output1"), R("list","hasNext"), R("ex","g:output2")) in stmts
-@test Triple(R("ex","g:output1"), R("list","index"), Literal(1)) in stmts
-@test Triple(R("ex","g:output2"), R("list","hasContents"), R("ex","C")) in stmts
-@test Triple(R("ex","g:output2"), R("list","index"), Literal(2)) in stmts
+@test Triple(R("ex","g"), R("monocl","outputs"), R("ex","g:out1")) in stmts
+@test Triple(R("ex","g"), R("monocl","hasOutput"), R("ex","g:out1")) in stmts
+@test Triple(R("ex","g"), R("monocl","hasOutput"), R("ex","g:out2")) in stmts
+@test Triple(R("ex","g:out1"), R("list","hasContents"), R("ex","B")) in stmts
+@test Triple(R("ex","g:out1"), R("list","hasNext"), R("ex","g:out2")) in stmts
+@test Triple(R("ex","g:out1"), R("list","index"), Literal(1)) in stmts
+@test Triple(R("ex","g:out2"), R("list","hasContents"), R("ex","C")) in stmts
+@test Triple(R("ex","g:out2"), R("list","index"), Literal(2)) in stmts
 
 end

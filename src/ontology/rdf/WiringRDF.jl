@@ -20,6 +20,8 @@ using Serd
 using Catlab
 using Catlab.WiringDiagrams, Catlab.WiringDiagrams.WiringDiagramSerialization
 
+using ..RDFUtils
+
 const R = RDF.Resource
 
 # Configuration
@@ -104,30 +106,18 @@ function box_to_rdf(config::RDFConfig, box::Box, path::Vector{Int})
 end
 
 function ports_to_rdf(config::RDFConfig, box::AbstractBox, path::Vector{Int})
-  # TODO: Use `function_domain_to_rdf()` here.
-  stmts = RDF.Statement[]
   name = box_id(path)
   node = config.box_rdf_node(name)
-
-  for (i, port_value) in enumerate(input_ports(box))
-    port_node = config.port_rdf_node(name, port_name(InputPort, i))
-    append!(stmts, [
-      RDF.Triple(node, R("monocl","hasInput"), port_node),
-      RDF.Triple(port_node, R("rdf","type"), R("monocl","Port"))
-    ])
-    append!(stmts, config.port_value_to_rdf(port_node, port_value))
+  port_node = port -> config.port_rdf_node(name, port)
+  inputs, outputs = input_ports(box), output_ports(box)
+  nin, nout = length(inputs), length(outputs)
+  owl_inputs_outputs(node, port_node, nin, nout, index=true) do cell, is_input, i
+    port_value = (is_input ? inputs : outputs)[i]
+    [
+      [ RDF.Triple(cell, R("rdf","type"), R("monocl","Port")) ];
+      config.port_value_to_rdf(cell, port_value);
+    ]
   end
-
-  for (i, port_value) in enumerate(output_ports(box))
-    port_node = config.port_rdf_node(name, port_name(OutputPort, i))
-    append!(stmts, [
-      RDF.Triple(node, R("monocl","hasOutput"), port_node),
-      RDF.Triple(port_node, R("rdf","type"), R("monocl","Port"))
-    ])
-    append!(stmts, config.port_value_to_rdf(port_node, port_value))
-  end
-
-  stmts
 end
 
 end
