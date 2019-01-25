@@ -124,6 +124,10 @@ end
     help = "omit annotations"
     dest_name = "annotations"
     action = :store_false
+  "--no-schema"
+    help = "omit preamble defining OWL schema for concepts and annotations"
+    dest_name = "schema"
+    action = :store_false
   "--no-provenance"
     help = "omit interoperability with PROV Ontology (PROV-O)"
     dest_name = "provenance"
@@ -312,19 +316,24 @@ function ontology_as_json(args::Dict)
 end
 
 function ontology_as_rdf(args::Dict)
-  # Load ontology schema from filesystem and ontology data from remote database.
-  stmts = read_ontology_rdf_schema("list.ttl")
+  # Load ontology data from remote database.
   db = OntologyDB()
   if args["concepts"]
-    append!(stmts, read_ontology_rdf_schema("concept.ttl"))
     load_concepts(db)
   end
   if args["annotations"]
-    append!(stmts, read_ontology_rdf_schema("annotation.ttl"))
     load_annotations(db)
   end
-  if args["wiring"]
-    append!(stmts, read_ontology_rdf_schema("wiring.ttl"))
+
+  # Load ontology schemas from filesystem.
+  stmts = Serd.RDF.Statement[]
+  if args["schema"]
+    append!(stmts, [
+      read_ontology_rdf_schema("list.ttl");
+      args["concepts"] ? read_ontology_rdf_schema("concept.ttl") : [];
+      args["annotations"] ? read_ontology_rdf_schema("annotation.ttl") : [];
+      args["wiring"] ? read_ontology_rdf_schema("wiring.ttl") : [];
+    ])
   end
 
   # Convert to RDF.
