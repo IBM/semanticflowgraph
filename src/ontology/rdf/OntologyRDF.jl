@@ -60,6 +60,7 @@ function ontology_to_rdf(db::OntologyDB, prefix::RDF.Prefix;
   # Create RDF triples for annotations.
   for note in annotations(db)
     append!(stmts, annotation_to_rdf(note, prefix;
+      include_provenance=include_provenance,
       include_wiring_diagrams=include_wiring_diagrams))
     
     # Add RDFS labels for annotation.

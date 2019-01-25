@@ -73,6 +73,7 @@ function annotation_to_rdf(annotation::ObAnnotation, prefix::RDF.Prefix; kw...)
 end
 
 function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
+                           include_provenance::Bool=true,
                            include_wiring_diagrams::Bool=true)
   # Annotation RDF node.
   node = annotation_rdf_node(annotation, prefix)
@@ -93,7 +94,13 @@ function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
   # Definition as wiring diagram.
   if include_wiring_diagrams
     diagram = to_wiring_diagram(annotation.definition)
-    root_node, diagram_stmts = annotation_diagram_to_rdf(diagram, node, prefix)
+    diagram_name = "$(node.name):diagram"
+    root_node, diagram_stmts = semantic_graph_to_rdf(diagram,
+      expr -> generator_rdf_node(expr, prefix);
+      box_rdf_node = box -> R(prefix.name, "$diagram_name:$box"),
+      port_rdf_node = (box, port) -> R(prefix.name, "$diagram_name:$box:$port"),
+      wire_rdf_node = wire -> R(prefix.name, "$diagram_name:$wire"),
+      include_provenance = include_provenance)
     append!(stmts, [
       [ RDF.Triple(node, R("monocl","codeDefinition"), root_node) ];
       diagram_stmts;
@@ -135,36 +142,6 @@ function annotation_domain_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix)
     slot = data["slot"]
     [ RDF.Triple(cell, R("monocl","codeSlot"), RDF.Literal(slot)) ]
   end
-end
-
-""" Convert annotation's wiring diagram to RDF.
-"""
-function annotation_diagram_to_rdf(
-    diagram::WiringDiagram, parent::RDF.Node, prefix::RDF.Prefix)
-  diagram_name = "$(parent.name):diagram"
-  wiring_diagram_to_rdf(diagram;
-    box_rdf_node = box -> R(prefix.name, "$diagram_name:$box"),
-    port_rdf_node = (box, port) -> R(prefix.name, "$diagram_name:$box:$port"),
-    wire_rdf_node = wire -> R(prefix.name, "$diagram_name:$wire"),
-    box_value_to_rdf = (args...) -> annotation_box_to_rdf(args..., prefix),
-    port_value_to_rdf = (args...) -> annotation_port_to_rdf(args..., prefix))
-end
-
-function annotation_box_to_rdf(node::RDF.Node, expr::Monocl.Hom,
-                               prefix::RDF.Prefix)
-  gen_node = if head(expr) == :generator
-    generator_rdf_node(expr, prefix)
-  else
-    # FIXME: Discards constructor parameters when head == :construct.
-    R("monocl", string(head(expr)))
-  end
-  [ RDF.Triple(node, R("monocl","isConcept"), gen_node) ]
-end
-
-function annotation_port_to_rdf(node::RDF.Node, expr::Monocl.Ob,
-                                prefix::RDF.Prefix)
-  gen_node = generator_rdf_node(expr, prefix)
-  [ RDF.Triple(node, R("monocl","isConcept"), gen_node) ]
 end
 
 """ Create RDF node for annotation.
