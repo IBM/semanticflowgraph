@@ -49,7 +49,8 @@ end
 """
 function expr_to_rdf(ob::Monocl.Ob{:generator}, prefix::RDF.Prefix)
   node = generator_rdf_node(ob, prefix)
-  [ RDF.Triple(node, R("rdf","type"), R("monocl","TypeConcept")) ]
+  [ RDF.Triple(node, R("rdf","type"), R("monocl","TypeConcept")),
+    RDF.Triple(node, R("monocl","id"), RDF.Literal(string(first(ob)))) ]
 end
 
 """ Generate RDF for subobject relation.
@@ -71,7 +72,8 @@ function expr_to_rdf(hom::Monocl.Hom{:generator}, prefix::RDF.Prefix)
   output_nodes = [ generator_rdf_node(ob, prefix) for ob in collect(codom(hom)) ]
   nin, nout = length(input_nodes), length(output_nodes)
   RDF.Statement[
-    [ RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")) ];
+    [ RDF.Triple(node, R("rdf","type"), R("monocl","FunctionConcept")),
+      RDF.Triple(node, R("monocl","id"), RDF.Literal(string(first(hom)))) ];
     owl_inputs_outputs(node, cell_node, nin, nout, index=true) do cell, is_input, i
       gen_node = (is_input ? input_nodes : output_nodes)[i]
       [ RDF.Triple(cell, R("list","hasContents"), gen_node),

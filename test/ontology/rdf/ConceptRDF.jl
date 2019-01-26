@@ -45,8 +45,12 @@ stmts = presentation_to_rdf(TestPres, prefix)
 #write_rdf(stdout, stmts)
 
 @test Triple(R("ex","A"), R("rdf","type"), R("monocl","TypeConcept")) in stmts
+@test Triple(R("ex","A"), R("rdf","type"), R("monocl","TypeConcept")) in stmts
 @test Triple(R("ex","A0"), R("rdf","type"), R("monocl","TypeConcept")) in stmts
-@test Triple(R("ex","g"), R("rdf","type"), R("monocl","FunctionConcept")) in stmts
+@test Triple(R("ex","f"), R("rdf","type"), R("monocl","FunctionConcept")) in stmts
+
+@test Triple(R("ex","A"), R("monocl","id"), RDF.Literal("A")) in stmts
+@test Triple(R("ex","f"), R("monocl","id"), RDF.Literal("f")) in stmts
 
 @test Triple(R("ex","A0"), R("monocl","subtypeOf"), R("ex","A")) in stmts
 @test Triple(R("ex","f0"), R("monocl","subfunctionOf"), R("ex","f")) in stmts

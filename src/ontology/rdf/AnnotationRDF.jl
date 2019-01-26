@@ -29,9 +29,9 @@ const R = RDF.Resource
 ###########
 
 const language_properties = Dict(
-  :class => "codeClass",
-  :function => "codeFunction",
-  :method => "codeMethod",
+  :class => "annotatedClass",
+  :function => "annotatedFunction",
+  :method => "annotatedMethod",
 )
 
 # RDF
@@ -40,14 +40,12 @@ const language_properties = Dict(
 """ Convert annotation into triples for RDF/OWL ontology.
 """
 function annotation_to_rdf(annotation::ObAnnotation, prefix::RDF.Prefix; kw...)
-  # Annotation RDF node.
   node = annotation_rdf_node(annotation, prefix)
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("monocl","TypeAnnotation"))
+    [ RDF.Triple(node, R("rdf","type"), R("monocl","TypeAnnotation")) ];
+    annotation_name_to_rdf(annotation, prefix);
+    annotation_language_to_rdf(annotation, prefix);
   ]
-
-  # Language-specific data.
-  append!(stmts, annotation_language_to_rdf(annotation, prefix))
 
   # Definition as expression, assuming it's a basic object.
   gen_node = generator_rdf_node(annotation.definition, prefix)
@@ -56,7 +54,6 @@ function annotation_to_rdf(annotation::ObAnnotation, prefix::RDF.Prefix; kw...)
   # Slot annotations.
   for (i, hom) in enumerate(annotation.slots)
     slot = annotation.language[:slots][i]["slot"]
-    #slot_name = occursin(r"^[a-zA-Z0-9_]*$", slot) ? slot : "$i"
     slot_node = R(prefix.name, "$(node.name):slot$i")
     append!(stmts, [
       RDF.Triple(node, R("monocl","annotatedSlot"), slot_node),
@@ -75,16 +72,14 @@ end
 function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
                            include_provenance::Bool=true,
                            include_wiring_diagrams::Bool=true)
-  # Annotation RDF node.
   node = annotation_rdf_node(annotation, prefix)
   stmts = RDF.Statement[
-    RDF.Triple(node, R("rdf","type"), R("monocl","FunctionAnnotation"))
+    [ RDF.Triple(node, R("rdf","type"), R("monocl","FunctionAnnotation")) ];
+    annotation_name_to_rdf(annotation, prefix);
+    annotation_language_to_rdf(annotation, prefix);
+    annotation_domain_to_rdf(annotation, prefix);
   ]
 
-  # Language-specific data.
-  append!(stmts, annotation_language_to_rdf(annotation, prefix))
-  append!(stmts, annotation_domain_to_rdf(annotation, prefix))
-  
   # Definition as expression, if it's a basic morphism.
   if head(annotation.definition) == :generator
     gen_node = generator_rdf_node(annotation.definition, prefix)
@@ -110,15 +105,23 @@ function annotation_to_rdf(annotation::HomAnnotation, prefix::RDF.Prefix;
   stmts
 end
 
+""" Convert annotation's name to RDF.
+"""
+function annotation_name_to_rdf(annotation::Annotation, prefix::RDF.Prefix)
+  node = annotation_rdf_node(annotation, prefix)
+  name = annotation.name
+  RDF.Statement[
+    RDF.Triple(node, R("monocl","annotatedLanguage"), RDF.Literal(name.language)),
+    RDF.Triple(node, R("monocl","annotatedPackage"), RDF.Literal(name.package)),
+    RDF.Triple(node, R("monocl","id"), RDF.Literal(name.id)),
+  ]
+end
+
 """ Convert annotation's language-specific data to RDF.
 """
 function annotation_language_to_rdf(annotation::Annotation, prefix::RDF.Prefix)
   node = annotation_rdf_node(annotation, prefix)
-  name = annotation.name
-  stmts = RDF.Statement[
-    RDF.Triple(node, R("monocl","codeLanguage"), RDF.Literal(name.language)),
-    RDF.Triple(node, R("monocl","codePackage"), RDF.Literal(name.package)),
-  ]
+  stmts = RDF.Statement[]
   for key in intersect(keys(language_properties), keys(annotation.language))
     value = annotation.language[key]
     values = value isa AbstractArray ? value : [ value ]

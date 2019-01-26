@@ -40,9 +40,9 @@ annotation = ObAnnotation(
 )
 stmts = annotation_to_rdf(annotation, prefix)
 node = R("ex", "python:mypkg:a")
-@test Triple(node, R("monocl", "codeLanguage"), Literal("python")) in stmts
-@test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
-@test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
+@test Triple(node, R("monocl", "annotatedLanguage"), Literal("python")) in stmts
+@test Triple(node, R("monocl", "annotatedPackage"), Literal("mypkg")) in stmts
+@test Triple(node, R("monocl", "annotatedClass"), Literal("ClassA")) in stmts
 @test Triple(node, R("monocl", "codeDefinition"), R("ex","A")) in stmts
 
 slot_node = R("ex", "python:mypkg:a:slot1")
@@ -65,11 +65,11 @@ annotation = HomAnnotation(
 node = R("ex", "python:mypkg:a-do-composition")
 root_node = R("ex", "python:mypkg:a-do-composition:diagram:root")
 stmts = annotation_to_rdf(annotation, prefix)
-@test Triple(node, R("monocl", "codeLanguage"), Literal("python")) in stmts
-@test Triple(node, R("monocl", "codePackage"), Literal("mypkg")) in stmts
-@test Triple(node, R("monocl", "codeClass"), Literal("ClassA")) in stmts
-@test Triple(node, R("monocl", "codeClass"), Literal("MixinB")) in stmts
-@test Triple(node, R("monocl", "codeMethod"), Literal("do_composition")) in stmts
+@test Triple(node, R("monocl", "annotatedLanguage"), Literal("python")) in stmts
+@test Triple(node, R("monocl", "annotatedPackage"), Literal("mypkg")) in stmts
+@test Triple(node, R("monocl", "annotatedClass"), Literal("ClassA")) in stmts
+@test Triple(node, R("monocl", "annotatedClass"), Literal("MixinB")) in stmts
+@test Triple(node, R("monocl", "annotatedMethod"), Literal("do_composition")) in stmts
 @test Triple(node, R("monocl", "codeDefinition"), root_node) in stmts
 
 end

@@ -25,40 +25,40 @@ monocl:SlotAnnotation rdf:type owl:Class ;
   rdfs:comment "Annotation of slot (property) of concrete class" .
 
 
-monocl:annotatedSlot rdf:type owl:ObjectProperty ;
-  rdfs:label "Annotated slot" ;
-  rdfs:comment "Slot annotated by an type annotation" .
-
 monocl:codeDefinition rdf:type owl:ObjectProperty ;
   rdfs:label "Definition" ;
   rdfs:comment "Definition of annotated code in terms of universal concepts" .
 
-monocl:codeLanguage
+monocl:annotatedLanguage
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
   rdfs:label "Programming language" ;
   rdfs:comment "Programming language of annotated code" .
 
-monocl:codePackage
+monocl:annotatedPackage
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
   rdfs:label "Package" ;
   rdfs:comment "Library or package of annotated code" .
 
-monocl:codeClass
+monocl:annotatedClass
   rdf:type owl:DatatypeProperty ;
   rdfs:label "Class" ;
   rdfs:comment "Class or classes (intersection) to which annotation applies" .
 
-monocl:codeFunction
+monocl:annotatedFunction
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
   rdfs:label "Function" ;
   rdfs:comment "Function to which annotation applies" .
 
-monocl:codeMethod
+monocl:annotatedMethod
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
   rdfs:label "Method" ;
   rdfs:comment "Method of class to which annotation applies" .
 
+monocl:annotatedSlot rdf:type owl:ObjectProperty ;
+  rdfs:label "Annotated slot" ;
+  rdfs:comment "Slot annotated by an type annotation" .
+
 monocl:codeSlot
   rdf:type owl:DatatypeProperty, owl:FunctionalProperty ;
   rdfs:label "Slot" ;
-  rdfs:comment "Slot of class to which annotation applies" .
+  rdfs:comment "Slot of class or function input/outputs" .

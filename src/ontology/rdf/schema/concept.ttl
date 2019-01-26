@@ -63,6 +63,10 @@ monocl:FunctionConcept rdf:type owl:Class ;
   rdfs:comment "A function concept in a Monocl ontology" .
 
 
+monocl:id rdf:type owl:DatatypeProperty ;
+  rdfs:label "ID" ;
+  rdfs:comment "Identifer or name of Monocl entity, unique in some context" .
+
 monocl:isConcept rdf:type owl:ObjectProperty ;
   rdfs:label "Is concept" ;
   rdfs:comment "Asserts that the subject is, or instantiates, a concept" .
