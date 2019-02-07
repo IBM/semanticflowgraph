@@ -32,11 +32,11 @@ version = "0.5.3"
 
 [[Catlab]]
 deps = ["AutoHashEquals", "DataStructures", "JSON", "LightGraphs", "LightXML", "Match", "MetaGraphs", "Nullables", "Parameters", "Pkg", "Reexport", "Requires", "Test", "UnionFind"]
-git-tree-sha1 = "a9534da3358b3a8f7050d828eb6fa96c8883a142"
+git-tree-sha1 = "b5bc7ea4cb1fcce99cbb18848f4ce46625ba4127"
 repo-rev = "master"
-repo-url = "https://github.com/epatters/Catlab"
-uuid = "fe5c7674-9d0d-11e8-2f75-77422a24ba09"
-version = "0.1.0"
+repo-url = "https://github.com/epatters/Catlab.jl"
+uuid = "134e5e36-593f-5add-ad60-77f754baafbe"
+version = "0.2.0"
 
 [[CodecZlib]]
 deps = ["BinaryProvider", "Libdl", "Test", "TranscodingStreams"]
@@ -46,9 +46,9 @@ version = "0.5.1"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "ec61a16eed883ad0cfa002d7489b3ce6d039bb9a"
+git-tree-sha1 = "49269e311ffe11ac5b334681d212329002a9832a"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "1.4.0"
+version = "1.5.1"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections", "Random", "Serialization", "Test"]
@@ -81,10 +81,10 @@ uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 version = "1.0.5"
 
 [[HTTP]]
-deps = ["Base64", "Dates", "Distributed", "IniFile", "MbedTLS", "Sockets", "Test"]
-git-tree-sha1 = "b881f69331e85642be315c63d05ed65d6fc8a05b"
+deps = ["Base64", "Dates", "Distributed", "IniFile", "MbedTLS", "Random", "Sockets", "Test"]
+git-tree-sha1 = "25db0e3f27bd5715814ca7e4ad22025fdcf5cc6e"
 uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
-version = "0.7.1"
+version = "0.8.0"
 
 [[Homebrew]]
 deps = ["BinDeps", "InteractiveUtils", "JSON", "Libdl", "Test", "Unicode"]
@@ -165,15 +165,15 @@ version = "1.0.2+"
 
 [[MbedTLS]]
 deps = ["BinaryProvider", "Dates", "Libdl", "Random", "Sockets", "Test"]
-git-tree-sha1 = "c93a87da4081a3de781f34e0540175795a2ce83d"
+git-tree-sha1 = "40b4a9149f0967714991328b8155c9ff5f91e755"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "0.6.6"
+version = "0.6.7"
 
 [[MetaGraphs]]
 deps = ["Base64", "JLD2", "LightGraphs", "Random", "Test"]
-git-tree-sha1 = "82533eb68e57a1f39e4d371b43de24fd81a3b567"
+git-tree-sha1 = "da4cee2e6e22ff3b44087db96b27a4a094259112"
 uuid = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
-version = "0.6.0"
+version = "0.6.1"
 
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
@@ -229,10 +229,10 @@ uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 
 [[Serd]]
 deps = ["AutoHashEquals", "BinDeps", "Homebrew", "Libdl", "Nullables", "Test"]
-git-tree-sha1 = "f718036fe16037dcb74309d8e136af69a4acf9e6"
+git-tree-sha1 = "08d6a29f515459c3611e6bc107fca9c6a93fc3d1"
 repo-rev = "master"
 repo-url = "https://github.com/epatters/Serd.jl"
-uuid = "450495b8-9c41-11e8-108b-bf40c112a898"
+uuid = "42699a24-3520-5f41-a549-6a478ed667c2"
 version = "0.1.0"
 
 [[Serialization]]
@@ -296,8 +296,8 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[UnionFind]]
 deps = ["Printf", "Test"]
-git-tree-sha1 = "64f96e46ce1be3431b4bc58dfa08cd3a558b123d"
+git-tree-sha1 = "8830ae3d26179ed6fc177335b4c252158192c0e5"
 repo-rev = "master"
 repo-url = "https://github.com/epatters/UnionFind.jl"
-uuid = "8c74da80-9c34-11e8-3e46-f3719fd9c73c"
+uuid = "99c6138d-4661-531e-8606-19bf1ec96588"
 version = "0.1.0"
