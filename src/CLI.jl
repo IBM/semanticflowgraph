@@ -234,7 +234,7 @@ function visualize(args::Dict)
     graphviz = if args["raw"]
       raw_graph_to_graphviz(read_raw_graph(inpath))
     else
-      semantic_graph_to_graphviz(read_semantic_graph(inpath; elements=false))
+      semantic_graph_to_graphviz(read_semantic_graph(inpath))
     end
 
     # Pretty-print Graphviz AST to output file.

@@ -45,7 +45,7 @@ add_wires!(f, [
   (input_id(f),1) => (v,1),
   (v,1) => (output_id(f),1)
 ])
-actual = to_semantic_graph(db, f; elements=false)
+actual = to_semantic_graph(db, f)
 target = WiringDiagram(concepts(db, ["employee"]), concepts(db, ["employee"]))
 reports_to = add_box!(target, concept(db, "reports-to"))
 add_wires!(target, [
@@ -73,7 +73,7 @@ add_wires!(f, [
   (first_name, 1) => (output_id(f), 2),
   (last_name, 1) => (output_id(f), 3),
 ])
-actual = to_semantic_graph(db, f; elements=false)
+actual = to_semantic_graph(db, f)
 target = WiringDiagram(concepts(db, ["employee"]),
                        concepts(db, ["department", "string", "string"]))
 reports_to = add_box!(target, concept(db, "reports-to"))
@@ -100,7 +100,7 @@ add_wires!(f, [
   (u,1) => (v,1),
   (v,1) => (output_id(f),1)
 ])
-actual = to_semantic_graph(db, f; elements=false)
+actual = to_semantic_graph(db, f)
 target = WiringDiagram([nothing], [nothing])
 v = add_box!(target, Box(nothing, [nothing], [nothing]))
 add_wires!(target, [
@@ -119,7 +119,7 @@ add_wires!(f, [
   (u,2) => (manager,1),
   (manager,1) => (v,2),
 ])
-actual = to_semantic_graph(db, f; elements=false)
+actual = to_semantic_graph(db, f)
 target = WiringDiagram([], [])
 u = add_box!(target, Box(nothing, [], [nothing, concept(db,"employee")]))
 v = add_box!(target, Box(nothing, [nothing, concept(db,"employee")], []))
@@ -143,7 +143,7 @@ add_wires!(f, [
   (u,2) => (manager,1),
   (manager,1) => (w,2),
 ])
-actual = to_semantic_graph(db, f; elements=false)
+actual = to_semantic_graph(db, f)
 target = WiringDiagram([], [])
 reports_to = add_box!(target, concept(db,"reports-to"))
 u = add_box!(target, Box(nothing, [], [concept(db,"employee"), nothing]))

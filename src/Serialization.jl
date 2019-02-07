@@ -42,11 +42,8 @@ to_nullable(T::Type, x) = x == nothing ? Nullable{T}() : Nullable{T}(x)
 
 """ Read semantic flow graph from GraphML.
 """
-function read_semantic_graph(xml; elements::Bool=true)
-  read_graphml(
-    Union{Monocl.Hom,Nothing},
-    !elements ? Union{Monocl.Ob,Nothing} : MonoclElem,
-    Nothing, xml)
+function read_semantic_graph(xml)
+  read_graphml(Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, xml)
 end
 
 function convert_from_graph_data(::Type{Monocl.Ob}, data::AbstractDict)
