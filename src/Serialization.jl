@@ -1,7 +1,8 @@
-""" Serialization of flow graphs to/from GraphML.
+""" Serialization of raw and semantic flow graphs.
 """
 module Serialization
-export read_raw_graph, read_semantic_graph
+export read_raw_graphml, read_raw_graph_json,
+  read_semantic_graphml, read_semantic_graph_json
 
 using Nullables
 
@@ -13,11 +14,8 @@ using ..RawFlowGraphs
 # Raw flow graphs
 #################
 
-""" Read raw flow graph from GraphML.
-"""
-function read_raw_graph(xml)
-  read_graphml(RawNode, RawPort, Nothing, xml)
-end
+read_raw_graphml(xml) = read_graphml(RawNode, RawPort, Nothing, xml)
+read_raw_graph_json(json) = read_graph_json(RawNode, RawPort, Nothing, json)
 
 function convert_from_graph_data(::Type{RawNode}, data::AbstractDict)
   annotation = to_nullable(String, pop!(data, "annotation", nothing))
@@ -40,10 +38,13 @@ to_nullable(T::Type, x) = x == nothing ? Nullable{T}() : Nullable{T}(x)
 # Semantic flow graphs
 ######################
 
-""" Read semantic flow graph from GraphML.
-"""
-function read_semantic_graph(xml)
-  read_graphml(Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, xml)
+function read_semantic_graphml(xml)
+  read_graphml(
+    Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, xml)
+end
+function read_semantic_graph_json(json)
+  read_graph_json(
+    Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, json)
 end
 
 function convert_from_graph_data(::Type{Monocl.Ob}, data::AbstractDict)

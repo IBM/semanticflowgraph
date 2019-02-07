@@ -214,7 +214,7 @@ function enrich(args::Dict)
   db = OntologyDB()
   load_concepts(db)
   for (inpath, outpath) in paths
-    raw = rem_literals!(read_raw_graph(inpath))
+    raw = rem_literals!(read_raw_graphml(inpath))
     semantic = to_semantic_graph(db, raw)
     write_graphml(semantic, outpath)
   end
@@ -232,9 +232,9 @@ function visualize(args::Dict)
   for (inpath, outpath) in paths
     # Read flow graph and convert to Graphviz AST.
     graphviz = if args["raw"]
-      raw_graph_to_graphviz(read_raw_graph(inpath))
+      raw_graph_to_graphviz(read_raw_graphml(inpath))
     else
-      semantic_graph_to_graphviz(read_semantic_graph(inpath))
+      semantic_graph_to_graphviz(read_semantic_graphml(inpath))
     end
 
     # Pretty-print Graphviz AST to output file.
