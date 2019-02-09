@@ -165,10 +165,9 @@ version = "1.0.2+"
 
 [[MbedTLS]]
 deps = ["BinaryProvider", "Dates", "Libdl", "Random", "Sockets", "Test"]
-git-tree-sha1 = "c93a87da4081a3de781f34e0540175795a2ce83d"
-pinned = true
+git-tree-sha1 = "40b4a9149f0967714991328b8155c9ff5f91e755"
 uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
-version = "0.6.6"
+version = "0.6.7"
 
 [[MetaGraphs]]
 deps = ["Base64", "JLD2", "LightGraphs", "Random", "Test"]
