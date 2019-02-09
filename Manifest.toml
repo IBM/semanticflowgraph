@@ -32,7 +32,7 @@ version = "0.5.3"
 
 [[Catlab]]
 deps = ["AutoHashEquals", "DataStructures", "JSON", "LightGraphs", "LightXML", "Match", "MetaGraphs", "Nullables", "Parameters", "Pkg", "Reexport", "Requires", "Test", "UnionFind"]
-git-tree-sha1 = "b5bc7ea4cb1fcce99cbb18848f4ce46625ba4127"
+git-tree-sha1 = "da72d7f130042bc79a2dfd53d224cadf007f41a6"
 repo-rev = "master"
 repo-url = "https://github.com/epatters/Catlab.jl"
 uuid = "134e5e36-593f-5add-ad60-77f754baafbe"

@@ -51,10 +51,16 @@ end
 
 @add_arg_table settings["record"] begin
   "path"
-    help = "input script (Python or R file) or directory"
+    help = "input Python or R file, or directory"
     required = true
   "-o", "--out"
-    help = "output raw flow graph (GraphML file) or directory"
+    help = "output raw flow graph or directory"
+  "-f", "--from"
+    help = "input format (one of: \"python\", \"r\") (default: from file name)"
+    default = nothing
+  "-t", "--to"
+    help = "output format (one of: \"graphml\", \"json\")"
+    default = "graphml"
   "--graph-outputs"
     help = "whether and how to retain outputs of raw flow graph (Python only)"
     default = "none"
@@ -62,23 +68,29 @@ end
 
 @add_arg_table settings["enrich"] begin
   "path"
-    help = "input raw flow graph (GraphML file) or directory"
+    help = "input raw flow graph or directory"
     required = true
   "-o", "--out"
-    help = "output semantic flow graph (GraphML file) or directory"
+    help = "output semantic flow graph or directory"
+  "-f", "--from"
+    help = "input format (one of: \"graphml\", \"json\") (default: from file name)"
+    default = nothing
+  "-t", "--to"
+    help = "output format (one of: \"graphml\", \"json\")"
+    default = "graphml"
 end
 
 @add_arg_table settings["visualize"] begin
   "path"
-    help = "input flow graph (GraphML file) or directory"
+    help = "input raw or semantic flow graph, or directory"
     required = true
   "-o", "--out"
     help = "output file or directory"
+  "-f", "--from"
+    help = "input format (one of: \"raw-graphml\", \"raw-json\", \"semantic-graphml\", \"semantic-json\") (default: from file name)"
+    default = nothing
   "-t", "--to"
     help = "Graphviz output format (default: Graphviz input only)"
-  "--raw"
-    help = "read input as raw flow graph (default: as semantic flow graph)"
-    action = :store_true
   "--open"
     help = "open output using OS default application"
     action = :store_true
@@ -138,57 +150,30 @@ end
     action = :store_false
 end
 
-""" Map CLI input/output arguments to pairs of input/output files.
-"""
-function parse_io_args(input::String, output::Union{String,Nothing}, exts::Dict)
-  if isdir(input)
-    inexts = collect(keys(exts))
-    names = filter(name -> any(endswith.(name, inexts)), readdir(input))
-    inputs = [ joinpath(input, name) for name in names ]
-    outdir = if output == nothing; input
-      elseif isdir(output); output
-      else; throw(ArgParseError(
-        "Output must be directory when input is directory"))
-      end
-    outputs = [ map_ext(joinpath(outdir, name), exts) for name in names ]
-  elseif isfile(input)
-    inputs = [ input ]
-    outputs = [ output == nothing ? map_ext(input, exts) : output ]
-  else
-    throw(ArgParseError("Input must be file or directory"))
-  end
-  collect(zip(inputs, outputs))
-end
-
-function map_ext(name::String, ext::Dict)
-  # Don't use splitext because we allow extensions with multiple dots.
-  for (inext, outext) in ext
-    if endswith(name, inext)
-      return string(name[1:end-length(inext)], outext)
-    end
-  end
-  throw(ArgParseError(
-    "Cannot replace extension in filename: \"$name\". Supply name explicitly."))
-end
-
 # Record
 ########
 
 function record(args::Dict)
-  langs = Dict(
-    ".py" => :python,
-    ".R" => :r,
+  paths = parse_io_args(args["path"], args["out"],
+    format = args["from"],
+    formats = Dict(
+      ".py" => "python",
+      ".r" => "r",
+      ".R" => "r",
+    ),
+    out_ext = format -> ".raw." * args["to"]
   )
-  paths = parse_io_args(args["path"], args["out"], Dict(
-    ".py" => ".py.graphml",
-    ".R" => ".R.graphml",
-  ))
-  for (inpath, outpath) in paths
-    ext = last(splitext(inpath))
-    lang = get(langs, ext) do
-      error("Unsupported file extension: $ext")
+  for (inpath, lang, outpath) in paths
+    if args["to"] == "graphml"
+      record_file(abspath(inpath), abspath(outpath), args, Val(Symbol(lang)))
+    else
+      # Both the Python and R packages emit GraphML.
+      diagram = mktemp() do temp_path, io
+        record_file(abspath(inpath), temp_path, args, Val(Symbol(lang)))
+        read_graph_file(temp_path, format="graphml")
+      end
+      write_graph_file(diagram, outpath, format=args["to"])
     end
-    record_file(abspath(inpath), abspath(outpath), args, Val(lang))
   end
 end
 
@@ -207,16 +192,21 @@ end
 ########
 
 function enrich(args::Dict)
-  paths = parse_io_args(args["path"], args["out"], Dict(
-    ".py.graphml" => ".graphml",
-    ".R.graphml" => ".graphml",
-  ))
+  paths = parse_io_args(args["path"], args["out"],
+    format = args["from"],
+    formats = Dict(
+      ".raw.graphml" => "graphml",
+      ".raw.json" => "json",
+    ),
+    out_ext = format -> ".semantic." * args["to"],
+  )
   db = OntologyDB()
   load_concepts(db)
-  for (inpath, outpath) in paths
-    raw = rem_literals!(read_raw_graphml(inpath))
+  for (inpath, format, outpath) in paths
+    raw = read_graph_file(inpath, kind="raw", format=format)
+    raw = rem_literals!(raw)
     semantic = to_semantic_graph(db, raw)
-    write_graphml(semantic, outpath)
+    write_graph_file(semantic, outpath, format=args["to"])
   end
 end
 
@@ -224,17 +214,25 @@ end
 ###########
 
 function visualize(args::Dict)
-  format = args["to"] == nothing ? "dot" : args["to"]
-  paths = parse_io_args(args["path"], args["out"], Dict(
-    ".graphml" => ".$format",
-    ".xml" => ".$format",
-  ))
-  for (inpath, outpath) in paths
+  format = args["from"] == nothing ? nothing : Tuple(split(args["from"],"-",1))
+  out_format = args["to"] == nothing ? "dot" : args["to"]
+  paths = parse_io_args(args["path"], args["out"],
+    format = format,
+    formats = Dict(
+      ".raw.graphml" => ("raw", "graphml"),
+      ".raw.json" => ("raw", "json"),
+      ".semantic.graphml" => ("semantic", "graphml"),
+      ".semantic.json" => ("semantic", "json"),
+    ),
+    out_ext = format -> "." * first(format) * "." * out_format,
+  )
+  for (inpath, (kind, format), outpath) in paths
     # Read flow graph and convert to Graphviz AST.
-    graphviz = if args["raw"]
-      raw_graph_to_graphviz(read_raw_graphml(inpath))
+    diagram = read_graph_file(inpath, kind=kind, format=format)
+    graphviz = if kind == "raw"
+      raw_graph_to_graphviz(diagram)
     else
-      semantic_graph_to_graphviz(read_semantic_graphml(inpath))
+      semantic_graph_to_graphviz(diagram)
     end
 
     # Pretty-print Graphviz AST to output file.
@@ -245,10 +243,11 @@ function visualize(args::Dict)
       end
     else
       # Run Graphviz with given output format.
-      open(`dot -T$format -o $outpath`, "w", stdout) do f
+      open(`dot -T$out_format -o $outpath`, "w", stdout) do f
         Graphviz.pprint(f, graphviz)
       end
     end
+
     if args["open"]
       DefaultApplication.open(outpath)
     end
@@ -406,5 +405,83 @@ function __init__()
   @require PyCall="438e738f-606a-5dbb-bf0a-cddfbfd45ab0" include("extras/CLI-Python.jl")
   @require RCall="6f49c342-dc21-5d91-9882-a32aef131414" include("extras/CLI-R.jl")
 end
+
+# CLI utilities
+###############
+
+""" Map CLI input/output arguments to pairs of input/output files.
+"""
+function parse_io_args(input::String, output::Union{String,Nothing};
+                       format::Any=nothing, formats::AbstractDict=Dict(),
+                       out_ext::Function=format->"")
+  function get_format_and_output(input, output=nothing)
+    if output == nothing || format == nothing
+      name, ext = match_ext(input, keys(formats))
+      inferred_format = formats[ext]
+      inferred_output = name * out_ext(inferred_format)
+    end
+    (format == nothing ? inferred_format : format,
+     output == nothing ? inferred_output : output)
+  end
+
+  if isdir(input)
+    inexts = collect(keys(formats))
+    names = filter(name -> any(endswith.(name, inexts)), readdir(input))
+    outdir = if output == nothing; input
+      elseif isdir(output); output
+      else; throw(ArgParseError(
+        "Output must be directory when input is directory"))
+      end
+    map(names) do name
+      format, output = get_format_and_output(name)
+      (joinpath(input, name), format, joinpath(outdir, output))
+    end
+  elseif isfile(input)
+    format, output = get_format_and_output(input, output)
+    [ (input, format, output) ]
+  else
+    throw(ArgParseError("Input must be file or directory"))
+  end
+end
+
+function match_ext(name::String, exts)
+  # Don't use splitext because we allow extensions with multiple dots.
+  for ext in exts
+    if endswith(name, ext)
+      return (name[1:end-length(ext)], ext)
+    end
+  end
+  throw(ArgParseError("Cannot match extension in filename: \"$name\""))
+end
+
+function read_graph_file(filename::String;
+    kind::Union{String,Nothing}=nothing, format::String="graphml")
+  reader = get(graph_readers, (kind, format)) do
+    error("Invalid graph kind \"$kind\" or format \"$format\"")
+  end
+  reader(filename)
+end
+
+function write_graph_file(diagram::WiringDiagram, filename::String;
+    format::String="graphml")
+  writer = get(graph_writers, format) do
+    error("Invalid graph format \"$format\"")
+  end
+  writer(diagram, filename)
+end
+
+const graph_readers = Dict(
+  (nothing, "graphml") => x -> read_graphml(Dict, Dict, Dict, x),
+  (nothing, "json") => x -> read_json_graph(Dict, Dict, Dict, x),
+  ("raw", "graphml") => read_raw_graphml,
+  ("raw", "json") => read_raw_graph_json,
+  ("semantic", "graphml") => read_semantic_graphml,
+  ("semantic", "json") => read_semantic_graph_json,
+)
+
+const graph_writers = Dict(
+  "graphml" => write_graphml,
+  "json" => (x, filename) -> write_json_graph(x, filename, indent=2),
+)
 
 end

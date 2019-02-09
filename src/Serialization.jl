@@ -15,7 +15,7 @@ using ..RawFlowGraphs
 #################
 
 read_raw_graphml(xml) = read_graphml(RawNode, RawPort, Nothing, xml)
-read_raw_graph_json(json) = read_graph_json(RawNode, RawPort, Nothing, json)
+read_raw_graph_json(json) = read_json_graph(RawNode, RawPort, Nothing, json)
 
 function convert_from_graph_data(::Type{RawNode}, data::AbstractDict)
   annotation = to_nullable(String, pop!(data, "annotation", nothing))
@@ -38,14 +38,10 @@ to_nullable(T::Type, x) = x == nothing ? Nullable{T}() : Nullable{T}(x)
 # Semantic flow graphs
 ######################
 
-function read_semantic_graphml(xml)
-  read_graphml(
-    Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, xml)
-end
-function read_semantic_graph_json(json)
-  read_graph_json(
-    Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, json)
-end
+read_semantic_graphml(xml) = read_graphml(
+  Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, xml)
+read_semantic_graph_json(json) = read_json_graph(
+  Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, json)
 
 function convert_from_graph_data(::Type{Monocl.Ob}, data::AbstractDict)
   parse_json_sexpr(Monocl, data["ob"]; symbols=false)

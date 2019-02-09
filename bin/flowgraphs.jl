@@ -22,11 +22,11 @@ function expand_paths(path::String)::Vector{String}
   else String[] end
 end
 
-cmd, cmd_args = CLI.parse(ARGS)
+cmds, cmd_args = CLI.parse(ARGS)
 
 # XXX: Reduce load time by only importing extra packages as needed.
 # Julia really needs a better solution to this problem...
-if cmd == "record"
+if first(cmds) == "record"
   paths = expand_paths(cmd_args["path"])
   if any(endswith(path, ".py") for path in paths)
     import PyCall
@@ -36,4 +36,4 @@ if cmd == "record"
   end
 end
 
-CLI.invoke(cmd, cmd_args)
+CLI.invoke(cmds, cmd_args)
