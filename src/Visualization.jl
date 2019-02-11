@@ -2,8 +2,6 @@
 """
 module Visualization
 
-using Nullables
-
 using Catlab.WiringDiagrams, Catlab.Graphics
 using ..Doctrine
 using ..RawFlowGraphs
@@ -42,11 +40,11 @@ end
 Graphviz.node_label(f::Monocl.Hom{:coerce}) = "to"
 Graphviz.node_label(f::Monocl.Hom{:construct}) = string(codom(f))
 
-function Graphviz.node_label(f::Nullable{Monocl.Hom})
-  isnull(f) ? "?" : Graphviz.node_label(get(f))
+function Graphviz.node_label(f::Union{Monocl.Hom,Nothing})
+  f == nothing ? "?" : string(f)
 end
-function Graphviz.edge_label(A::Nullable{Monocl.Ob})
-  isnull(A) ? "" : Graphviz.edge_label(get(A))
+function Graphviz.edge_label(A::Union{Monocl.Ob,Nothing})
+  A == nothing ? "" : string(A)
 end
 
 # TikZ support.
