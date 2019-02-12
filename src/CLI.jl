@@ -78,6 +78,8 @@ end
   "-t", "--to"
     help = "output format (one of: \"graphml\", \"json\")"
     default = "graphml"
+  "--ontology"
+    help = "load ontology from JSON file (default: load from remote database)"
 end
 
 @add_arg_table settings["visualize"] begin
@@ -200,8 +202,17 @@ function enrich(args::Dict)
     ),
     out_ext = format -> ".semantic." * args["to"],
   )
+
+  # Load ontology from local or remote source.
   db = OntologyDB()
-  load_concepts(db)
+  if args["ontology"] == nothing
+    # Only load concepts from remote. Annotations will be loaded on-the-fly.
+    load_concepts(db)
+  else
+    load_ontology_file(db, args["ontology"])
+  end
+
+  # Run semantic enrichment.
   for (inpath, format, outpath) in paths
     raw = read_graph_file(inpath, kind="raw", format=format)
     raw = rem_literals!(raw)

@@ -16,8 +16,7 @@ module OntologyDBs
 export OntologyDB, OntologyError,
   concept, concept_document, concepts, has_concept,
   annotation, annotation_document, annotations, has_annotation,
-  load_concept, load_concepts, load_annotation, load_annotations,
-  load_ontology_file
+  load_concepts, load_annotation, load_annotations, load_ontology_file
 
 using DataStructures: OrderedDict
 import JSON, HTTP
