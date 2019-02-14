@@ -64,6 +64,10 @@ end
   "--graph-outputs"
     help = "whether and how to retain outputs of raw flow graph (Python only)"
     default = "none"
+    metavar = "GRAPH-OUT"
+  "--annotations"
+    help = "load annotations from JSON file (default: load from remote database)"
+    metavar = "FILE"
 end
 
 @add_arg_table settings["enrich"] begin
@@ -80,6 +84,7 @@ end
     default = "graphml"
   "--ontology"
     help = "load ontology from JSON file (default: load from remote database)"
+    metavar = "FILE"
 end
 
 @add_arg_table settings["visualize"] begin
