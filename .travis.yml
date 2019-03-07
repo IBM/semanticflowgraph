@@ -10,3 +10,4 @@ install:
 language: julia
 julia:
   - 0.7
+  - 1.0
