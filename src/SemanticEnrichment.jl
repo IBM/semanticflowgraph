@@ -126,7 +126,7 @@ end
 function collapse_unannotated_boxes!(diagram::WiringDiagram)
   # Find maximal groups of unannotated boxes.
   unannotated = filter(box_ids(diagram)) do v
-    box(diagram,v).value == nothing
+    isnothing(box(diagram,v).value)
   end
   groups = group_blank_vertices(graph(diagram), unannotated)
 

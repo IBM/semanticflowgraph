@@ -4,7 +4,7 @@ using .PyCall
 @pyimport flowgraph.core.annotation_db as PyAnnotationDBs
 
 function record_file(inpath::String, outpath::String, args::Dict, ::Val{:python})
-  if args["annotations"] == nothing
+  if isnothing(args["annotations"])
     db = nothing
   else
     # XXX: Why can't I just write `db.load_file`?

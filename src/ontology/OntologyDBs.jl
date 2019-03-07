@@ -131,9 +131,9 @@ end
 """ Load annotations in ontology from remote database.
 """
 function load_annotations(db::OntologyDB; language=nothing, package=nothing)
-  endpoint = if language == nothing
+  endpoint = if isnothing(language)
     "/annotations"
-  elseif package == nothing
+  elseif isnothing(package)
     "/annotations/$language"
   else
     "/annotations/$language/$package"

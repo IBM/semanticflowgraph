@@ -41,10 +41,10 @@ Graphviz.node_label(f::Monocl.Hom{:coerce}) = "to"
 Graphviz.node_label(f::Monocl.Hom{:construct}) = string(codom(f))
 
 function Graphviz.node_label(f::Union{Monocl.Hom,Nothing})
-  f == nothing ? "?" : string(f)
+  isnothing(f) ? "?" : string(f)
 end
 function Graphviz.edge_label(A::Union{Monocl.Ob,Nothing})
-  A == nothing ? "" : string(A)
+  isnothing(A) ? "" : string(A)
 end
 
 # TikZ support.

@@ -210,7 +210,7 @@ function enrich(args::Dict)
 
   # Load ontology from local or remote source.
   db = OntologyDB()
-  if args["ontology"] == nothing
+  if isnothing(args["ontology"])
     # Only load concepts from remote. Annotations will be loaded on-the-fly.
     load_concepts(db)
   else
@@ -230,8 +230,8 @@ end
 ###########
 
 function visualize(args::Dict)
-  format = args["from"] == nothing ? nothing : Tuple(split(args["from"],"-",1))
-  out_format = args["to"] == nothing ? "dot" : args["to"]
+  format = isnothing(args["from"]) ? nothing : Tuple(split(args["from"],"-",1))
+  out_format = isnothing(args["to"]) ? "dot" : args["to"]
   paths = parse_io_args(args["path"], args["out"],
     format = format,
     formats = Dict(
@@ -252,7 +252,7 @@ function visualize(args::Dict)
     end
 
     # Pretty-print Graphviz AST to output file.
-    if args["to"] == nothing
+    if isnothing(args["to"])
       # Default: no output format, yield Graphviz dot input.
       open(outpath, "w") do f
         Graphviz.pprint(f, graphviz)
@@ -431,19 +431,19 @@ function parse_io_args(input::String, output::Union{String,Nothing};
                        format::Any=nothing, formats::AbstractDict=Dict(),
                        out_ext::Function=format->"")
   function get_format_and_output(input, output=nothing)
-    if output == nothing || format == nothing
+    if isnothing(output) || isnothing(format)
       name, ext = match_ext(input, keys(formats))
       inferred_format = formats[ext]
       inferred_output = name * out_ext(inferred_format)
     end
-    (format == nothing ? inferred_format : format,
-     output == nothing ? inferred_output : output)
+    (isnothing(format) ? inferred_format : format,
+     isnothing(output) ? inferred_output : output)
   end
 
   if isdir(input)
     inexts = collect(keys(formats))
     names = filter(name -> any(endswith.(name, inexts)), readdir(input))
-    outdir = if output == nothing; input
+    outdir = if isnothing(output); input
       elseif isdir(output); output
       else; throw(ArgParseError(
         "Output must be directory when input is directory"))

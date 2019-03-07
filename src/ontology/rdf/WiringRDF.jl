@@ -33,7 +33,7 @@ default_port_rdf_node(box::String, port::String) = RDF.Blank("$box:$port")
 default_wire_rdf_node(wire::String) = RDF.Blank(wire)
 
 function default_value_to_rdf(node::RDF.Node, value)
-  if value == nothing
+  if isnothing(value)
     RDF.Statement[]
   else
     [ RDF.Triple(node, R("monocl","value"), RDF.Literal(string(value))) ]

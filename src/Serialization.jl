@@ -33,7 +33,7 @@ function convert_from_graph_data(::Type{RawPort}, data::AbstractDict)
   RawPort(data, annotation, annotation_index, value)
 end
 
-to_nullable(T::Type, x) = x == nothing ? Nullable{T}() : Nullable{T}(x)
+to_nullable(T::Type, x) = isnothing(x) ? Nullable{T}() : Nullable{T}(x)
 
 # Semantic flow graphs
 ######################
