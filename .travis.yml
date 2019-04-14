@@ -1,6 +1,5 @@
 # Julia for Travis: http://docs.travis-ci.com/user/languages/julia/
 
-dist: trusty
 install:
   - wget http://download.drobilla.net/serd-0.30.0.tar.bz2
   - tar -vxjf serd-0.30.0.tar.bz2
