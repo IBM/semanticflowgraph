@@ -132,7 +132,7 @@ function collapse_unannotated_boxes!(diagram::WiringDiagram)
 
   # Encapsulate the groups, including groups of size 1 because encapsulation
   # will simplify the ports.
-  encapsulate!(diagram, groups, nothing)
+  encapsulate!(diagram, groups, discard_boxes=true)
   return diagram
 end
 
