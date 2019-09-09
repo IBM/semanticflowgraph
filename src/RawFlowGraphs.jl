@@ -17,7 +17,7 @@
 module RawFlowGraphs
 export RawNode, RawPort, RawNodeAnnotationKind,
   FunctionAnnotation, ConstructAnnotation, SlotAnnotation,
-  read_raw_graph, rem_literals!, rem_unused_ports
+  rem_literals!, rem_unused_ports
 
 using AutoHashEquals, Parameters
 using Nullables

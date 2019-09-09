@@ -1,7 +1,9 @@
 """ Serialization of raw and semantic flow graphs.
 """
 module Serialization
-export read_raw_graphml, read_raw_graph_json,
+export parse_raw_graphml, parse_raw_graph_json,
+  parse_semantic_graphml, parse_semantic_graph_json,
+  read_raw_graphml, read_raw_graph_json,
   read_semantic_graphml, read_semantic_graph_json
 
 using Nullables
@@ -14,8 +16,10 @@ using ..RawFlowGraphs
 # Raw flow graphs
 #################
 
-read_raw_graphml(xml) = read_graphml(RawNode, RawPort, Nothing, xml)
-read_raw_graph_json(json) = read_json_graph(RawNode, RawPort, Nothing, json)
+parse_raw_graphml(xml) = parse_graphml(RawNode, RawPort, Nothing, xml)
+parse_raw_graph_json(json) = parse_graph_json(RawNode, RawPort, Nothing, json)
+read_raw_graphml(filename) = read_graphml(RawNode, RawPort, Nothing, filename)
+read_raw_graph_json(filename) = read_json_graph(RawNode, RawPort, Nothing, filename)
 
 function convert_from_graph_data(::Type{RawNode}, data::AbstractDict)
   annotation = to_nullable(String, pop!(data, "annotation", nothing))
@@ -38,10 +42,14 @@ to_nullable(T::Type, x) = isnothing(x) ? Nullable{T}() : Nullable{T}(x)
 # Semantic flow graphs
 ######################
 
-read_semantic_graphml(xml) = read_graphml(
+parse_semantic_graphml(xml) = parse_graphml(
   Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, xml)
-read_semantic_graph_json(json) = read_json_graph(
+parse_semantic_graph_json(json) = parse_graph_json(
   Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, json)
+read_semantic_graphml(filename) = read_graphml(
+  Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, filename)
+read_semantic_graph_json(filename) = read_json_graph(
+  Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, filename)
 
 function convert_from_graph_data(::Type{Monocl.Ob}, data::AbstractDict)
   parse_json_sexpr(Monocl, data["ob"]; symbols=false)
