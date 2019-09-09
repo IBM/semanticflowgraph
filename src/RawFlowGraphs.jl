@@ -20,7 +20,6 @@ export RawNode, RawPort, RawNodeAnnotationKind,
   rem_literals!, rem_unused_ports
 
 using AutoHashEquals, Parameters
-using Nullables
 
 using Catlab.WiringDiagrams
 
@@ -38,8 +37,8 @@ end
 
 @with_kw struct RawNode
   language::Dict{String,Any} = Dict{String,Any}()
-  annotation::Nullable{String} = Nullable{String}()
-  annotation_index::Nullable{Int} = Nullable()
+  annotation::Union{String,Nothing} = nothing
+  annotation_index::Union{Int,Nothing} = nothing
   annotation_kind::RawNodeAnnotationKind = FunctionAnnotation
 end
 
@@ -52,9 +51,9 @@ end
 
 @with_kw struct RawPort
   language::Dict{String,Any} = Dict{String,Any}()
-  annotation::Nullable{String} = Nullable{String}()
-  annotation_index::Nullable{Int} = Nullable()
-  value::Nullable = Nullable()
+  annotation::Union{String,Nothing} = nothing
+  annotation_index::Union{Int,Nothing} = nothing
+  value::Any = nothing
 end
 
 function Base.:(==)(p1::RawPort, p2::RawPort)

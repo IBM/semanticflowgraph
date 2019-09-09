@@ -19,7 +19,6 @@ export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom,
   hom, ev, curry, coerce, construct, MonoclElem, to_wiring_diagram
 
 using AutoHashEquals
-using Nullables
 
 using Catlab
 import Catlab.Doctrines: CategoryExpr, ObExpr, HomExpr,
@@ -173,8 +172,8 @@ pair(fs::Vararg{Monocl.Hom}) = pair(collect(Monocl.Hom,fs))
 """
 @auto_hash_equals struct MonoclElem
   ob::Union{Monocl.Ob,Nothing}
-  value::Nullable
-  MonoclElem(ob, value=Nullable()) = new(ob, value)
+  value::Any
+  MonoclElem(ob, value=nothing) = new(ob, value)
 end
 
 # Monocl wiring diagrams

@@ -6,8 +6,6 @@ export parse_raw_graphml, parse_raw_graph_json,
   read_raw_graphml, read_raw_graph_json,
   read_semantic_graphml, read_semantic_graph_json
 
-using Nullables
-
 using Catlab, Catlab.WiringDiagrams
 import Catlab.WiringDiagrams: convert_from_graph_data, convert_to_graph_data
 using ..Doctrine
@@ -22,22 +20,20 @@ read_raw_graphml(filename) = read_graphml(RawNode, RawPort, Nothing, filename)
 read_raw_graph_json(filename) = read_json_graph(RawNode, RawPort, Nothing, filename)
 
 function convert_from_graph_data(::Type{RawNode}, data::AbstractDict)
-  annotation = to_nullable(String, pop!(data, "annotation", nothing))
-  annotation_index = to_nullable(Int, pop!(data, "annotation_index", nothing))
-  annotation_kind_str = to_nullable(String, pop!(data, "annotation_kind", nothing))
-  annotation_kind = isnull(annotation_kind_str) ? FunctionAnnotation :
-    convert(RawNodeAnnotationKind, get(annotation_kind_str))
+  annotation = pop!(data, "annotation", nothing)
+  annotation_index = pop!(data, "annotation_index", nothing)
+  annotation_kind_str = pop!(data, "annotation_kind", nothing)
+  annotation_kind = isnothing(annotation_kind_str) ? FunctionAnnotation :
+    convert(RawNodeAnnotationKind, annotation_kind_str)
   RawNode(data, annotation, annotation_index, annotation_kind)
 end
 
 function convert_from_graph_data(::Type{RawPort}, data::AbstractDict)
-  annotation = to_nullable(String, pop!(data, "annotation", nothing))
-  annotation_index = to_nullable(Int, pop!(data, "annotation_index", nothing))
-  value = to_nullable(Any, pop!(data, "value", nothing))
+  annotation = pop!(data, "annotation", nothing)
+  annotation_index = pop!(data, "annotation_index", nothing)
+  value = pop!(data, "value", nothing)
   RawPort(data, annotation, annotation_index, value)
 end
-
-to_nullable(T::Type, x) = isnothing(x) ? Nullable{T}() : Nullable{T}(x)
 
 # Semantic flow graphs
 ######################
@@ -74,15 +70,19 @@ end
 function convert_from_graph_data(::Type{MonoclElem}, data::AbstractDict)
   ob = haskey(data, "ob") ?
     parse_json_sexpr(Monocl, data["ob"]; symbols=false) : nothing
-  value = get(data, "value", Nullable())
+  value = get(data, "value", nothing)
   MonoclElem(ob, value)
 end
 
 function convert_to_graph_data(elem::MonoclElem)
   data = Dict{String,Any}()
-  if (elem.ob != nothing) data["ob"] = to_json_sexpr(elem.ob) end
-  if (!isnull(elem.value)) data["value"] = get(elem.value) end
-  return data
+  if !isnothing(elem.ob)
+    data["ob"] = to_json_sexpr(elem.ob)
+  end
+  if !isnothing(elem.value)
+    data["value"] = elem.value
+  end
+  data
 end
 
 end

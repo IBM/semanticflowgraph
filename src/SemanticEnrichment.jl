@@ -18,7 +18,6 @@ module SemanticEnrichment
 export to_semantic_graph
 
 using Base.Iterators: product
-using Nullables
 
 using LightGraphs, MetaGraphs
 
@@ -64,7 +63,7 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
 end
 
 function to_semantic_graph(db::OntologyDB, raw_box::Box{RawNode})::AbstractBox
-  if isnull(raw_box.value.annotation)
+  if isnothing(raw_box.value.annotation)
     Box(nothing,
         to_semantic_ports(db, input_ports(raw_box)),
         to_semantic_ports(db, output_ports(raw_box)))
@@ -74,7 +73,7 @@ function to_semantic_graph(db::OntologyDB, raw_box::Box{RawNode})::AbstractBox
 end
 
 function to_semantic_ports(db::OntologyDB, ports::Vector{RawPort})
-  [ isnull(port.annotation) ? nothing : expand_annotated_port(db, port)
+  [ isnothing(port.annotation) ? nothing : expand_annotated_port(db, port)
     for port in ports ]
 end
 
@@ -88,36 +87,36 @@ function expand_annotated_box(db::OntologyDB, raw_box::Box{RawNode},
                               ::Type{Val{FunctionAnnotation}})
   inputs = input_ports(raw_box)
   outputs = output_ports(raw_box)
-  note = load_annotation(db, get(raw_box.value.annotation))::HomAnnotation
+  note = load_annotation(db, raw_box.value.annotation)::HomAnnotation
   f = WiringDiagram(inputs, outputs)
   v = add_box!(f, to_wiring_diagram(note.definition))
-  add_wires!(f, ((input_id(f), i) => (v, get(port.annotation_index))
+  add_wires!(f, ((input_id(f), i) => (v, port.annotation_index)
                  for (i, port) in enumerate(inputs)
-                 if !isnull(port.annotation_index)))
-  add_wires!(f, ((v, get(port.annotation_index)) => (output_id(f), i)
+                 if !isnothing(port.annotation_index)))
+  add_wires!(f, ((v, port.annotation_index) => (output_id(f), i)
                  for (i, port) in enumerate(outputs)
-                 if !isnull(port.annotation_index)))
+                 if !isnothing(port.annotation_index)))
   substitute!(f, v)
   return f
 end
 
 function expand_annotated_box(db::OntologyDB, raw_box::Box{RawNode},
                               ::Type{Val{ConstructAnnotation}})
-  note = load_annotation(db, get(raw_box.value.annotation))::ObAnnotation
+  note = load_annotation(db, raw_box.value.annotation)::ObAnnotation
   to_wiring_diagram(construct(note.definition))
 end
 
 function expand_annotated_box(db::OntologyDB, raw_box::Box{RawNode},
                               ::Type{Val{SlotAnnotation}})
-  note = load_annotation(db, get(raw_box.value.annotation))::ObAnnotation
-  index = get(raw_box.value.annotation_index)
+  note = load_annotation(db, raw_box.value.annotation)::ObAnnotation
+  index = raw_box.value.annotation_index
   to_wiring_diagram(note.slots[index])
 end
 
 """ Expand a single annotated port from a raw flow graph.
 """
 function expand_annotated_port(db::OntologyDB, raw_port::RawPort)::Monocl.Ob
-  note = load_annotation(db, get(raw_port.annotation))::ObAnnotation
+  note = load_annotation(db, raw_port.annotation)::ObAnnotation
   note.definition
 end
 
