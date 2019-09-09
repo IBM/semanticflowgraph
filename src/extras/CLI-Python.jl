@@ -1,3 +1,4 @@
+using Compat
 using .PyCall
 
 @pyimport flowgraph.core.record as PyFlowGraphs

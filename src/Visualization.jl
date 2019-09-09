@@ -2,6 +2,8 @@
 """
 module Visualization
 
+using Compat
+
 using Catlab.WiringDiagrams, Catlab.Graphics
 using ..Doctrine
 using ..RawFlowGraphs

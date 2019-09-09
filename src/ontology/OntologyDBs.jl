@@ -18,6 +18,7 @@ export OntologyDB, OntologyError,
   annotation, annotation_document, annotations, has_annotation,
   load_concepts, load_annotation, load_annotations, load_ontology_file
 
+using Compat
 using DataStructures: OrderedDict
 import JSON, HTTP
 

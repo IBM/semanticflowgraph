@@ -6,6 +6,8 @@ export parse_raw_graphml, parse_raw_graph_json,
   read_raw_graphml, read_raw_graph_json,
   read_semantic_graphml, read_semantic_graph_json
 
+using Compat
+
 using Catlab, Catlab.WiringDiagrams
 import Catlab.WiringDiagrams: convert_from_graph_data, convert_to_graph_data
 using ..Doctrine

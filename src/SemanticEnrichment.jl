@@ -18,6 +18,7 @@ module SemanticEnrichment
 export to_semantic_graph
 
 using Base.Iterators: product
+using Compat
 
 using LightGraphs, MetaGraphs
 

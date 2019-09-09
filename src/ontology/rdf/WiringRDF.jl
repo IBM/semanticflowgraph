@@ -15,11 +15,12 @@
 module WiringRDF
 export wiring_diagram_to_rdf, semantic_graph_to_rdf
 
+using Compat
 using Parameters
 using Serd
+
 using Catlab
 using Catlab.WiringDiagrams, Catlab.WiringDiagrams.WiringDiagramSerialization
-
 using ...Doctrine
 using ..RDFUtils
 

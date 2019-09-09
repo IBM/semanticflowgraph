@@ -18,6 +18,7 @@ module CLI
 export main, invoke, parse
 
 using ArgParse
+using Compat
 import DefaultApplication
 using Requires
 import JSON
