@@ -191,10 +191,10 @@ function to_wiring_diagram(expr::Monocl.Hom)
   functor((Ports, WiringDiagram, Monocl.SubOb), expr;
     terms = Dict(
       :Ob => (expr) -> Ports([expr]),
-      :Hom => (expr) -> WiringDiagram(expr),
+      :Hom => (expr) -> singleton_diagram(Box(expr)),
       :SubOb => identity,
       :coerce => (expr) -> to_wiring_diagram(first(expr)),
-      :construct => (expr) -> WiringDiagram(expr),
+      :construct => (expr) -> singleton_diagram(Box(expr)),
     )
   )
 end
