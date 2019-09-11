@@ -63,10 +63,20 @@ function convert_from_graph_data(::Type{Union{Monocl.Hom,Nothing}}, data::Abstra
 end
 
 function convert_to_graph_data(expr::Monocl.Ob)
-  Dict("ob" => to_json_sexpr(expr))
+  Dict(
+    "ob" => to_json_sexpr(expr),
+    "label" => Dict(
+      "text" => text_label(expr)
+    )
+  )
 end
 function convert_to_graph_data(expr::Monocl.Hom)
-  Dict("hom" => to_json_sexpr(expr))
+  Dict(
+    "hom" => to_json_sexpr(expr),
+    "label" => Dict(
+      "text" => text_label(expr)
+    )
+  )
 end
 
 function convert_from_graph_data(::Type{MonoclElem}, data::AbstractDict)
@@ -86,5 +96,12 @@ function convert_to_graph_data(elem::MonoclElem)
   end
   data
 end
+
+""" Short, human-readable, plain text label for Moncl expression.
+"""
+text_label(expr::Monocl.Ob) = string(expr)
+text_label(expr::Monocl.Hom) = string(expr)
+text_label(expr::Monocl.Hom{:coerce}) = "coerce"
+text_label(expr::Monocl.Hom{:construct}) = string(codom(expr))
 
 end

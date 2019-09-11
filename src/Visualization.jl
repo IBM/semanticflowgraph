@@ -7,6 +7,7 @@ using Compat
 using Catlab.WiringDiagrams, Catlab.Graphics
 using ..Doctrine
 using ..RawFlowGraphs
+import ..Serialization: text_label
 
 const Graphviz = GraphvizWiringDiagrams
 const TikZ = TikZWiringDiagrams
@@ -39,14 +40,13 @@ end
 ######################
 
 # Graphviz support.
-Graphviz.node_label(f::Monocl.Hom{:coerce}) = "to"
-Graphviz.node_label(f::Monocl.Hom{:construct}) = string(codom(f))
+Graphviz.node_label(f::Monocl.Hom) = text_label(f)
 
 function Graphviz.node_label(f::Union{Monocl.Hom,Nothing})
-  isnothing(f) ? "?" : string(f)
+  isnothing(f) ? "?" : text_label(f)
 end
 function Graphviz.edge_label(A::Union{Monocl.Ob,Nothing})
-  isnothing(A) ? "" : string(A)
+  isnothing(A) ? "" : text_label(A)
 end
 
 # TikZ support.
@@ -60,20 +60,10 @@ function TikZ.box(name::String, f::Monocl.Hom{:delete})
   TikZ.junction_circle(name, f)
 end
 function TikZ.box(name::String, f::Monocl.Hom{:coerce})
-  TikZ.trapezium(
-    name,
-    "to",
-    TikZ.wires(dom(f)),
-    TikZ.wires(codom(f))
-  )
+  TikZ.trapezium(name, text_label(f), TikZ.wires(dom(f)), TikZ.wires(codom(f)))
 end
 function TikZ.box(name::String, f::Monocl.Hom{:construct})
-  TikZ.rect(
-    name,
-    string(codom(f)),
-    TikZ.wires(dom(f)),
-    TikZ.wires(codom(f))
-  )
+  TikZ.rect(name, text_label(f), TikZ.wires(dom(f)), TikZ.wires(codom(f)))
 end
 
 end
