@@ -17,7 +17,7 @@ using ..RawFlowGraphs
 #################
 
 parse_raw_graphml(xml) = parse_graphml(RawNode, RawPort, Nothing, xml)
-parse_raw_graph_json(json) = parse_graph_json(RawNode, RawPort, Nothing, json)
+parse_raw_graph_json(json) = parse_json_graph(RawNode, RawPort, Nothing, json)
 read_raw_graphml(filename) = read_graphml(RawNode, RawPort, Nothing, filename)
 read_raw_graph_json(filename) = read_json_graph(RawNode, RawPort, Nothing, filename)
 
@@ -42,7 +42,7 @@ end
 
 parse_semantic_graphml(xml) = parse_graphml(
   Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, xml)
-parse_semantic_graph_json(json) = parse_graph_json(
+parse_semantic_graph_json(json) = parse_json_graph(
   Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, json)
 read_semantic_graphml(filename) = read_graphml(
   Union{Monocl.Hom,Nothing}, Union{Monocl.Ob,Nothing}, Nothing, filename)
