@@ -33,7 +33,7 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
   sem = WiringDiagram(to_semantic_ports(db, input_ports(raw)),
                       to_semantic_ports(db, output_ports(raw)))
   
-  # Add boxes.
+  # Add boxes from raw flow graph, marking some for substitution.
   to_substitute = Int[]
   for v in box_ids(raw)
     raw_box = box(raw, v)
@@ -47,7 +47,7 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
     end    
   end
   
-  # Add wires.
+  # Add wires from raw flow graph.
   # FIXME: If a raw box expands to a semantic box that is missing a port with
   # incoming or outoging wires in the raw graph (e.g., when an unannotated
   # keyword argument is passed), this logic will fail. We should detect this
@@ -55,12 +55,10 @@ function to_semantic_graph(db::OntologyDB, raw::WiringDiagram)::WiringDiagram
   add_wires!(sem, wires(raw))
   
   # Perform deferred substitutions (see above).
-  substitute!(sem, to_substitute)
+  sem = substitute(sem, to_substitute)
   
   # Simplify the diagram by collapsing adjacent unannotated boxes.
-  collapse_unannotated_boxes!(sem)
-  
-  return sem
+  collapse_unannotated_boxes(sem)
 end
 
 function to_semantic_graph(db::OntologyDB, raw_box::Box{RawNode})::AbstractBox
@@ -97,8 +95,7 @@ function expand_annotated_box(db::OntologyDB, raw_box::Box{RawNode},
   add_wires!(f, ((v, port.annotation_index) => (output_id(f), i)
                  for (i, port) in enumerate(outputs)
                  if !isnothing(port.annotation_index)))
-  substitute!(f, v)
-  return f
+  substitute(f, v)
 end
 
 function expand_annotated_box(db::OntologyDB, raw_box::Box{RawNode},
@@ -123,7 +120,7 @@ end
 
 """ Collapse adjacent unannotated boxes into single boxes.
 """
-function collapse_unannotated_boxes!(diagram::WiringDiagram)
+function collapse_unannotated_boxes(diagram::WiringDiagram)
   # Find maximal groups of unannotated boxes.
   unannotated = filter(box_ids(diagram)) do v
     isnothing(box(diagram,v).value)
@@ -132,8 +129,7 @@ function collapse_unannotated_boxes!(diagram::WiringDiagram)
 
   # Encapsulate the groups, including groups of size 1 because encapsulation
   # will simplify the ports.
-  encapsulate!(diagram, groups, discard_boxes=true)
-  return diagram
+  encapsulate(diagram, groups, discard_boxes=true)
 end
 
 """ Group adjacent blank vertices of a directed graph.

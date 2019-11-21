@@ -17,7 +17,7 @@
 module RawFlowGraphs
 export RawNode, RawPort, RawNodeAnnotationKind,
   FunctionAnnotation, ConstructAnnotation, SlotAnnotation,
-  rem_literals!, rem_unused_ports
+  rem_literals, rem_unused_ports
 
 using AutoHashEquals, Parameters
 
@@ -71,13 +71,12 @@ end
 Removes all nodes that are literal value constructors. (Currently, such nodes
 occur in raw flow graphs for R, but not Python.)
 """
-function rem_literals!(d::WiringDiagram)
-  literals = filter(box_ids(d)) do v
+function rem_literals(d::WiringDiagram)
+  nonliterals = filter(box_ids(d)) do v
     kind = get(box(d,v).value.language, "kind", "function")
-    kind == "literal"
+    kind != "literal"
   end
-  rem_boxes!(d, literals)
-  d
+  induced_subdiagram(d, nonliterals)
 end
 
 """ Remove input and output ports with no connecting wires.

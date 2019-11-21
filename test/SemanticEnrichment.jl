@@ -145,9 +145,9 @@ add_wires!(f, [
 ])
 actual = to_semantic_graph(db, f)
 target = WiringDiagram([], [])
-reports_to = add_box!(target, concept(db,"reports-to"))
 u = add_box!(target, Box(nothing, [], [concept(db,"employee"), nothing]))
 v = add_box!(target, Box(nothing, [nothing, concept(db,"employee")], []))
+reports_to = add_box!(target, concept(db,"reports-to"))
 add_wires!(target, [
   (u,2) => (v,1),
   (u,1) => (reports_to,1),

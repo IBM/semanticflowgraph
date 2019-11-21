@@ -221,7 +221,7 @@ function enrich(args::Dict)
   # Run semantic enrichment.
   for (inpath, format, outpath) in paths
     raw = read_graph_file(inpath, kind="raw", format=format)
-    raw = rem_literals!(raw)
+    raw = rem_literals(raw)
     semantic = to_semantic_graph(db, raw)
     write_graph_file(semantic, outpath, format=args["to"])
   end
