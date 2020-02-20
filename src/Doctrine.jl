@@ -130,18 +130,18 @@ end
   # domain checks when composing morphisms!
   # TODO: Domain checks when composing submorphisms need only check domain
   # and codomain of subobjects because subobjects form a pre-order.
-  compose(f::Hom, g::Hom) = associate_unit(Super.compose(f,g; strict=false), id)
-  compose(f::SubOb, g::SubOb) = associate_unit(Super.compose(f,g; strict=true), subob_id)
-  compose(f::SubHom, g::SubHom) = associate_unit(Super.compose(f,g; strict=false), subhom_id)
-  compose2(f::SubHom, g::SubHom) = associate_unit(Super.compose2(f,g; strict=false), subhom_id)
+  compose(f::Hom, g::Hom) = associate_unit(new(f,g; strict=false), id)
+  compose(f::SubOb, g::SubOb) = associate_unit(new(f,g; strict=true), subob_id)
+  compose(f::SubHom, g::SubHom) = associate_unit(new(f,g; strict=false), subhom_id)
+  compose2(f::SubHom, g::SubHom) = associate_unit(new(f,g; strict=false), subhom_id)
   
-  otimes(A::Ob, B::Ob) = associate_unit(Super.otimes(A,B), munit)
-  otimes(f::Hom, g::Hom) = associate(Super.otimes(f,g))
-  otimes(f::SubOb, g::SubOb) = associate(Super.otimes(f,g))
+  otimes(A::Ob, B::Ob) = associate_unit(new(A,B), munit)
+  otimes(f::Hom, g::Hom) = associate(new(f,g))
+  otimes(f::SubOb, g::SubOb) = associate(new(f,g))
   opow(A::Ob, n::Int) = otimes([A for i=1:n])
   
   # TODO: Enforce pre-order, not just reflexivity.
-  coerce(sub::SubOb) = dom(sub) == codom(sub) ? id(dom(sub)) : Super.coerce(sub)
+  coerce(sub::SubOb) = dom(sub) == codom(sub) ? id(dom(sub)) : new(sub)
 end
 
 SubOb(dom::Monocl.Ob, codom::Monocl.Ob) = SubOb(nothing, dom, codom)

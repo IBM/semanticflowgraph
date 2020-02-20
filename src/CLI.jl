@@ -35,7 +35,7 @@ using ..Serialization
 
 const settings = ArgParseSettings()
 
-@add_arg_table settings begin
+@add_arg_table! settings begin
   "record"
     help = "record code as raw flow graph"
     action = :command
@@ -50,7 +50,7 @@ const settings = ArgParseSettings()
     action = :command
 end
 
-@add_arg_table settings["record"] begin
+@add_arg_table! settings["record"] begin
   "path"
     help = "input Python or R file, or directory"
     required = true
@@ -71,7 +71,7 @@ end
     metavar = "FILE"
 end
 
-@add_arg_table settings["enrich"] begin
+@add_arg_table! settings["enrich"] begin
   "path"
     help = "input raw flow graph or directory"
     required = true
@@ -88,7 +88,7 @@ end
     metavar = "FILE"
 end
 
-@add_arg_table settings["visualize"] begin
+@add_arg_table! settings["visualize"] begin
   "path"
     help = "input raw or semantic flow graph, or directory"
     required = true
@@ -104,7 +104,7 @@ end
     action = :store_true
 end
 
-@add_arg_table settings["ontology"] begin
+@add_arg_table! settings["ontology"] begin
   "json"
     help = "export ontology as JSON"
     action = :command
@@ -113,7 +113,7 @@ end
     action = :command
 end
 
-@add_arg_table settings["ontology"]["json"] begin
+@add_arg_table! settings["ontology"]["json"] begin
   "-o", "--out"
     help = "output file (default: stdout)"
   "--indent"
@@ -130,7 +130,7 @@ end
     action = :store_false
 end
 
-@add_arg_table settings["ontology"]["rdf"] begin
+@add_arg_table! settings["ontology"]["rdf"] begin
   "-o", "--out"
     help = "output file (default: stdout)"
   "-t", "--to"

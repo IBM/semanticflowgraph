@@ -22,7 +22,7 @@ const db_filename = joinpath(@__DIR__, "ontology", "data", "employee.json")
 db = OntologyDB()
 load_ontology_file(db, db_filename)
 
-# Convenience methods to create raw boxes and wires with or without annotations.
+# Convenience methods to make raw boxes and ports with or without annotations.
 const prefix = "opendisc/employee"
 add_raw_box!(f::WiringDiagram, args...; kw...) =
   add_box!(f, raw_box(args...; kw...))
@@ -47,7 +47,7 @@ add_wires!(f, [
 ])
 actual = to_semantic_graph(db, f)
 target = WiringDiagram(concepts(db, ["employee"]), concepts(db, ["employee"]))
-reports_to = add_box!(target, concept(db, "reports-to"))
+reports_to = add_box!(target, Box(concept(db, "reports-to")))
 add_wires!(target, [
   (input_id(target), 1) => (reports_to, 1),
   (reports_to, 1) => (output_id(target), 1),
@@ -76,10 +76,10 @@ add_wires!(f, [
 actual = to_semantic_graph(db, f)
 target = WiringDiagram(concepts(db, ["employee"]),
                        concepts(db, ["department", "string", "string"]))
-reports_to = add_box!(target, concept(db, "reports-to"))
-works_in = add_box!(target, concept(db, "works-in"))
-first_name = add_box!(target, concept(db, "person-first-name"))
-last_name = add_box!(target, concept(db, "person-last-name"))
+reports_to = add_box!(target, Box(concept(db, "reports-to")))
+works_in = add_box!(target, Box(concept(db, "works-in")))
+first_name = add_box!(target, Box(concept(db, "person-first-name")))
+last_name = add_box!(target, Box(concept(db, "person-last-name")))
 add_wires!(target, [
   (input_id(target), 1) => (reports_to, 1),
   (reports_to, 1) => (works_in, 1),
@@ -123,7 +123,7 @@ actual = to_semantic_graph(db, f)
 target = WiringDiagram([], [])
 u = add_box!(target, Box(nothing, [], [nothing, concept(db,"employee")]))
 v = add_box!(target, Box(nothing, [nothing, concept(db,"employee")], []))
-reports_to = add_box!(target, concept(db,"reports-to"))
+reports_to = add_box!(target, Box(concept(db,"reports-to")))
 add_wires!(target, [
   (u,1) => (v,1),
   (u,2) => (reports_to,1),
@@ -147,7 +147,7 @@ actual = to_semantic_graph(db, f)
 target = WiringDiagram([], [])
 u = add_box!(target, Box(nothing, [], [concept(db,"employee"), nothing]))
 v = add_box!(target, Box(nothing, [nothing, concept(db,"employee")], []))
-reports_to = add_box!(target, concept(db,"reports-to"))
+reports_to = add_box!(target, Box(concept(db,"reports-to")))
 add_wires!(target, [
   (u,2) => (v,1),
   (u,1) => (reports_to,1),
