@@ -1,4 +1,4 @@
-""" Serialization of raw and semantic flow graphs.
+""" Serialize raw and semantic flow graphs.
 """
 module Serialization
 export parse_raw_graphml, parse_raw_graph_json,

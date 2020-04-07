@@ -1,15 +1,14 @@
-""" Visualization of flow graphs as Graphviz diagrams.
+""" Visualize raw and semantic flow graphs.
 """
 module Visualization
 
 using Compat
 
 using Catlab.WiringDiagrams, Catlab.Graphics
+import Catlab.Graphics.WiringDiagramLayouts: box_label, wire_label
 using ..Doctrine
 using ..RawFlowGraphs
 import ..Serialization: text_label
-
-const Graphviz = GraphvizWiringDiagrams
 
 # Raw flow graphs
 #################
@@ -17,12 +16,12 @@ const Graphviz = GraphvizWiringDiagrams
 # FIXME: These methods use language-specific attributes. Perhaps there should
 # be some standardization across languages.
 
-function Graphviz.node_label(node::RawNode)
+function box_label(::MIME"text/plain", node::RawNode)
   lang = node.language
   get_first(lang, ["slot", "qual_name", "function", "kind"], "?")
 end
 
-function Graphviz.edge_label(port::RawPort)
+function wire_label(::MIME"text/plain", port::RawPort)
   lang = port.language
   get_first(lang, ["qual_name", "class"], "")
 end
@@ -37,12 +36,10 @@ end
 # Semantic flow graphs
 ######################
 
-Graphviz.node_label(f::Monocl.Hom) = text_label(f)
-
-function Graphviz.node_label(f::Union{Monocl.Hom,Nothing})
+function box_label(::MIME"text/plain", f::Union{Monocl.Hom,Nothing})
   isnothing(f) ? "?" : text_label(f)
 end
-function Graphviz.edge_label(A::Union{Monocl.Ob,Nothing})
+function edge_label(::MIME"text/plain", A::Union{Monocl.Ob,Nothing})
   isnothing(A) ? "" : text_label(A)
 end
 
