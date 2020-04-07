@@ -41,8 +41,6 @@ terms of size greater than 2.
 
   mcopy(A::Ob, n::Int)::Hom(A,opow(A,n))
   delete(A::Ob)::Hom(A,munit())
-  
-  mcopy(A::Ob) = mcopy(A,2)
 end
 
 """ Doctrine of *cartesian closed category*
@@ -100,7 +98,6 @@ categories with implicit conversion of types.
      compose(construct(f), f) = id(B)
   """
   construct(f::Hom(A,B))::Hom(B,A) <= (A::Ob, B::Ob)
-  construct(A::Ob) = construct(delete(A))
   
   # Category of subobject morphisms.
   # TODO: Support internal homs.
@@ -164,6 +161,9 @@ function pair(fs::Vector{Monocl.Hom})
 end
 pair(A::Monocl.Ob, fs::Vararg{Monocl.Hom}) = pair(A, collect(Monocl.Hom,fs))
 pair(fs::Vararg{Monocl.Hom}) = pair(collect(Monocl.Hom,fs))
+
+mcopy(A::Monocl.Ob) = mcopy(A,2)
+construct(A::Monocl.Ob) = construct(delete(A))
 
 # Monocl category of elements
 #############################
