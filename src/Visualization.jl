@@ -18,7 +18,7 @@ import ..Serialization: text_label
 
 function box_label(::MIME"text/plain", node::RawNode)
   lang = node.language
-  get_first(lang, ["slot", "qual_name", "function", "kind"], "?")
+  get_first(lang, ["slot", "qual_name", "function", "kind"], "")
 end
 
 function wire_label(::MIME"text/plain", port::RawPort)
@@ -36,11 +36,7 @@ end
 # Semantic flow graphs
 ######################
 
-function box_label(::MIME"text/plain", f::Union{Monocl.Hom,Nothing})
-  isnothing(f) ? "?" : text_label(f)
-end
-function edge_label(::MIME"text/plain", A::Union{Monocl.Ob,Nothing})
-  isnothing(A) ? "" : text_label(A)
-end
+box_label(::MIME"text/plain", f::Monocl.Hom) = text_label(f)
+wire_label(::MIME"text/plain", A::Monocl.Ob) = text_label(A)
 
 end
