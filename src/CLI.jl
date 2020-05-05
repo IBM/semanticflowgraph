@@ -185,8 +185,8 @@ function record(args::Dict)
   end
 end
 
-function record_file(inpath::String, outpath::String, args::Dict, 
-                     ::Val{lang}) where lang
+function record_file(inpath::AbstractString, outpath::AbstractString,
+                     args::Dict, ::Val{lang}) where lang
   if lang == :python
     error("PyCall.jl has not been imported")
   elseif lang == :r
@@ -231,7 +231,8 @@ end
 ###########
 
 function visualize(args::Dict)
-  format = isnothing(args["from"]) ? nothing : Tuple(split(args["from"],"-",1))
+  format = isnothing(args["from"]) ? nothing :
+    Tuple(split(args["from"], "-", limit=2))
   out_format = isnothing(args["to"]) ? "dot" : args["to"]
   paths = parse_io_args(args["path"], args["out"],
     format = format,
@@ -369,7 +370,7 @@ function ontology_as_rdf(args::Dict)
   end
 end
 
-function read_ontology_rdf_schema(name::String)
+function read_ontology_rdf_schema(name::AbstractString)
   Serd.read_rdf_file(joinpath(ontology_rdf_schema_dir, name))
 end
 
@@ -428,7 +429,7 @@ end
 
 """ Map CLI input/output arguments to pairs of input/output files.
 """
-function parse_io_args(input::String, output::Union{String,Nothing};
+function parse_io_args(input::AbstractString, output::Union{AbstractString,Nothing};
                        format::Any=nothing, formats::AbstractDict=Dict(),
                        out_ext::Function=format->"")
   function get_format_and_output(input, output=nothing)
@@ -461,7 +462,7 @@ function parse_io_args(input::String, output::Union{String,Nothing};
   end
 end
 
-function match_ext(name::String, exts)
+function match_ext(name::AbstractString, exts)
   # Don't use splitext because we allow extensions with multiple dots.
   for ext in exts
     if endswith(name, ext)
@@ -471,16 +472,16 @@ function match_ext(name::String, exts)
   throw(ArgParseError("Cannot match extension in filename: \"$name\""))
 end
 
-function read_graph_file(filename::String;
-    kind::Union{String,Nothing}=nothing, format::String="graphml")
+function read_graph_file(filename::AbstractString;
+    kind::Union{AbstractString,Nothing}=nothing, format::AbstractString="graphml")
   reader = get(graph_readers, (kind, format)) do
     error("Invalid graph kind \"$kind\" or format \"$format\"")
   end
   reader(filename)
 end
 
-function write_graph_file(diagram::WiringDiagram, filename::String;
-    format::String="graphml")
+function write_graph_file(diagram::WiringDiagram, filename::AbstractString;
+    format::AbstractString="graphml")
   writer = get(graph_writers, format) do
     error("Invalid graph format \"$format\"")
   end
