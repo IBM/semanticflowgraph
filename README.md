@@ -1,6 +1,7 @@
 # Semantic flow graphs
 
-[![Build Status](https://travis-ci.org/IBM/semanticflowgraph.svg?branch=master)](https://travis-ci.org/IBM/semanticflowgraph) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1401686.svg)](https://doi.org/10.5281/zenodo.1401686)
+[![Build Status](https://github.com/IBM/semanticflowgraph/workflows/Tests/badge.svg)](https://github.com/IBM/semanticflowgraph/actions?query=workflow%3ATests)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1401686.svg)](https://doi.org/10.5281/zenodo.1401686)
 
 **Create semantic dataflow graphs of data science code.**
 
