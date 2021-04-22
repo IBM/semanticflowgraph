@@ -23,7 +23,7 @@ using DataStructures: OrderedDict
 import JSON, HTTP
 
 using Catlab
-using ..Ontology
+using ...Doctrine, ..Ontology
 
 const api_url_default = "https://api.datascienceontology.org"
 
@@ -40,7 +40,8 @@ mutable struct OntologyDB
   annotation_docs::OrderedDict{String,AbstractDict}
   
   function OntologyDB(api_url)
-    new(api_url, Presentation(String), OrderedDict(), OrderedDict(), OrderedDict())
+    new(api_url, Presentation{String}(Monocl),
+        OrderedDict(), OrderedDict(), OrderedDict())
   end
 end
 OntologyDB() = OntologyDB(api_url_default)
@@ -118,6 +119,21 @@ function load_ontology_file(db::OntologyDB, filename::String)
 end
 function load_ontology_file(db::OntologyDB, io::IO)
   load_documents(db, JSON.parse(io)::Vector)
+end
+
+""" Merge the second presentation into the first.
+
+The first presentation is mutated and returned; the second is not.
+"""
+function merge_presentation!(pres::Presentation, other::Presentation)
+  for expr in generators(other)
+    name = first(expr)
+    if isnothing(name) || !has_generator(pres, name)
+      add_generator!(pres, expr)
+    end
+  end
+  union!(pres.equations, other.equations)
+  return pres
 end
 
 # Remote database

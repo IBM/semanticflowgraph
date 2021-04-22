@@ -16,8 +16,7 @@ module OntologyJSON
 export presentation_from_json, annotation_from_json
 
 using Catlab
-using ...Doctrine
-using ..Ontology
+using ...Doctrine, ..Ontology
 
 # Concepts
 ##########
@@ -29,7 +28,7 @@ function presentation_from_json(docs)::Presentation
   # - To add a morphism, the domain/codomain objects must be added
   # - To add a subobject, the domain/codomain objects must already be added
   # - To add a submorphism, the domain/codomain morphisms must already be added
-  presentation = Presentation(String)
+  presentation = Presentation{String}(Monocl)
   ob_docs = filter(doc -> doc["kind"] == "type", docs)
   hom_docs = filter(doc -> doc["kind"] == "function", docs)
   for doc in ob_docs

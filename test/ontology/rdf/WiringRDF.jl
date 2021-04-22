@@ -16,7 +16,7 @@ module TestWiringRDF
 using Test
 
 using Serd, Serd.RDF
-using Catlab, Catlab.Doctrines, Catlab.WiringDiagrams
+using Catlab, Catlab.Theories, Catlab.WiringDiagrams
 
 using SemanticFlowGraphs
 
