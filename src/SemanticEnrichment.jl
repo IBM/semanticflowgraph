@@ -71,7 +71,7 @@ function to_semantic_graph(db::OntologyDB, raw_box::Box{RawNode})::AbstractBox
   end
 end
 
-function to_semantic_ports(db::OntologyDB, ports::Vector{RawPort})
+function to_semantic_ports(db::OntologyDB, ports::AbstractVector)
   [ isnothing(port.annotation) ? nothing : expand_annotated_port(db, port)
     for port in ports ]
 end
@@ -125,7 +125,7 @@ function collapse_unannotated_boxes(diagram::WiringDiagram)
   unannotated = filter(box_ids(diagram)) do v
     isnothing(box(diagram,v).value)
   end
-  groups = group_blank_vertices(graph(diagram), unannotated)
+  groups = group_blank_vertices(SimpleDiGraph(graph(diagram)), unannotated)
 
   # Encapsulate the groups, including groups of size 1 because encapsulation
   # will simplify the ports.
@@ -138,8 +138,8 @@ function group_blank_vertices(graph::SimpleDiGraph, blank::Vector{Int})::Vector{
   # Create transitive closure of graph.
   closure = transitiveclosure(graph)
   has_path(u::Int, v::Int) = has_edge(closure, u, v)
-  ancestors(v::Int) = inneighbors(closure, v)
-  descendants(v::Int) = outneighbors(closure, v)
+  ancestors(v::Int) = LightGraphs.inneighbors(closure, v)
+  descendants(v::Int) = LightGraphs.outneighbors(closure, v)
   
   # Initialize groups as singletons.
   graph = MetaDiGraph(graph)
@@ -182,7 +182,7 @@ function group_blank_vertices(graph::SimpleDiGraph, blank::Vector{Int})::Vector{
   v = 1
   while v <= nv(graph)
     merged = false
-    for u in all_neighbors(graph, v)
+    for u in LightGraphs.all_neighbors(graph, v)
       if u > v && is_mergable(u, v)
         merge_blank!(u, v)
         merged = true
@@ -204,12 +204,12 @@ function merge_vertices_directed!(graph::AbstractGraph, vs::Vector{Int})
   vs = sort(vs, rev=true)
   v0 = vs[end]
   for v in vs[1:end-1]
-    for u in inneighbors(graph, v)
+    for u in LightGraphs.inneighbors(graph, v)
       if !(u in vs)
         add_edge!(graph, u, v0)
       end
     end
-    for u in outneighbors(graph, v)
+    for u in LightGraphs.outneighbors(graph, v)
       if !(u in vs)
         add_edge!(graph, v0, u)
       end

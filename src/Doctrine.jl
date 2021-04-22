@@ -21,7 +21,7 @@ export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom,
 using AutoHashEquals
 
 using Catlab
-import Catlab.Doctrines: CategoryExpr, ObExpr, HomExpr,
+import Catlab.Theories: CategoryExpr, ObExpr, HomExpr,
   SymmetricMonoidalCategory, Ob, Hom, dom, codom, compose, id, otimes, munit,
   braid, mcopy, delete, pair, hom, ev, curry
 
@@ -36,7 +36,7 @@ import Catlab.WiringDiagrams: Box, WiringDiagram, to_wiring_diagram
 This signature differs from the official Catlab doctrine by allowing `mcopy`
 terms of size greater than 2.
 """
-@signature SymmetricMonoidalCategory(Ob,Hom) => CartesianCategory(Ob,Hom) begin
+@signature CartesianCategory{Ob,Hom} <: SymmetricMonoidalCategory{Ob,Hom} begin
   opow(A::Ob, n::Int)::Ob
 
   mcopy(A::Ob, n::Int)::Hom(A,opow(A,n))
@@ -48,10 +48,10 @@ end
 This signature is identical to the official Catlab doctrine, except for
 inheriting from a different doctrine.
 """
-@signature CartesianCategory(Ob,Hom) => CartesianClosedCategory(Ob,Hom) begin
+@signature CartesianClosedCategory{Ob,Hom} <: CartesianCategory{Ob,Hom} begin
   hom(A::Ob, B::Ob)::Ob
   ev(A::Ob, B::Ob)::Hom(otimes(hom(A,B),A),B)
-  curry(A::Ob, B::Ob, f::Hom(otimes(A,B),C))::Hom(A,hom(B,C)) <= (C::Ob)
+  curry(A::Ob, B::Ob, f::Hom(otimes(A,B),C))::Hom(A,hom(B,C)) ⊣ (C::Ob)
 end
 
 # Monocl category
@@ -66,7 +66,7 @@ end
 A doctrine of monoidal categories derived from the doctrine of cartesian closed
 categories with implicit conversion of types.
 """
-@signature CartesianClosedCategory(Ob,Hom) => MonoclCategory(Ob,Hom,SubOb,SubHom) begin
+@signature MonoclCategory{Ob,Hom,SubOb,SubHom} <: CartesianClosedCategory{Ob,Hom} begin
   """ Subobject relation.
   
   The domain object is a subobject of the codomain object. Alternatively,
@@ -85,36 +85,36 @@ categories with implicit conversion of types.
   codomain function, a form of ad-hoc polymorphism.
   """
   SubHom(dom::Hom(A0,B0), codom::Hom(A,B),
-         subob_dom::SubOb(A0,A), subob_codom::SubOb(B0,B))::TYPE <=
+         subob_dom::SubOb(A0,A), subob_codom::SubOb(B0,B))::TYPE ⊣
     (A0::Ob, B0::Ob, A::Ob, B::Ob)
 
   """ Coercion morphism of type A to type B.
   """
-  coerce(sub::SubOb(A,B))::Hom(A,B) <= (A::Ob, B::Ob)
+  coerce(sub::SubOb(A,B))::Hom(A,B) ⊣ (A::Ob, B::Ob)
 
   """ Constructor for instances of type A with data f: A -> B.
   
   The semantics of this term are:
      compose(construct(f), f) = id(B)
   """
-  construct(f::Hom(A,B))::Hom(B,A) <= (A::Ob, B::Ob)
+  construct(f::Hom(A,B))::Hom(B,A) ⊣ (A::Ob, B::Ob)
   
   # Category of subobject morphisms.
   # TODO: Support internal homs.
   # XXX: Cannot reuse `id` for subobjects because cannot dispatch on return type.
   subob_id(A::Ob)::SubOb(A,A)
-  compose(f::SubOb(A,B), g::SubOb(B,C))::SubOb(A,C) <= (A::Ob, B::Ob, C::Ob)
-  otimes(f::SubOb(A,B), g::SubOb(C,D))::SubOb(otimes(A,C),otimes(B,D)) <=
+  compose(f::SubOb(A,B), g::SubOb(B,C))::SubOb(A,C) ⊣ (A::Ob, B::Ob, C::Ob)
+  otimes(f::SubOb(A,B), g::SubOb(C,D))::SubOb(otimes(A,C),otimes(B,D)) ⊣
     (A::Ob, B::Ob, C::Ob, D::Ob)
   
   # 2-category of submorphism natural transformations.
-  subhom_id(f::Hom(A,B))::SubHom(f,f,subob_id(dom(f)),subob_id(codom(f))) <=
+  subhom_id(f::Hom(A,B))::SubHom(f,f,subob_id(dom(f)),subob_id(codom(f))) ⊣
     (A::Ob, B::Ob)
-  compose(α::SubHom(f,g,α0,α1), β::SubHom(g,h,β0,β1))::SubHom(f,h,compose(α0,β0),compose(α1,β1)) <=
+  compose(α::SubHom(f,g,α0,α1), β::SubHom(g,h,β0,β1))::SubHom(f,h,compose(α0,β0),compose(α1,β1)) ⊣
     (A0::Ob, B0::Ob, A::Ob, B::Ob, A1::Ob, B1::Ob,
      f::Hom(A0,B0), g::Hom(A,B), h::Hom(A1,B1),
      α0::SubOb(A0,A), α1::SubOb(B0,B), β0::SubOb(A,A1), β1::SubOb(B,B1))
-  compose2(α::SubHom(f,g,α0,α1), β::SubHom(h,k,β0,β1))::SubHom(compose(f,h),compose(g,k),α0,β1) <=
+  compose2(α::SubHom(f,g,α0,α1), β::SubHom(h,k,β0,β1))::SubHom(compose(f,h),compose(g,k),α0,β1) ⊣
     (A0::Ob, B0::Ob, C0::Ob, A::Ob, B::Ob, C::Ob,
      f::Hom(A0,B0), g::Hom(A,B), h::Hom(B0,C0), k::Hom(B,C),
      α0::SubOb(A0,A), α1::SubOb(B0,B), β0::SubOb(B0,B), β1::SubOb(C0,C))
@@ -122,7 +122,7 @@ end
 
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
 """
-@syntax Monocl(ObExpr,HomExpr,CategoryExpr,CategoryExpr) MonoclCategory begin
+@syntax Monocl{ObExpr,HomExpr,CategoryExpr,CategoryExpr} MonoclCategory begin
   # TODO: Implicit conversion is not yet implemented, so we have disabled
   # domain checks when composing morphisms!
   # TODO: Domain checks when composing submorphisms need only check domain

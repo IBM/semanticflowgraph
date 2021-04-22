@@ -21,7 +21,7 @@ using SemanticFlowGraphs
 # Concepts
 ##########
 
-TestPres = Presentation(String)
+TestPres = Presentation{String}(Monocl)
 A, B, C, A0, B0 = Ob(Monocl, "A", "B", "C", "A0", "B0")
 I = munit(Monocl.Ob)
 f, f0 = Hom("f", A, B), Hom("f0", A0, B0)
@@ -97,7 +97,7 @@ pres = presentation_from_json(docs)
 # Annotations
 #############
 
-pres = Presentation(String)
+pres = Presentation{String}(Monocl)
 A, B, C, D = Ob(Monocl, "A", "B", "C", "D")
 f = Hom("f", A, B)
 g = Hom("g", B, C)
