@@ -22,6 +22,6 @@ Serd = "42699a24-3520-5f41-a549-6a478ed667c2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
-Catlab = "0.11, 0.12"
-Serd = "0.2, 0.3"
-julia = "1.0"
+Catlab = "0.12"
+Serd = "0.3"
+julia = "1.6"
