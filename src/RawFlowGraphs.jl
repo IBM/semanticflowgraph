@@ -19,8 +19,6 @@ export RawNode, RawPort, RawNodeAnnotationKind,
   FunctionAnnotation, ConstructAnnotation, SlotAnnotation,
   rem_literals, rem_unused_ports
 
-using Parameters
-
 using Catlab.WiringDiagrams
 
 @enum(RawNodeAnnotationKind,
@@ -35,7 +33,7 @@ function Base.convert(::Type{RawNodeAnnotationKind}, s::String)
   else error("Unknown annotation kind \"$s\"") end
 end
 
-@with_kw struct RawNode
+@Base.kwdef struct RawNode
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Union{String,Nothing} = nothing
   annotation_index::Union{Int,Nothing} = nothing
@@ -49,7 +47,7 @@ function Base.:(==)(n1::RawNode, n2::RawNode)
   n1.annotation_kind == n2.annotation_kind
 end
 
-@with_kw struct RawPort
+@Base.kwdef struct RawPort
   language::Dict{String,Any} = Dict{String,Any}()
   annotation::Union{String,Nothing} = nothing
   annotation_index::Union{Int,Nothing} = nothing

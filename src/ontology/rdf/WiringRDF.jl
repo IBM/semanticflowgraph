@@ -16,7 +16,6 @@ module WiringRDF
 export wiring_diagram_to_rdf, semantic_graph_to_rdf
 
 using Compat
-using Parameters
 using Serd
 
 using Catlab
@@ -41,7 +40,7 @@ function default_value_to_rdf(node::RDF.Node, value)
   end
 end
 
-@with_kw struct RDFConfig
+@Base.kwdef struct RDFConfig
   box_rdf_node::Function = default_box_rdf_node
   port_rdf_node::Function = default_port_rdf_node
   wire_rdf_node::Function = default_wire_rdf_node
