@@ -15,8 +15,8 @@
 module Ontology
 export Annotation, AnnotationID, ObAnnotation, HomAnnotation
 
-using AutoHashEquals
 using Reexport
+using StructEquality
 
 using ..Doctrine
 
@@ -32,7 +32,7 @@ abstract type Annotation end
 
 """ Unique identifer of annotation.
 """
-@auto_hash_equals struct AnnotationID
+@struct_hash_equal struct AnnotationID
   language::String
   package::String
   id::String

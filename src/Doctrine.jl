@@ -18,7 +18,7 @@ export Monocl, ThMonocl, MonoclError, Ob, Hom, SubOb, SubHom,
   compose, compose2, id, otimes, munit, opow, braid, mcopy, delete, pair,
   hom, ev, curry, coerce, construct, MonoclElem, to_wiring_diagram
 
-using AutoHashEquals
+using StructEquality
 
 using Catlab
 import Catlab.Theories: CategoryExpr, ObExpr, HomExpr,
@@ -170,7 +170,7 @@ construct(A::Monocl.Ob) = construct(delete(A))
 
 """ Object in Monocl's category of elements.
 """
-@auto_hash_equals struct MonoclElem
+@struct_hash_equal struct MonoclElem
   ob::Union{Monocl.Ob,Nothing}
   value::Any
   MonoclElem(ob, value=nothing) = new(ob, value)

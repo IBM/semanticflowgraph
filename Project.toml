@@ -6,7 +6,6 @@ version = "0.1.0"
 
 [deps]
 ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
-AutoHashEquals = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
 Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
@@ -19,9 +18,11 @@ Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Serd = "42699a24-3520-5f41-a549-6a478ed667c2"
+StructEquality = "6ec83bb0-ed9f-11e9-3b4c-2b04cb4e219c"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [compat]
 Catlab = "0.14"
 Serd = "0.3"
+StructEquality = "^2"
 julia = "1.6"

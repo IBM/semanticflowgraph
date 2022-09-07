@@ -19,7 +19,7 @@ export RawNode, RawPort, RawNodeAnnotationKind,
   FunctionAnnotation, ConstructAnnotation, SlotAnnotation,
   rem_literals, rem_unused_ports
 
-using AutoHashEquals, Parameters
+using Parameters
 
 using Catlab.WiringDiagrams
 
