@@ -20,7 +20,7 @@ export to_semantic_graph
 using Base.Iterators: product
 using Compat
 
-using LightGraphs, MetaGraphs
+using Graphs, MetaGraphs
 
 using Catlab.WiringDiagrams
 using ..Doctrine
@@ -138,8 +138,8 @@ function group_blank_vertices(graph::SimpleDiGraph, blank::Vector{Int})::Vector{
   # Create transitive closure of graph.
   closure = transitiveclosure(graph)
   has_path(u::Int, v::Int) = has_edge(closure, u, v)
-  ancestors(v::Int) = LightGraphs.inneighbors(closure, v)
-  descendants(v::Int) = LightGraphs.outneighbors(closure, v)
+  ancestors(v::Int) = Graphs.inneighbors(closure, v)
+  descendants(v::Int) = Graphs.outneighbors(closure, v)
   
   # Initialize groups as singletons.
   graph = MetaDiGraph(graph)
@@ -182,7 +182,7 @@ function group_blank_vertices(graph::SimpleDiGraph, blank::Vector{Int})::Vector{
   v = 1
   while v <= nv(graph)
     merged = false
-    for u in LightGraphs.all_neighbors(graph, v)
+    for u in Graphs.all_neighbors(graph, v)
       if u > v && is_mergable(u, v)
         merge_blank!(u, v)
         merged = true
@@ -197,19 +197,19 @@ end
 
 """ Merge the vertices into a single vertex, preserving edges.
 
-Note: LightGraphs.merge_vertices! only supports undirected graphs.
+Note: Graphs.merge_vertices! only supports undirected graphs.
 """
 function merge_vertices_directed!(graph::AbstractGraph, vs::Vector{Int})
   @assert is_directed(graph)
   vs = sort(vs, rev=true)
   v0 = vs[end]
   for v in vs[1:end-1]
-    for u in LightGraphs.inneighbors(graph, v)
+    for u in Graphs.inneighbors(graph, v)
       if !(u in vs)
         add_edge!(graph, u, v0)
       end
     end
-    for u in LightGraphs.outneighbors(graph, v)
+    for u in Graphs.outneighbors(graph, v)
       if !(u in vs)
         add_edge!(graph, v0, u)
       end

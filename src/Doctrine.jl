@@ -13,7 +13,7 @@
 # limitations under the License.
 
 module Doctrine
-export Monocl, MonoclCategory, MonoclError, Ob, Hom, SubOb, SubHom,
+export Monocl, ThMonocl, MonoclError, Ob, Hom, SubOb, SubHom,
   dom, codom, subob_dom, subob_codom, subob_id, subhom_id,
   compose, compose2, id, otimes, munit, opow, braid, mcopy, delete, pair,
   hom, ev, curry, coerce, construct, MonoclElem, to_wiring_diagram
@@ -22,7 +22,7 @@ using AutoHashEquals
 
 using Catlab
 import Catlab.Theories: CategoryExpr, ObExpr, HomExpr,
-  SymmetricMonoidalCategory, Ob, Hom, dom, codom, compose, id, otimes, munit,
+  ThSymmetricMonoidalCategory, Ob, Hom, dom, codom, compose, id, otimes, munit,
   braid, mcopy, delete, pair, hom, ev, curry
 
 using Catlab.WiringDiagrams
@@ -36,7 +36,7 @@ import Catlab.WiringDiagrams: Box, WiringDiagram, to_wiring_diagram
 This signature differs from the official Catlab doctrine by allowing `mcopy`
 terms of size greater than 2.
 """
-@signature CartesianCategory{Ob,Hom} <: SymmetricMonoidalCategory{Ob,Hom} begin
+@signature ThCartesianCategory{Ob,Hom} <: ThSymmetricMonoidalCategory{Ob,Hom} begin
   opow(A::Ob, n::Int)::Ob
 
   mcopy(A::Ob, n::Int)::Hom(A,opow(A,n))
@@ -48,7 +48,7 @@ end
 This signature is identical to the official Catlab doctrine, except for
 inheriting from a different doctrine.
 """
-@signature CartesianClosedCategory{Ob,Hom} <: CartesianCategory{Ob,Hom} begin
+@signature ThCartesianClosedCategory{Ob,Hom} <: ThCartesianCategory{Ob,Hom} begin
   hom(A::Ob, B::Ob)::Ob
   ev(A::Ob, B::Ob)::Hom(otimes(hom(A,B),A),B)
   curry(A::Ob, B::Ob, f::Hom(otimes(A,B),C))::Hom(A,hom(B,C)) ⊣ (C::Ob)
@@ -66,7 +66,7 @@ end
 A doctrine of monoidal categories derived from the doctrine of cartesian closed
 categories with implicit conversion of types.
 """
-@signature MonoclCategory{Ob,Hom,SubOb,SubHom} <: CartesianClosedCategory{Ob,Hom} begin
+@signature ThMonocl{Ob,Hom,SubOb,SubHom} <: ThCartesianClosedCategory{Ob,Hom} begin
   """ Subobject relation.
   
   The domain object is a subobject of the codomain object. Alternatively,
@@ -122,7 +122,7 @@ end
 
 """ Syntax system for Monocl: MONoidal Ontology and Computer Language
 """
-@syntax Monocl{ObExpr,HomExpr,CategoryExpr,CategoryExpr} MonoclCategory begin
+@syntax Monocl{ObExpr,HomExpr,CategoryExpr,CategoryExpr} ThMonocl begin
   # TODO: Implicit conversion is not yet implemented, so we have disabled
   # domain checks when composing morphisms!
   # TODO: Domain checks when composing submorphisms need only check domain
